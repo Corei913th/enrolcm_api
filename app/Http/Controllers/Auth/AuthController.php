@@ -49,7 +49,15 @@ class AuthController extends Controller
     public function register(RegisterCandidatRequest $request)
     {
         try {
+            \Log::info('Register request data:', $request->validated());
+            
             $dto = RegisterCandidatDTO::fromRequest($request);
+            
+            \Log::info('DTO created:', [
+                'user_name' => $dto->user_name,
+                'nationalite_cand' => $dto->nationalite_cand,
+            ]);
+            
             $result = $this->authService->registerCandidat($dto);
 
             return api_created([

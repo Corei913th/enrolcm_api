@@ -7,6 +7,7 @@ use App\Models\Candidat;
 use App\Models\Admin;
 use App\Models\Correcteur;
 use App\Models\ResponsableCentre;
+use App\Models\PaymentReceipt;
 use App\Enums\TypeUtilisateur;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
@@ -66,35 +67,51 @@ class AuthService
     }
 
     /**
-     * Inscrire un nouveau candidat
+     * Inscrire un nouveau candidat avec reçu de paiement
      */
     public function registerCandidat(RegisterCandidatDTO $dto): array
     {
         DB::beginTransaction();
 
         try {
-            // Créer l'utilisateur
+            
+            if (Utilisateur::where('user_name', $dto->user_name)->exists()) {
+                throw new \Exception('Ce numéro de reçu a déjà été utilisé pour créer un compte.');
+            }
+
+           
+            $paymentReceipt = PaymentReceipt::where('numero_recu', $dto->user_name)->first();
+            if (!$paymentReceipt) {
+                throw new \Exception('Aucun reçu trouvé avec ce numéro. Veuillez d\'abord uploader votre reçu.');
+            }
+
+            
             $utilisateur = Utilisateur::create([
-                'user_name' => $dto->user_name,
+                'user_name' => $dto->user_name, // Le numéro de reçu
                 'mot_de_passe' => Hash::make($dto->mot_de_passe),
                 'type_utilisateur' => TypeUtilisateur::CANDIDAT,
                 'est_actif' => true,
                 'email_verifie' => false,
             ]);
 
-            // Créer le profil candidat
+            
             $candidat = Candidat::create([
                 'utilisateur_id' => $utilisateur->id,
                 'nationalite_cand' => $dto->nationalite_cand,
-                'numero_recu' => $dto->user_name,
+                'numero_recu' => $dto->user_name, // Même numéro de reçu
             ]);
 
-            // Assigner le rôle candidat par défaut si existe
+            
+            $paymentReceipt->update([
+                'candidat_id' => $candidat->utilisateur_id,
+            ]);
+
+            
             $this->assignDefaultRole($utilisateur, 'candidat');
 
             DB::commit();
 
-            // Créer un token
+            // 7. Créer un token
             $token = $utilisateur->createToken('auth-token')->plainTextToken;
 
             return [
@@ -254,7 +271,7 @@ class AuthService
      */
     private function assignDefaultRole(Utilisateur $utilisateur, string $roleName): void
     {
-        $role = Role::where('nom_role', $roleName)->first();
+        $role = Role::where('libelle_role', $roleName)->first();
 
         if ($role) {
             $utilisateur->roles()->attach($role->id);
