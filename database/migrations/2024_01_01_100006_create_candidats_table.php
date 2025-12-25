@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('candidats', function (Blueprint $table) {
             $table->uuid('utilisateur_id')->primary();
             $table->text('adresse_cand')->nullable();
-            $table->string('nom_cand', 100);
-            $table->string('prenom_cand', 100);
+            $table->string('nom_cand', 100)->nullable();
+            $table->string('prenom_cand', 100)->nullable();
             $table->string('nationalite_cand', 50)->default('Camerounaise');
             $table->integer('age_cand')->nullable();
             $table->date('date_naissance_cand')->nullable();
