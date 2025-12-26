@@ -12,7 +12,7 @@ return new class extends Migration
         Schema::create('utilisateurs', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('user_name', 255)->unique();
-            $table->string('email', 255)->unique();
+            $table->string('email', 255)->unique()->nullable();
             $table->string('mot_de_passe', 255);
             $table->string('telephone', 20)->nullable();
             $table->boolean('est_actif')->default(true);
