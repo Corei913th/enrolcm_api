@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use App\Models\Role;
 use App\DTOs\Auth\LoginDTO;
-use App\DTOs\Auth\RegisterCandidatDTO;
+use App\DTOs\Auth\CreateCandidatAccountDTO;
 use App\DTOs\Auth\ChangePasswordDTO;
 
 class AuthService
@@ -68,7 +68,7 @@ class AuthService
     /**
      * Inscrire un nouveau candidat
      */
-    public function registerCandidat(RegisterCandidatDTO $dto): array
+    public function createCandidatAccount(CreateCandidatAccountDTO $dto): array
     {
         DB::beginTransaction();
 

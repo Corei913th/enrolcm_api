@@ -2,10 +2,11 @@
 
 namespace App\DTOs\Auth;
 
+use App\Http\Requests\Auth\CreateCandidatAccountRequest;
 use Spatie\LaravelData\Data;
-use App\Http\Requests\Auth\RegisterCandidatRequest;
 
-class RegisterCandidatDTO extends Data
+
+class CreateCandidatAccountDTO extends Data
 {
     public function __construct(
         public readonly string $user_name,
@@ -13,7 +14,7 @@ class RegisterCandidatDTO extends Data
         public readonly ?string $nationalite_cand = 'Camerounaise',
     ) {}
 
-    public static function fromRequest(RegisterCandidatRequest $request): self
+    public static function fromRequest(CreateCandidatAccountRequest $request): self
     {
         return new self(
             user_name: $request->validated('user_name'),
