@@ -2,16 +2,16 @@
 
 namespace App\Services\Users;
 
-use App\DTOs\Auth\RegisterCandidatDTO;
+
+use App\DTOs\Candidats\CreateCandidatAccountDTO;
 use App\Enums\TypeUtilisateur;
-use App\Models\Candidat;
 use App\Models\Utilisateur;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 class UserService
 {
-    public function createCandidatAccount(RegisterCandidatDTO $dto): Utilisateur
+    public function createCandidatAccount(CreateCandidatAccountDTO $dto): Utilisateur
     {
         return DB::transaction(function () use ($dto) {
             $user = Utilisateur::create([
