@@ -21,13 +21,6 @@ class UserService
                 'est_actif' => true,
                 'email_verifie' => false,
             ]);
-
-            Candidat::create([
-                'utilisateur_id' => $user->id,
-                'nationalite_cand' => $dto->nationalite_cand,
-                'numero_recu' => $dto->user_name,
-            ]);
-
             return $user;
         });
     }
