@@ -5,10 +5,10 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Services\Auth\AuthService;
 use App\Http\Requests\Auth\LoginRequest;
-use App\Http\Requests\Auth\RegisterCandidatRequest;
+use App\Http\Requests\Auth\CreateCandidatAccountRequest;
 use App\Http\Requests\Auth\ChangePasswordRequest;
 use App\DTOs\Auth\LoginDTO;
-use App\DTOs\Auth\RegisterCandidatDTO;
+use App\DTOs\Auth\CreateCandidatAccountDTO;
 use App\DTOs\Auth\ChangePasswordDTO;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
@@ -46,11 +46,11 @@ class AuthController extends Controller
     /**
      * Inscription candidat
      */
-    public function register(RegisterCandidatRequest $request)
+    public function register(CreateCandidatAccountRequest $request)
     {
         try {
-            $dto = RegisterCandidatDTO::fromRequest($request);
-            $result = $this->authService->registerCandidat($dto);
+            $dto = CreateCandidatAccountDTO::fromRequest($request);
+            $result = $this->authService->createCandidatAccount($dto);
 
             return api_created([
                 'user' => new UtilisateurResource($result['user']),
