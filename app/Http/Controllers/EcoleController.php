@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Ecoles\StoreEcoleRequest;
+use App\Http\Requests\Ecoles\UpdateEcoleRequest;
 use App\Models\Ecole;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;

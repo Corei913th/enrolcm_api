@@ -3,7 +3,7 @@
 use App\Helpers\ResponseHelper;
 
 if (!function_exists('api_success')) {
-    function api_success($data = null, string $message = null, int $code = 200)
+function api_success(?string $message = null, $data = null, int $code = 200)
     {
         return ResponseHelper::success($data, $message, $code);
     }

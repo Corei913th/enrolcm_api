@@ -1,6 +1,8 @@
 <?php
 
 namespace App\Http\Requests;
+namespace App\Http\Requests\Ecoles;
+
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules\Enum;
