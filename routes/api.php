@@ -9,6 +9,9 @@ Route::prefix('auth')->group(function () {
 });
 
 Route::middleware('auth:sanctum')->group(function () {
-
+ 
+    Route::prefix('candidats')->group(function () {
+        require __DIR__ . '/api/candidats.php';
+    });
     
 });

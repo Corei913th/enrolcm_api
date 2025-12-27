@@ -3,7 +3,7 @@
 namespace App\Services\Users;
 
 
-use App\DTOs\Candidats\CreateCandidatAccountDTO;
+use App\DTOs\Auth\CreateCandidatAccountDTO;
 use App\Enums\TypeUtilisateur;
 use App\Models\Utilisateur;
 use Illuminate\Support\Facades\DB;
