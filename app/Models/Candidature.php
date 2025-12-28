@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\StatutInscription;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -23,6 +24,7 @@ class Candidature extends Model
         'date_candidature',
         'code_cand_temp',
         'code_cand_def',
+        'statut_inscription',
         'qr_code',
         'date_inscription',
         'date_depot_physique',
@@ -35,6 +37,7 @@ class Candidature extends Model
         'date_inscription' => 'date',
         'date_depot_physique' => 'date',
         'date_validation' => 'datetime',
+        'statut_inscription' => StatutInscription::class,
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',
@@ -64,6 +67,12 @@ class Candidature extends Model
     public function concoursSession()
     {
         return $this->belongsTo(ConcoursSession::class, ['concours_id', 'session_id'], ['concours_id', 'session_id']);
+    }
+
+    public function paiement()
+    {
+        return $this->hasOne(Paiement::class, 'concours_id', 'concours_id')
+            ->where('candidat_id', $this->candidat_id);
     }
 
     public function documents()
@@ -208,4 +217,46 @@ class Candidature extends Model
             && !$this->isValidee()
             && !$this->isRejetee();
     }
+
+    // Helpers pour statut inscription
+    public function isBrouillon(): bool
+    {
+        return $this->statut_inscription === StatutInscription::BROUILLON;
+    }
+
+    public function isSuspendue(): bool
+    {
+        return $this->statut_inscription === StatutInscription::SUSPENDUE;
+    }
+
+    public function isConfirmee(): bool
+    {
+        return $this->statut_inscription === StatutInscription::CONFIRMEE;
+    }
+
+    public function isInvalidee(): bool
+    {
+        return $this->statut_inscription === StatutInscription::INVALIDEE;
+    }
+
+    public function suspendre(): void
+    {
+        $this->update(['statut_inscription' => StatutInscription::SUSPENDUE]);
+    }
+
+    public function confirmer(): void
+    {
+        $this->update(['statut_inscription' => StatutInscription::CONFIRMEE]);
+    }
+
+    public function invalider(): void
+    {
+        $this->update(['statut_inscription' => StatutInscription::INVALIDEE]);
+    }
+
+    public function hasPaiementValide(): bool
+    {
+        return $this->paiement && $this->paiement->isValide();
+    }
 }
+

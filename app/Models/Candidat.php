@@ -83,6 +83,16 @@ class Candidat extends Model
         return $this->hasMany(PaymentReceipt::class, 'candidat_id', 'utilisateur_id');
     }
 
+    public function paiements()
+    {
+        return $this->hasMany(Paiement::class, 'candidat_id', 'utilisateur_id');
+    }
+
+    public function paymentReferences()
+    {
+        return $this->hasMany(PaymentReference::class, 'candidat_id', 'utilisateur_id');
+    }
+
     public function getFullName()
     {
         return "{$this->nom_cand} {$this->prenom_cand}";
