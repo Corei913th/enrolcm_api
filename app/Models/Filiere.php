@@ -38,4 +38,16 @@ class Filiere extends Model
     {
         return $this->belongsToMany(Niveau::class, 'filiere_niveau');
     }
+
+    public function concours()
+    {
+        return $this->belongsToMany(Concours::class, 'concours_filiere')
+            ->withPivot('nombre_places')
+            ->withTimestamps();
+    }
+
+    public function candidats()
+    {
+        return $this->hasMany(Candidat::class, 'filiere_id');
+    }
 }

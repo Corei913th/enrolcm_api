@@ -44,6 +44,13 @@ class Concours extends Model
         return $this->belongsTo(SpecConcours::class, 'spec_concours_id');
     }
 
+    public function filieres()
+    {
+        return $this->belongsToMany(Filiere::class, 'concours_filiere')
+            ->withPivot('nombre_places')
+            ->withTimestamps();
+    }
+
     public function concoursSessions()
     {
         return $this->hasMany(ConcoursSession::class, 'concours_id');
