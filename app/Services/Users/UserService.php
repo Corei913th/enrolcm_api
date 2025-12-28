@@ -9,13 +9,20 @@ use App\Enums\TypeUtilisateur;
 use App\Models\Admin;
 use App\Models\Correcteur;
 use App\Models\ResponsableCentre;
-use App\Models\Role;
 use App\Models\Utilisateur;
+use App\Services\Roles\RoleService;
 use Illuminate\Support\Facades\DB;
 
 
 class UserService
 {
+
+    public function __construct(
+        private readonly RoleService $roleService
+        )
+    {
+    }
+
     public function createCandidatAccount(CreateCandidatAccountDTO $dto): Utilisateur
     {
         return DB::transaction(function () use ($dto) {
@@ -48,14 +55,14 @@ class UserService
                         'utilisateur_id' => $user->id,
                         'matricule' => $dto->matricule
                     ]);
-                $this->assignRole($user, TypeUtilisateur::ADMIN);
+                $this->roleService->assignDefault($user, TypeUtilisateur::ADMIN);
                 break;
                 case TypeUtilisateur::RESPONSABLE_CENTRE:
                     ResponsableCentre::create([
                         'utilisateur_id' => $user->id,
                         'code_agent' => $dto->code_agent
                     ]);
-                $this->assignRole($user, TypeUtilisateur::RESPONSABLE_CENTRE);
+                $this->roleService->assignDefault($user, TypeUtilisateur::RESPONSABLE_CENTRE);
                 break;
                  case TypeUtilisateur::CORRECTEUR:
                     Correcteur::create([
@@ -63,22 +70,11 @@ class UserService
                         'matricule_enseignant' => $dto->matricule_enseignant,
                         'specialite' => $dto->specialite,
                     ]);  
-                $this->assignRole($user, TypeUtilisateur::CORRECTEUR);
+                $this->roleService->assignDefault($user, TypeUtilisateur::CORRECTEUR);
                 break;
             }
     }
 
-    /**
-     * Assigner un rôle 
-     */
-    private function assignRole(Utilisateur $staff, string $roleName): void
-    {
-        $role = Role::where('libelle_role', $roleName)->first();
-
-        if ($role) {
-            $staff->roles()->attach($role->id);
-        }
-    }
 }
 
 
