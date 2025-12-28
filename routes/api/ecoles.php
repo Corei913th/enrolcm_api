@@ -20,3 +20,12 @@ Route::middleware('auth:sanctum')->prefix('ecoles')->group(function () {
     Route::put('{ecole}', [EcoleController::class, 'update']);
     Route::delete('{ecole}', [EcoleController::class, 'destroy']);
 });
+
+
+// Routes pour la gestion des fichiers
+Route::post('{ecole}/upload-file', [EcoleController::class, 'uploadFile']);
+Route::delete('{ecole}/delete-file', [EcoleController::class, 'deleteFile']);
+
+// Routes pour la génération de PDF
+Route::post('{ecole}/generate-attestation', [EcoleController::class, 'generateAttestation']);
+Route::get('{ecole}/preview-header', [EcoleController::class, 'previewHeader']);

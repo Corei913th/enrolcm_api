@@ -156,3 +156,120 @@ class EcoleController extends Controller
         }
     }
 }
+
+    /**
+     * Uploader un fichier pour une école
+     */
+    public function uploadFile(Request $request, string $id): JsonResponse
+    {
+        $request->validate([
+            'type' => 'required|in:logo,embleme,header_frame',
+            'file' => 'required|file|image|max:5120',
+        ]);
+
+        try {
+            $ecole = $this->ecoleService->getById($id);
+            $fileService = new \App\Services\Ecoles\EcoleFileService();
+            
+            $fileInfo = $fileService->uploadFile(
+                $ecole,
+                $request->file('file'),
+                $request->input('type')
+            );
+
+            // Mettre à jour l'école avec les infos du fichier
+            $pathField = $request->input('type') . '_path';
+            $nameField = $request->input('type') . '_original_name';
+            
+            $ecole->update([
+                $pathField => $fileInfo['path'],
+                $nameField => $fileInfo['original_name'],
+            ]);
+
+            return api_success(
+                new EcoleResource($ecole->fresh()),
+                'Fichier uploadé avec succès'
+            );
+        } catch (\Exception $e) {
+            return api_error($e->getMessage());
+        }
+    }
+
+    /**
+     * Supprimer un fichier d'une école
+     */
+    public function deleteFile(Request $request, string $id): JsonResponse
+    {
+        $request->validate([
+            'type' => 'required|in:logo,embleme,header_frame',
+        ]);
+
+        try {
+            $ecole = $this->ecoleService->getById($id);
+            $fileService = new \App\Services\Ecoles\EcoleFileService();
+            
+            $fileService->deleteFile($ecole, $request->input('type'));
+
+            // Mettre à jour l'école
+            $pathField = $request->input('type') . '_path';
+            $nameField = $request->input('type') . '_original_name';
+            
+            $ecole->update([
+                $pathField => null,
+                $nameField => null,
+            ]);
+
+            return api_success(
+                new EcoleResource($ecole->fresh()),
+                'Fichier supprimé avec succès'
+            );
+        } catch (\Exception $e) {
+            return api_error($e->getMessage());
+        }
+    }
+
+    /**
+     * Générer une attestation PDF
+     */
+    public function generateAttestation(Request $request, string $id)
+    {
+        $request->validate([
+            'etudiant_nom' => 'required|string',
+            'numero' => 'nullable|string',
+            'date_naissance' => 'nullable|date',
+            'lieu_naissance' => 'nullable|string',
+        ]);
+
+        try {
+            $ecole = $this->ecoleService->getById($id);
+            $pdfService = new \App\Services\Ecoles\EcolePdfService();
+            
+            $pdf = $pdfService->generateAttestation($ecole, $request->all());
+            
+            return $pdf->download('attestation_' . $request->input('numero', 'ATT') . '.pdf');
+        } catch (\Exception $e) {
+            return api_error($e->getMessage());
+        }
+    }
+
+    /**
+     * Prévisualiser l'entête PDF
+     */
+    public function previewHeader(string $id)
+    {
+        try {
+            $ecole = $this->ecoleService->getById($id);
+            $pdfService = new \App\Services\Ecoles\EcolePdfService();
+            
+            $pdf = $pdfService->generateDocument(
+                $ecole,
+                'APERÇU DE L\'ENTÊTE',
+                '<p style="text-align: center; margin-top: 50px;">Ceci est un aperçu de l\'entête officielle de l\'école.</p>'
+            );
+            
+            return $pdf->stream('preview_header.pdf');
+        } catch (\Exception $e) {
+            return api_error($e->getMessage());
+        }
+    }
+}
