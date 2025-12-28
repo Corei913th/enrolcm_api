@@ -44,11 +44,6 @@ class SpecConcours extends Model
         return $this->hasMany(Concours::class, 'spec_concours_id');
     }
 
-    // Relations
-    public function concours()
-    {
-        return $this->hasMany(Concours::class, 'spec_concours_id');
-    }
 
     // Scopes
     public function scopeActif($query)
