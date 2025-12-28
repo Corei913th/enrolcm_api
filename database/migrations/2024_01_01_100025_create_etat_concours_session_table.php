@@ -13,8 +13,7 @@ return new class extends Migration
             $table->uuid('concours_session_concours_id')->nullable();
             $table->uuid('concours_session_session_id')->nullable();
             $table->uuid('etat_session_id')->nullable();
-            $table->timestamp('date_etat')->useCurrent();
-            $table->timestamp('created_at')->useCurrent();
+            $table->timestamps();
             
             $table->foreign('etat_session_id')->references('id')->on('etat_session');
         });

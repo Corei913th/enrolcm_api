@@ -17,8 +17,7 @@ return new class extends Migration
             $table->enum('type_epreuve', TypeEpreuve::values());
             $table->integer('duree_en_minute')->default(60);
             $table->boolean('est_actif')->default(true);
-            $table->timestamp('created_at')->useCurrent();
-            $table->timestamp('updated_at')->useCurrent();
+            $table->timestamps();
 
             $table->index('session');
             $table->index('type_epreuve');

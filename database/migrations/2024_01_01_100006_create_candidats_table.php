@@ -40,8 +40,7 @@ return new class extends Migration
             $table->string('numero_recu', 50)->unique(); 
             $table->string('telephone_candidat', 20)->nullable();
             $table->enum('region', RegionCameroun::values())->nullable();
-            $table->timestamp('created_at')->useCurrent();
-            $table->timestamp('updated_at')->useCurrent();
+            $table->timestamps();
             $table->boolean('est_actif')->default(true);
 
 

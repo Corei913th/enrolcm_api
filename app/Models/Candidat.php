@@ -21,17 +21,24 @@ class Candidat extends Model
         'nationalite_cand',
         'age_cand',
         'date_naissance_cand',
+        'lieu_naissance_cand',
         'nom_tuteur_cand',
         'telephone_tuteur_cand',
         'sexe_cand',
-        'handicap',
+        'a_handicap',
+        'type_handicap',
         'ethnie_cand',
         'nom_parent',
         'telephone_parent',
         'code_cand',
+        'filiere_id',
         'niveau_scolaire',
         'filiere_origine',
+        'etablissement_origine',
+        'ville_etablissement',
         'diplome_admission',
+        'serie_bac',
+        'annee_obtention_bac',
         'mention',
         'annee_diplome',
         'numero_cni',
@@ -41,12 +48,17 @@ class Candidat extends Model
         'telephone_pere',
         'numero_recu',
         'telephone_candidat',
+        'region',
+        'departement',
+        'arrondissement',
     ];
 
     protected $casts = [
         'date_naissance_cand' => 'date',
         'annee_diplome' => 'date',
         'date_delivrance_cni' => 'date',
+        'a_handicap' => 'boolean',
+        'annee_obtention_bac' => 'integer',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
@@ -61,12 +73,27 @@ class Candidat extends Model
         return $this->hasMany(Candidature::class, 'candidat_id', 'utilisateur_id');
     }
 
+    public function filiere()
+    {
+        return $this->belongsTo(Filiere::class, 'filiere_id');
+    }
+
     public function paymentReceipts()
     {
         return $this->hasMany(PaymentReceipt::class, 'candidat_id', 'utilisateur_id');
     }
 
-    public function getNomCompletAttribute()
+    public function paiements()
+    {
+        return $this->hasMany(Paiement::class, 'candidat_id', 'utilisateur_id');
+    }
+
+    public function paymentReferences()
+    {
+        return $this->hasMany(PaymentReference::class, 'candidat_id', 'utilisateur_id');
+    }
+
+    public function getFullName()
     {
         return "{$this->nom_cand} {$this->prenom_cand}";
     }

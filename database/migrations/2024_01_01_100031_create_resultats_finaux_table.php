@@ -21,8 +21,7 @@ return new class extends Migration
             $table->boolean('est_admis')->default(false);
             $table->date('date_publication')->nullable();
             $table->timestamp('deleted_at')->nullable();
-            $table->timestamp('created_at')->useCurrent();
-            $table->timestamp('updated_at')->useCurrent();
+            $table->timestamps();
             
             $table->foreign('candidature_id')->references('id')->on('candidatures')->onDelete('restrict');
             $table->index('candidature_id');

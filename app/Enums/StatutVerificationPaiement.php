@@ -16,9 +16,18 @@ enum StatutVerificationPaiement: string
     public function label(): string
     {
         return match($this) {
-            self::EN_ATTENTE => 'En attente de vérification',
+            self::EN_ATTENTE => 'En attente',
             self::VERIFIE => 'Vérifié',
             self::REJETE => 'Rejeté',
+        };
+    }
+
+    public function color(): string
+    {
+        return match($this) {
+            self::EN_ATTENTE => 'warning',
+            self::VERIFIE => 'success',
+            self::REJETE => 'danger',
         };
     }
 }

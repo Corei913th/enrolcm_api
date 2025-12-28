@@ -90,6 +90,11 @@ class Utilisateur extends Authenticatable
         return $this->hasOne(Correcteur::class, 'utilisateur_id');
     }
 
+    public function notifications()
+    {
+        return $this->hasMany(Notification::class, 'utilisateur_id');
+    }
+
     // Scopes
     public function scopeActif($query)
     {
@@ -124,14 +129,14 @@ class Utilisateur extends Authenticatable
 
     public function hasRole($roleName): bool
     {
-        return $this->roles()->where('nom_role', $roleName)->exists();
+        return $this->roles()->where('libelle_role', $roleName)->exists();
     }
 
     public function hasPermission($permissionName): bool
     {
         return $this->roles()
             ->whereHas('permissions', function ($query) use ($permissionName) {
-                $query->where('nom_permission', $permissionName);
+                $query->where('libelle_permission', $permissionName);
             })
             ->exists();
     }

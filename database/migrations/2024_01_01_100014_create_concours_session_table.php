@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('concours_session', function (Blueprint $table) {
             $table->uuid('concours_id');
             $table->uuid('session_id');
-            $table->timestamp('created_at')->useCurrent();
+            $table->timestamps();
             
             $table->primary(['concours_id', 'session_id']);
             $table->foreign('concours_id')->references('id')->on('concours')->onDelete('cascade');

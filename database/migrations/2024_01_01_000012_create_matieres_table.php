@@ -14,8 +14,7 @@ return new class extends Migration
             $table->string('libelle_matiere', 200);
             $table->integer('coefficient')->nullable()->default(2);
             $table->boolean('est_actif')->default(true);
-            $table->timestamp('created_at')->useCurrent();
-            $table->timestamp('updated_at')->useCurrent();
+            $table->timestamps();
         });
     }
 

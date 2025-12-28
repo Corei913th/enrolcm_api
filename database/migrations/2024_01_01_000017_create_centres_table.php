@@ -16,8 +16,7 @@ return new class extends Migration
             $table->string('ville_centre', 100)->nullable();
             $table->integer('capacite')->default(0);
             $table->boolean('est_actif')->default(true);
-            $table->timestamp('created_at')->useCurrent();
-            $table->timestamp('updated_at')->useCurrent();
+            $table->timestamps();
             $table->uuid('responsable_id')->nullable();
 
             $table->foreign('responsable_id')->references('utilisateur_id')->on('responsables_centre')->onDelete('set null');
