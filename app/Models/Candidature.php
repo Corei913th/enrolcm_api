@@ -19,6 +19,7 @@ class Candidature extends Model
         'candidat_id',
         'concours_id',
         'session_id',
+        'centre_id',
         'date_candidature',
         'code_cand_temp',
         'code_cand_def',
@@ -55,6 +56,11 @@ class Candidature extends Model
         return $this->belongsTo(Session::class, 'session_id');
     }
 
+    public function centre()
+    {
+        return $this->belongsTo(Centre::class, 'centre_id');
+    }
+
     public function concoursSession()
     {
         return $this->belongsTo(ConcoursSession::class, ['concours_id', 'session_id'], ['concours_id', 'session_id']);
@@ -84,6 +90,16 @@ class Candidature extends Model
     {
         return $this->hasOne(EtatCandidature::class, 'candidature_id')
             ->latest('date_etat');
+    }
+
+    public function affectationsSalles()
+    {
+        return $this->hasMany(CandidatureSalle::class, 'candidature_id');
+    }
+
+    public function convocation()
+    {
+        return $this->hasOne(Convocation::class, 'candidature_id');
     }
 
     // Scopes
