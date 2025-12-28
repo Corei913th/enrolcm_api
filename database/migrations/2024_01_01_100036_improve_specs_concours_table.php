@@ -20,10 +20,7 @@ return new class extends Migration
             $table->integer('age_maximum')->nullable()->after('age_minimum');
             $table->json('series_bac_acceptees')->nullable()->after('age_maximum');
             $table->json('nationalites_acceptees')->nullable()->after('series_bac_acceptees');
-            
-            // Ajouter updated_at
-            $table->timestamp('updated_at')->useCurrent()->after('created_at');
-            
+                             
             // Statut actif
             $table->boolean('est_actif')->default(true)->after('updated_at');
         });
@@ -60,7 +57,6 @@ return new class extends Migration
                 'age_maximum',
                 'series_bac_acceptees',
                 'nationalites_acceptees',
-                'updated_at',
                 'est_actif',
             ]);
         });
