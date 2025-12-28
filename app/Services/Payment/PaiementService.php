@@ -6,6 +6,7 @@ use App\Models\Paiement;
 use App\Models\PaymentReference;
 use App\Models\Candidature;
 use App\Enums\StatutPaiement;
+use App\Enums\StatutInscription;
 use App\Services\OCR\TesseractOcrService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -15,7 +16,7 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 class PaiementService
 {
     public function __construct(
-        private TesseractOcrService $ocrService
+        private readonly TesseractOcrService $ocrService
     ) {}
 
     /**
@@ -68,9 +69,6 @@ class PaiementService
                 'ocr_raw_data' => $ocrData->raw_data ?? null,
                 'statut' => $statut,
             ]);
-
-            // Suspendre inscription
-            $this->suspendreInscription($paiement);
 
             // Auto-validation si OCR OK
             if ($statut === StatutPaiement::OCR_VERIFIE) {
@@ -130,7 +128,8 @@ class PaiementService
                 $pru->marquerUtilise();
             }
 
-            $this->confirmerInscription($paiement);
+            // Créer inscription CONFIRMEE automatiquement
+            $this->creerInscriptionConfirmee($paiement);
 
             return $paiement->fresh();
         });
@@ -181,25 +180,22 @@ class PaiementService
         return $date <= $dateLimite;
     }
 
-    private function suspendreInscription(Paiement $paiement): void
+    private function creerInscriptionConfirmee(Paiement $paiement): void
     {
-        $candidature = Candidature::where('candidat_id', $paiement->candidat_id)
+        $existante = Candidature::where('candidat_id', $paiement->candidat_id)
             ->where('concours_id', $paiement->concours_id)
             ->first();
 
-        if ($candidature) {
-            $candidature->suspendre();
-        }
-    }
-
-    private function confirmerInscription(Paiement $paiement): void
-    {
-        $candidature = Candidature::where('candidat_id', $paiement->candidat_id)
-            ->where('concours_id', $paiement->concours_id)
-            ->first();
-
-        if ($candidature) {
-            $candidature->confirmer();
+        if ($existante) {
+            $existante->confirmer();
+        } else {
+            Candidature::create([
+                'candidat_id' => $paiement->candidat_id,
+                'concours_id' => $paiement->concours_id,
+                'statut_inscription' => StatutInscription::CONFIRMEE,
+                'date_candidature' => now(),
+                'date_inscription' => now(),
+            ]);
         }
     }
 
