@@ -3,17 +3,9 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Payment\PaymentReceiptController;
 
-// Routes pour les candidats
-Route::middleware(['auth:sanctum'])->group(function () {
-    Route::post('/receipts/upload', [PaymentReceiptController::class, 'upload'])
-        ->name('receipts.upload');
-    
-    Route::get('/receipts/my-receipt', [PaymentReceiptController::class, 'myReceipt'])
-        ->name('receipts.my-receipt');
-});
 
 // Routes pour les admins
-Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
+Route::prefix('admin')->group(function () {
     Route::get('/receipts', [PaymentReceiptController::class, 'index'])
         ->name('admin.receipts.index');
     

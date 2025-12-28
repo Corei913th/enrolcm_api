@@ -11,7 +11,8 @@ use Illuminate\Support\Facades\Storage;
 class PaymentVerificationService
 {
     public function __construct(
-        private TesseractOcrService $ocrService
+        private TesseractOcrService $ocrService,
+        private PaymentReceiptService $receiptService
     ) {}
 
     /**
@@ -35,12 +36,12 @@ class PaymentVerificationService
             
             
             if ($receiptData->numero_recu && 
-                PaymentReceipt::where('numero_recu', $receiptData->numero_recu)->exists()) {
+                $this->receiptService->numeroRecuExists($receiptData->numero_recu)) {
                 throw new \Exception('Ce numéro de reçu a déjà été utilisé');
             }
             
             
-            return PaymentReceipt::create([
+            return $this->receiptService->create([
                 'candidat_id' => $candidat->utilisateur_id,
                 'numero_recu' => $receiptData->numero_recu ?? 'TEMP-' . uniqid(),
                 'banque' => $receiptData->banque,
@@ -104,7 +105,7 @@ class PaymentVerificationService
      */
     public function getReceiptImageUrl(PaymentReceipt $receipt): string
     {
-        return Storage::disk('private')->url($receipt->image_path);
+        return $this->receiptService->getImageUrl($receipt);
     }
 
     /**
@@ -112,9 +113,7 @@ class PaymentVerificationService
      */
     public function hasVerifiedPayment(Candidat $candidat): bool
     {
-        return PaymentReceipt::where('candidat_id', $candidat->utilisateur_id)
-            ->verifie()
-            ->exists();
+        return $this->receiptService->candidatHasVerifiedPayment($candidat->utilisateur_id);
     }
 
     /**
@@ -122,8 +121,6 @@ class PaymentVerificationService
      */
     public function getVerifiedReceipt(Candidat $candidat): ?PaymentReceipt
     {
-        return PaymentReceipt::where('candidat_id', $candidat->utilisateur_id)
-            ->verifie()
-            ->first();
+        return $this->receiptService->getCandidatVerifiedReceipt($candidat->utilisateur_id);
     }
 }

@@ -5,17 +5,18 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Services\OCR\TesseractOcrService;
 use App\Services\Payment\PaymentVerificationService;
+use App\Services\Payment\PaymentReceiptService;
 use App\Http\Requests\Payment\UploadReceiptRequest;
 use App\Http\Requests\Payment\ManualReceiptEntryRequest;
 use App\Http\Requests\Payment\CheckReceiptNumberRequest;
-use App\Models\PaymentReceipt;
 use Illuminate\Support\Facades\Storage;
 
 class PreRegistrationController extends Controller
 {
     public function __construct(
-        private TesseractOcrService $ocrService,
-        private PaymentVerificationService $paymentService
+        private readonly TesseractOcrService $ocrService,
+        private readonly PaymentVerificationService $paymentService,
+        private readonly PaymentReceiptService $receiptService
     ) {}
 
     
@@ -57,7 +58,7 @@ class PreRegistrationController extends Controller
             }
             
             
-            if (PaymentReceipt::where('numero_recu', $receiptData->numero_recu)->exists()) {
+            if ($this->receiptService->numeroRecuExists($receiptData->numero_recu)) {
                 Storage::delete($path);
                 return api_error(
                     'Ce numéro de reçu a déjà été utilisé pour une inscription.',
@@ -71,7 +72,7 @@ class PreRegistrationController extends Controller
             Storage::move($path, $permanentPath);
             
             
-            PaymentReceipt::create([
+            $this->receiptService->create([
                 'candidat_id' => null, // Sera lié lors de l'inscription
                 'numero_recu' => $receiptData->numero_recu,
                 'banque' => $receiptData->banque,
@@ -102,7 +103,7 @@ class PreRegistrationController extends Controller
      */
     public function checkReceiptNumber(CheckReceiptNumberRequest $request)
     {
-        $exists = PaymentReceipt::where('numero_recu', $request->numero_recu)->exists();
+        $exists = $this->receiptService->numeroRecuExists($request->numero_recu);
 
         return api_success([
             'available' => !$exists,
@@ -120,8 +121,8 @@ class PreRegistrationController extends Controller
         try {
             $path = $request->file('receipt_image')->store('receipts');
 
-            // Créer l'enregistrement du reçu dans la base de données
-            PaymentReceipt::create([
+            // Créer l'enregistrement du reçu via le service
+            $this->receiptService->create([
                 'candidat_id' => null, // Sera lié lors de l'inscription
                 'numero_recu' => $request->numero_recu,
                 'banque' => $request->banque,

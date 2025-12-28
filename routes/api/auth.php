@@ -5,11 +5,6 @@ use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\PreRegistrationController;
 
 
-Route::post('pre-register/upload-receipt', [PreRegistrationController::class, 'uploadReceipt']);
-Route::post('pre-register/manual-receipt', [PreRegistrationController::class, 'manualReceiptEntry']);
-Route::post('pre-register/check-receipt', [PreRegistrationController::class, 'checkReceiptNumber']);
-
-
 Route::post('register', [AuthController::class, 'register']);
 Route::post('login', [AuthController::class, 'login']);
 
