@@ -13,6 +13,7 @@ class Concours extends Model
     protected $table = 'concours';
 
     protected $fillable = [
+        'spec_concours_id',
         'libelle_concours',
         'date_limite_depot',
         'date_examen',
@@ -36,6 +37,11 @@ class Concours extends Model
         return $this->belongsToMany(Session::class, 'concours_session')
             ->using(ConcoursSession::class)
             ->withTimestamps();
+    }
+
+    public function specConcours()
+    {
+        return $this->belongsTo(SpecConcours::class, 'spec_concours_id');
     }
 
     public function concoursSessions()

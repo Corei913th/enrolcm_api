@@ -13,55 +13,53 @@ class SpecConcours extends Model
     protected $table = 'specs_concours';
     public $incrementing = false;
     protected $keyType = 'string';
-    public $timestamps = false;
 
     protected $fillable = [
+        'nom_spec',
         'desc_infos_concours',
-        'carte_nationale_identite',
-        'diplomes',
-        'certificat_nationalite',
-        'releve_notes',
-        'acte_naissance',
-        'photo',
+        'documents_requis',
         'montant_frais_depot',
+        'age_minimum',
+        'age_maximum',
+        'series_bac_acceptees',
+        'nationalites_acceptees',
+        'est_actif',
     ];
 
     protected $casts = [
-        'carte_nationale_identite' => 'boolean',
-        'diplomes' => 'boolean',
-        'certificat_nationalite' => 'boolean',
-        'releve_notes' => 'boolean',
-        'acte_naissance' => 'boolean',
-        'photo' => 'boolean',
+        'documents_requis' => 'array',
+        'series_bac_acceptees' => 'array',
+        'nationalites_acceptees' => 'array',
         'montant_frais_depot' => 'decimal:2',
+        'age_minimum' => 'integer',
+        'age_maximum' => 'integer',
+        'est_actif' => 'boolean',
         'created_at' => 'datetime',
+        'updated_at' => 'datetime',
     ];
+
+    // Relations
+    public function concours()
+    {
+        return $this->hasMany(Concours::class, 'spec_concours_id');
+    }
+
+    // Relations
+    public function concours()
+    {
+        return $this->hasMany(Concours::class, 'spec_concours_id');
+    }
+
+    // Scopes
+    public function scopeActif($query)
+    {
+        return $query->where('est_actif', true);
+    }
 
     // Helpers
     public function getDocumentsRequis()
     {
-        $documents = [];
-        
-        if ($this->carte_nationale_identite) {
-            $documents[] = 'Carte Nationale d\'Identité';
-        }
-        if ($this->diplomes) {
-            $documents[] = 'Diplômes';
-        }
-        if ($this->certificat_nationalite) {
-            $documents[] = 'Certificat de Nationalité';
-        }
-        if ($this->releve_notes) {
-            $documents[] = 'Relevé de Notes';
-        }
-        if ($this->acte_naissance) {
-            $documents[] = 'Acte de Naissance';
-        }
-        if ($this->photo) {
-            $documents[] = 'Photo d\'identité';
-        }
-        
-        return $documents;
+        return $this->documents_requis ?? [];
     }
 
     public function getNombreDocumentsRequis()
@@ -77,5 +75,63 @@ class SpecConcours extends Model
     public function getMontantFormate()
     {
         return number_format($this->montant_frais_depot, 0, ',', ' ') . ' FCFA';
+    }
+
+    public function hasAgeRestriction()
+    {
+        return $this->age_minimum || $this->age_maximum;
+    }
+
+    public function isAgeEligible($age)
+    {
+        if ($this->age_minimum && $age < $this->age_minimum) {
+            return false;
+        }
+        
+        if ($this->age_maximum && $age > $this->age_maximum) {
+            return false;
+        }
+        
+        return true;
+    }
+
+    public function isSerieBacAcceptee($serie)
+    {
+        if (empty($this->series_bac_acceptees)) {
+            return true; // Toutes les séries acceptées si non spécifié
+        }
+        
+        return in_array($serie, $this->series_bac_acceptees);
+    }
+
+    public function isNationaliteAcceptee($nationalite)
+    {
+        if (empty($this->nationalites_acceptees)) {
+            return true; // Toutes les nationalités acceptées si non spécifié
+        }
+        
+        return in_array($nationalite, $this->nationalites_acceptees);
+    }
+
+    public function getCriteresEligibilite()
+    {
+        $criteres = [];
+        
+        if ($this->hasAgeRestriction()) {
+            $age = [];
+            if ($this->age_minimum) $age[] = "minimum {$this->age_minimum} ans";
+            if ($this->age_maximum) $age[] = "maximum {$this->age_maximum} ans";
+            $criteres['age'] = implode(', ', $age);
+        }
+        
+        if (!empty($this->series_bac_acceptees)) {
+            $criteres['series_bac'] = implode(', ', $this->series_bac_acceptees);
+        }
+        
+        if (!empty($this->nationalites_acceptees)) {
+            $criteres['nationalites'] = implode(', ', $this->nationalites_acceptees);
+        }
+        
+        return $criteres;
     }
 }
