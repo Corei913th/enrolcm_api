@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('niveau_matiere', function (Blueprint $table) {
             $table->uuid('niveau_id');
             $table->uuid('matiere_id');
-            $table->timestamp('created_at')->useCurrent();
+            $table->timestamps();
             
             $table->primary(['niveau_id', 'matiere_id']);
             $table->foreign('niveau_id')->references('id')->on('niveaux')->onDelete('cascade');

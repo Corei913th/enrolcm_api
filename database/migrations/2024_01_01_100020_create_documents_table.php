@@ -15,7 +15,7 @@ return new class extends Migration
             $table->string('fichier_url', 500);
             $table->string('nom_original', 255);
             $table->enum('type_document', TypeDocument::values());
-            $table->timestamp('created_at')->useCurrent();
+            $table->timestamps();
             
             $table->foreign('candidature_id')->references('id')->on('candidatures')->onDelete('cascade');
         });

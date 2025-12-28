@@ -19,8 +19,7 @@ return new class extends Migration
             $table->boolean('est_eliminatoire')->default(false);
             $table->enum('statut', StatutNote::values())->default(StatutNote::EN_ATTENTE_SAISIE);
             $table->timestamp('deleted_at')->nullable();
-            $table->timestamp('created_at')->useCurrent();
-            $table->timestamp('updated_at')->useCurrent();
+            $table->timestamps();
             
             $table->foreign('candidature_id')->references('id')->on('candidatures')->onDelete('restrict');
             $table->foreign('epreuve_id')->references('id_epreuve')->on('epreuves')->onDelete('restrict');

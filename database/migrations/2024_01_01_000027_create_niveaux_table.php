@@ -16,8 +16,7 @@ return new class extends Migration
             $table->integer('ordre')->nullable();
             $table->text('desc_niveau')->nullable();
             $table->boolean('est_actif')->default(true);
-            $table->timestamp('created_at')->useCurrent();
-            $table->timestamp('updated_at')->useCurrent();
+            $table->timestamps();
             
             $table->foreign('filiere_id')->references('id')->on('filieres')->onDelete('restrict');
         });

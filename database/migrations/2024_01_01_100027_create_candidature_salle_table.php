@@ -17,8 +17,7 @@ return new class extends Migration
             $table->boolean('est_present')->default(false);
             $table->timestamp('heure_arrivee')->nullable();
             $table->text('observations')->nullable();
-            $table->timestamp('created_at')->useCurrent();
-            $table->timestamp('updated_at')->useCurrent();
+            $table->timestamps();
             
             $table->foreign('candidature_id')->references('id')->on('candidatures')->onDelete('cascade');
             $table->foreign('salle_id')->references('id')->on('salles_examen')->onDelete('set null');

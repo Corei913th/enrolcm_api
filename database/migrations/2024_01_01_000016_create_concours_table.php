@@ -16,8 +16,7 @@ return new class extends Migration
             $table->integer('nbre_max_places')->default(0);
             $table->decimal('frais_inscription', 10, 2)->default(0);
             $table->boolean('est_actif')->default(true);
-            $table->timestamp('created_at')->useCurrent();
-            $table->timestamp('updated_at')->useCurrent();
+            $table->timestamps();
             
             $table->index('est_actif');
             $table->index('date_limite_depot');
