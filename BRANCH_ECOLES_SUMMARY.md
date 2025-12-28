@@ -2,7 +2,7 @@
 
 ## ✨ Objectif
 
-Implémentation professionnelle du module de gestion des écoles suivant l'architecture DDD du projet avec DTOs, Services, Exceptions métier, transactions DB et gestion complète des erreurs.
+Implémentation  du module de gestion des écoles suivant l'architecture DDD du projet avec DTOs, Services, Exceptions métier, transactions DB et gestion complète des erreurs.
 
 ## 📦 Fichiers Créés/Modifiés
 

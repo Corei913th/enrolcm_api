@@ -2,7 +2,7 @@
 
 ## 📋 Description
 
-Implémentation professionnelle et complète du module de gestion des écoles suivant l'architecture DDD (Domain-Driven Design) du projet avec :
+Implémentation  et complète du module de gestion des écoles suivant l'architecture DDD (Domain-Driven Design) du projet avec :
 
 - ✅ DTOs typés avec Spatie Laravel Data
 - ✅ Service Layer avec logique métier isolée

@@ -2,7 +2,7 @@
 
 ## 🎯 Objectif
 
-Module professionnel de gestion des écoles suivant strictement l'architecture DDD du projet, avec DTOs, Services, Exceptions métier, et gestion complète des erreurs.
+Module  de gestion des écoles suivant strictement l'architecture DDD du projet, avec DTOs, Services, Exceptions métier, et gestion complète des erreurs.
 
 ## 📐 Principes Architecturaux
 
