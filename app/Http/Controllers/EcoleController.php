@@ -2,111 +2,140 @@
 
 namespace App\Http\Controllers;
 
+use App\DTOs\Ecoles\EcoleData;
+use App\Exceptions\Business\EcoleException;
 use App\Http\Requests\Ecoles\StoreEcoleRequest;
 use App\Http\Requests\Ecoles\UpdateEcoleRequest;
-use App\Models\Ecole;
-use Illuminate\Http\Request;
+use App\Http\Resources\EcoleResource;
+use App\Services\Ecoles\EcoleService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Validation\Rule;
+use Illuminate\Http\Request;
 
 class EcoleController extends Controller
 {
+    protected EcoleService $ecoleService;
+
+    public function __construct(EcoleService $ecoleService)
+    {
+        $this->ecoleService = $ecoleService;
+    }
+
     /**
-     * Display a listing of the resource.
+     * Liste des écoles avec filtres et pagination
      */
     public function index(Request $request): JsonResponse
     {
-        $query = Ecole::query();
+        try {
+            $filters = $request->only(['est_actif', 'region', 'search', 'per_page']);
+            $ecoles = $this->ecoleService->getAll($filters);
 
-        // Filtrage par statut
-        if ($request->has('statut')) {
-            $query->where('statut', $request->statut);
+            return api_paginated(
+                EcoleResource::collection($ecoles)->resource,
+                'Liste des écoles récupérée avec succès'
+            );
+        } catch (EcoleException $e) {
+            return api_error($e->getMessage(), null, $e->getCode());
         }
+    }
 
-        // Recherche
-        if ($request->has('search')) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('nom', 'like', "%{$search}%")
-                  ->orWhere('code', 'like', "%{$search}%")
-                  ->orWhere('ville', 'like', "%{$search}%");
-            });
+    /**
+     * Afficher une école spécifique
+     */
+    public function show(string $id): JsonResponse
+    {
+        try {
+            $ecole = $this->ecoleService->getById($id);
+            
+            return api_success(
+                new EcoleResource($ecole),
+                'École récupérée avec succès'
+            );
+        } catch (EcoleException $e) {
+            return api_error($e->getMessage(), null, $e->getCode());
         }
-
-        $ecoles = $query->orderBy('nom')->paginate($request->get('per_page', 15));
-
-        return response()->json($ecoles);
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Créer une nouvelle école
      */
-    public function store(Request $request): JsonResponse
+    public function store(StoreEcoleRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'nom' => 'required|string|max:255',
-            'code' => 'required|string|max:255|unique:ecoles,code',
-            'adresse' => 'nullable|string|max:255',
-            'ville' => 'nullable|string|max:255',
-            'code_postal' => 'nullable|string|max:10',
-            'telephone' => 'nullable|string|max:20',
-            'email' => 'nullable|email|max:255',
-            'directeur' => 'nullable|string|max:255',
-            'statut' => 'nullable|in:active,inactive',
-            'description' => 'nullable|string',
-        ]);
+        try {
+            $ecoleData = EcoleData::from($request->validated());
+            $ecole = $this->ecoleService->create($ecoleData);
 
-        $ecole = Ecole::create($validated);
-
-        return response()->json([
-            'message' => 'École créée avec succès',
-            'data' => $ecole
-        ], 201);
+            return api_created(
+                new EcoleResource($ecole),
+                'École créée avec succès'
+            );
+        } catch (EcoleException $e) {
+            return api_error($e->getMessage(), null, $e->getCode());
+        }
     }
 
     /**
-     * Display the specified resource.
+     * Mettre à jour une école
      */
-    public function show(Ecole $ecole): JsonResponse
+    public function update(UpdateEcoleRequest $request, string $id): JsonResponse
     {
-        return response()->json($ecole);
+        try {
+            $ecoleData = EcoleData::from($request->validated());
+            $ecole = $this->ecoleService->update($id, $ecoleData);
+
+            return api_updated(
+                new EcoleResource($ecole),
+                'École mise à jour avec succès'
+            );
+        } catch (EcoleException $e) {
+            return api_error($e->getMessage(), null, $e->getCode());
+        }
     }
 
     /**
-     * Update the specified resource in storage.
+     * Supprimer une école
      */
-    public function update(Request $request, Ecole $ecole): JsonResponse
+    public function destroy(string $id): JsonResponse
     {
-        $validated = $request->validate([
-            'nom' => 'sometimes|required|string|max:255',
-            'code' => ['sometimes', 'required', 'string', 'max:255', Rule::unique('ecoles')->ignore($ecole->id)],
-            'adresse' => 'nullable|string|max:255',
-            'ville' => 'nullable|string|max:255',
-            'code_postal' => 'nullable|string|max:10',
-            'telephone' => 'nullable|string|max:20',
-            'email' => 'nullable|email|max:255',
-            'directeur' => 'nullable|string|max:255',
-            'statut' => 'nullable|in:active,inactive',
-            'description' => 'nullable|string',
-        ]);
-
-        $ecole->update($validated);
-
-        return response()->json([
-            'message' => 'École mise à jour avec succès',
-            'data' => $ecole
-        ]);
+        try {
+            $this->ecoleService->delete($id);
+            
+            return api_deleted('École supprimée avec succès');
+        } catch (EcoleException $e) {
+            return api_error($e->getMessage(), null, $e->getCode());
+        }
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Activer/Désactiver une école
      */
-    public function destroy(Ecole $ecole): JsonResponse
+    public function toggleStatus(string $id): JsonResponse
     {
-        $ecole->delete();
+        try {
+            $ecole = $this->ecoleService->toggleStatus($id);
+            
+            return api_updated(
+                new EcoleResource($ecole),
+                'Statut de l\'école modifié avec succès'
+            );
+        } catch (EcoleException $e) {
+            return api_error($e->getMessage(), null, $e->getCode());
+        }
+    }
 
-        return response()->json([
-            'message' => 'École supprimée avec succès'
-        ]);
+    /**
+     * Liste des écoles actives (pour les sélections)
+     */
+    public function active(): JsonResponse
+    {
+        try {
+            $ecoles = $this->ecoleService->getActive();
+            
+            return api_success(
+                EcoleResource::collection($ecoles),
+                'Écoles actives récupérées avec succès'
+            );
+        } catch (EcoleException $e) {
+            return api_error($e->getMessage(), null, $e->getCode());
+        }
     }
 }
