@@ -42,6 +42,7 @@ class Filiere extends Model
     public function concours()
     {
         return $this->belongsToMany(Concours::class, 'concours_filiere')
+            ->using(ConcoursFiliere::class)
             ->withPivot('nombre_places')
             ->withTimestamps();
     }

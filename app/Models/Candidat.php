@@ -58,6 +58,7 @@ class Candidat extends Model
         'annee_diplome' => 'date',
         'date_delivrance_cni' => 'date',
         'a_handicap' => 'boolean',
+        'annee_obtention_bac' => 'integer',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
@@ -75,6 +76,11 @@ class Candidat extends Model
     public function filiere()
     {
         return $this->belongsTo(Filiere::class, 'filiere_id');
+    }
+
+    public function paymentReceipts()
+    {
+        return $this->hasMany(PaymentReceipt::class, 'candidat_id', 'utilisateur_id');
     }
 
     public function getFullName()
