@@ -4,6 +4,7 @@ namespace App\Http\Requests\Candidats;
 
 use App\Enums\Genre;
 use App\Enums\RegionCameroun;
+use App\Enums\SerieBac;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateCandidatRequest extends FormRequest
@@ -22,6 +23,16 @@ class UpdateCandidatRequest extends FormRequest
             'nom_cand' => 'sometimes|required|string|max:100',
             'prenom_cand' => 'sometimes|required|string|max:100',
             'date_naissance_cand' => 'sometimes|required|date|before:today|after:1950-01-01',
+            'lieu_naissance_cand' => 'nullable|string|max:100',
+            
+            // Localisation
+            'region' => 'sometimes|required|in:' . implode(',', RegionCameroun::values()),
+            'departement' => 'nullable|string|max:100',
+            'arrondissement' => 'nullable|string|max:100',
+            
+            // Handicap
+            'a_handicap' => 'nullable|boolean',
+            'type_handicap' => 'nullable|string|max:255|required_if:a_handicap,true',
             
             
             'nom_tuteur_cand' => 'sometimes|required|string|max:100',
@@ -34,7 +45,6 @@ class UpdateCandidatRequest extends FormRequest
             ],
             
             'sexe_cand' => 'sometimes|required|in:' . implode(',', Genre::values()),
-            'handicap' => 'nullable|string|max:255',
             'ethnie_cand' => 'sometimes|required|string|max:100',
             
             
@@ -47,10 +57,19 @@ class UpdateCandidatRequest extends FormRequest
                 'required_if:nom_parent,!=,null',
             ],
             
-            
+            // Informations académiques
             'niveau_scolaire' => 'nullable|string|max:100',
             'filiere_origine' => 'nullable|string|max:100',
+            'etablissement_origine' => 'nullable|string|max:200',
+            'ville_etablissement' => 'nullable|string|max:100',
             'diplome_admission' => 'nullable|string|max:100',
+            'serie_bac' => 'nullable|string|max:10' . implode(',', SerieBac::values()),
+            'annee_obtention_bac' => [
+                'nullable',
+                'integer',
+                'min:1980',
+                'max:' . date('Y'),
+            ],
             'mention' => 'nullable|string|max:100',
             'annee_diplome' => [
                 'nullable',
@@ -59,6 +78,9 @@ class UpdateCandidatRequest extends FormRequest
                 'max:' . date('Y'),
                 'required_if:diplome_admission,!=,null',
             ],
+            
+            // Choix de filière
+            'filiere_id' => 'nullable|uuid|exists:filieres,id',
             
             
             'numero_cni' => [
@@ -96,16 +118,35 @@ class UpdateCandidatRequest extends FormRequest
             ],
             
             'nationalite_cand' => 'nullable|string|max:50',
-            'region' => 'sometimes|required|in:' . implode(',', RegionCameroun::values()),
             'statut_matrimonial' => 'nullable|string|max:20',
             'code_cand' => 'nullable|string|max:50',
-            'age_cand' => 'nullable|integer|min:16|max:35',
         ];
     }
 
     public function messages()
     {
         return [
+            // Localisation
+            'lieu_naissance_cand.max' => 'Le lieu de naissance ne peut pas dépasser 100 caractères',
+            'departement.max' => 'Le département ne peut pas dépasser 100 caractères',
+            'arrondissement.max' => 'L\'arrondissement ne peut pas dépasser 100 caractères',
+            
+            // Handicap
+            'a_handicap.boolean' => 'Le champ handicap doit être vrai ou faux',
+            'type_handicap.required_if' => 'Le type de handicap est obligatoire si vous déclarez un handicap',
+            
+            // Académique
+            'etablissement_origine.max' => 'Le nom de l\'établissement ne peut pas dépasser 200 caractères',
+            'ville_etablissement.max' => 'La ville de l\'établissement ne peut pas dépasser 100 caractères',
+            'serie_bac.max' => 'La série du bac ne peut pas dépasser 10 caractères',
+            'annee_obtention_bac.integer' => 'L\'année d\'obtention du bac doit être un nombre',
+            'annee_obtention_bac.min' => 'L\'année d\'obtention du bac doit être supérieure à 1980',
+            'annee_obtention_bac.max' => 'L\'année d\'obtention du bac ne peut pas être dans le futur',
+            
+            // Filière
+            'filiere_id.uuid' => 'L\'identifiant de la filière n\'est pas valide',
+            'filiere_id.exists' => 'La filière sélectionnée n\'existe pas',
+            
             // Téléphones
             'telephone_candidat.required' => 'Le numéro de téléphone du candidat est obligatoire',
             'telephone_candidat.regex' => 'Le numéro de téléphone du candidat doit être un numéro camerounais valide (ex: 655123456)',
@@ -153,10 +194,6 @@ class UpdateCandidatRequest extends FormRequest
             // Région
             'region.required' => 'La région est obligatoire',
             'region.in' => 'La région sélectionnée n\'est pas valide',
-            
-            // Âge
-            'age_cand.min' => 'L\'âge minimum est de 16 ans',
-            'age_cand.max' => 'L\'âge maximum est de 35 ans',
             
             // Autres
             'ethnie_cand.required' => 'L\'ethnie du candidat est obligatoire',
