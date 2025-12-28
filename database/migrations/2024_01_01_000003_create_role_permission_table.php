@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('role_permission', function (Blueprint $table) {
             $table->uuid('role_id');
             $table->uuid('permission_id');
-            $table->timestamp('created_at')->useCurrent();
+            $table->timestamps();
             
             $table->primary(['role_id', 'permission_id']);
             $table->foreign('role_id')->references('id')->on('roles')->onDelete('cascade');

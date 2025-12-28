@@ -19,8 +19,7 @@ return new class extends Migration
             $table->timestamp('date_telechargement')->nullable();
             $table->boolean('est_envoyee')->default(false);
             $table->timestamp('date_envoi')->nullable();
-            $table->timestamp('created_at')->useCurrent();
-            $table->timestamp('updated_at')->useCurrent();
+            $table->timestamps();
             
             $table->foreign('candidature_id')->references('id')->on('candidatures')->onDelete('cascade');
             

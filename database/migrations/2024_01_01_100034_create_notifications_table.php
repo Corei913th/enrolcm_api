@@ -24,8 +24,7 @@ return new class extends Migration
             $table->timestamp('date_envoi')->nullable();
             $table->json('metadata')->nullable();
             $table->enum('priorite', PrioriteNotification::values())->default(PrioriteNotification::NORMALE);
-            $table->timestamp('created_at')->useCurrent();
-            $table->timestamp('updated_at')->useCurrent();
+            $table->timestamps();
             
             $table->foreign('utilisateur_id')->references('id')->on('utilisateurs')->onDelete('cascade');
             

@@ -129,7 +129,7 @@ class Utilisateur extends Authenticatable
 
     public function hasRole($roleName): bool
     {
-        return $this->roles()->where('nom_role', $roleName)->exists();
+        return $this->roles()->where('libelle_role', $roleName)->exists();
     }
 
     public function hasPermission($permissionName): bool

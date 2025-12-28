@@ -12,7 +12,7 @@ return new class extends Migration
             $table->uuid('utilisateur_id')->primary();
             $table->string('specialite', 100)->nullable();
             $table->string('matricule_enseignant', 50)->unique()->nullable();
-            $table->timestamp('created_at')->useCurrent();
+            $table->timestamps();
             
             $table->foreign('utilisateur_id')->references('id')->on('utilisateurs')->onDelete('cascade');
         });

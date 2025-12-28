@@ -19,8 +19,7 @@ return new class extends Migration
             $table->time('heure_fin');
             $table->text('instructions')->nullable();
             $table->boolean('est_actif')->default(true);
-            $table->timestamp('created_at')->useCurrent();
-            $table->timestamp('updated_at')->useCurrent();
+            $table->timestamps();
             
             $table->foreign('epreuve_id')->references('id_epreuve')->on('epreuves')->onDelete('restrict');
             $table->foreign(['concours_id', 'session_id'])
