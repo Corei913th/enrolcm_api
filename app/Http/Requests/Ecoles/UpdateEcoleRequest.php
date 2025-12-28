@@ -37,14 +37,34 @@ class UpdateEcoleRequest extends FormRequest
             'libelle_ecole' => 'sometimes|required|string|max:200',
             'region' => ['sometimes', 'required', new Enum(RegionCameroun::class)],
             'localisation' => 'nullable|string|max:200',
-            'email_ecole' => 'nullable|email|max:100',
-            'telephone_ecole' => 'nullable|string|max:20',
-            'siteweb_ecole' => 'nullable|url|max:200',
-            'devise' => 'nullable|string|max:100',
-            'bp_ecole' => 'nullable|string|max:50',
+            
+            // Fichiers et médias
             'logo_url' => 'nullable|string|max:500',
             'embleme_ecole' => 'nullable|string|max:500',
+            'photo_facade' => 'nullable|string|max:500',
+            'document_agrement' => 'nullable|string|max:500',
+            
+            // Informations de contact
+            'bp_ecole' => 'nullable|string|max:50',
+            'email_ecole' => 'nullable|email|max:100',
+            'siteweb_ecole' => 'nullable|url|max:200',
+            'telephone_ecole' => 'nullable|string|max:20',
+            'fax_ecole' => 'nullable|string|max:20',
+            
+            // Informations administratives
+            'devise' => 'nullable|string|max:200',
+            'directeur_nom' => 'nullable|string|max:100',
+            'directeur_email' => 'nullable|email|max:100',
+            'directeur_telephone' => 'nullable|string|max:20',
+            
+            // Informations légales
+            'numero_agrement' => 'nullable|string|max:50',
+            'date_creation' => 'nullable|date',
+            'type_etablissement' => 'nullable|in:public,prive',
+            
+            // Statut et métadonnées
             'est_actif' => 'nullable|boolean',
+            'description' => 'nullable|string',
         ];
     }
 
@@ -59,7 +79,10 @@ class UpdateEcoleRequest extends FormRequest
             'libelle_ecole.required' => 'Le libellé de l\'école est obligatoire',
             'region.required' => 'La région est obligatoire',
             'email_ecole.email' => 'L\'email doit être valide',
+            'directeur_email.email' => 'L\'email du directeur doit être valide',
             'siteweb_ecole.url' => 'Le site web doit être une URL valide',
+            'date_creation.date' => 'La date de création doit être une date valide',
+            'type_etablissement.in' => 'Le type d\'établissement doit être public ou privé',
         ];
     }
 

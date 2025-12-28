@@ -7,6 +7,9 @@ Route::middleware('auth:sanctum')->prefix('ecoles')->group(function () {
     // Liste des écoles actives (pour les sélections)
     Route::get('actives', [EcoleController::class, 'active']);
     
+    // Récupérer par code
+    Route::get('code/{code}', [EcoleController::class, 'showByCode']);
+    
     // Toggle statut
     Route::patch('{ecole}/toggle-status', [EcoleController::class, 'toggleStatus']);
     

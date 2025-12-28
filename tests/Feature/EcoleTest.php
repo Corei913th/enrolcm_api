@@ -161,4 +161,32 @@ class EcoleTest extends TestCase
         $response->assertStatus(200)
             ->assertJsonCount(3, 'data');
     }
+
+    /** @test */
+    public function it_can_get_ecole_by_code()
+    {
+        $ecole = Ecole::factory()->create([
+            'code_ecole' => 'TEST123'
+        ]);
+
+        $response = $this->actingAs($this->user)
+            ->getJson('/api/ecoles/code/TEST123');
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'success' => true,
+                'data' => [
+                    'code_ecole' => 'TEST123',
+                ]
+            ]);
+    }
+
+    /** @test */
+    public function it_returns_404_for_invalid_code()
+    {
+        $response = $this->actingAs($this->user)
+            ->getJson('/api/ecoles/code/INVALID');
+
+        $response->assertStatus(404);
+    }
 }

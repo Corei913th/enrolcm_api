@@ -39,12 +39,29 @@ class EcoleController extends Controller
     }
 
     /**
-     * Afficher une école spécifique
+     * Afficher une école spécifique par ID
      */
     public function show(string $id): JsonResponse
     {
         try {
             $ecole = $this->ecoleService->getById($id);
+            
+            return api_success(
+                new EcoleResource($ecole),
+                'École récupérée avec succès'
+            );
+        } catch (EcoleException $e) {
+            return api_error($e->getMessage(), null, $e->getCode());
+        }
+    }
+
+    /**
+     * Afficher une école par son code
+     */
+    public function showByCode(string $code): JsonResponse
+    {
+        try {
+            $ecole = $this->ecoleService->getByCode($code);
             
             return api_success(
                 new EcoleResource($ecole),

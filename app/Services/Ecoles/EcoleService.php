@@ -72,6 +72,25 @@ class EcoleService
     }
 
     /**
+     * Récupérer une école par son code
+     */
+    public function getByCode(string $code): Ecole
+    {
+        try {
+            $ecole = Ecole::with('departements')->byCode($code)->firstOrFail();
+            return $ecole;
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            throw new EcoleException('École non trouvée avec ce code', 404);
+        } catch (\Exception $e) {
+            Log::error('Erreur lors de la récupération de l\'école par code', [
+                'error' => $e->getMessage(),
+                'code' => $code
+            ]);
+            throw new EcoleException('Impossible de récupérer l\'école');
+        }
+    }
+
+    /**
      * Créer une nouvelle école
      */
     public function create(EcoleData $data): Ecole
