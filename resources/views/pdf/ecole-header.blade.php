@@ -10,121 +10,140 @@
         }
         body {
             font-family: 'DejaVu Sans', Arial, sans-serif;
+            color: #000;
+            padding: 10px;
         }
-        .official-header {
+        /* Bordure double bleue comme sur l'image */
+        .header-container {
             width: 100%;
-            border: 3px solid #1a5490;
-            padding: 15px;
-            margin-bottom: 20px;
-            background: linear-gradient(to bottom, #f8f9fa 0%, #ffffff 100%);
+            border: 3px double #003366;
+            padding: 8px;
         }
-        .header-top {
+        .header-table {
             display: table;
             width: 100%;
-            margin-bottom: 10px;
+            border-collapse: collapse;
         }
-        .logo-section {
+        .header-column {
             display: table-cell;
-            width: 80px;
-            text-align: center;
-            vertical-align: middle;
+            vertical-align: top;
+            text-align: center; /* Tout le texte est centré dans les colonnes */
+            width: 33.33%;
         }
-        .logo-section img {
-            max-width: 70px;
-            max-height: 70px;
-        }
-        .center-section {
-            display: table-cell;
-            text-align: center;
-            padding: 0 20px;
-            vertical-align: middle;
-        }
+
+        /* Styles de texte */
         .republique {
-            font-size: 11px;
+            font-size: 10px;
             font-weight: bold;
-            text-transform: uppercase;
-            color: #1a5490;
-            margin-bottom: 3px;
-            line-height: 1.3;
-        }
-        .ecole-name {
-            font-size: 16px;
-            font-weight: bold;
-            color: #000;
-            margin: 5px 0;
-            text-transform: uppercase;
-        }
-        .ecole-name-en {
-            font-size: 12px;
-            font-style: italic;
-            color: #555;
-            margin-bottom: 5px;
+            line-height: 1.2;
         }
         .devise {
+            font-size: 9px;
+            font-weight: normal;
+        }
+        .separator {
+            font-size: 9px;
+            margin: 2px 0;
+            letter-spacing: 2px;
+        }
+        .university {
+            font-size: 11px;
+            font-weight: bold;
+            margin: 3px 0;
+        }
+        .school {
             font-size: 10px;
-            font-style: italic;
-            color: #666;
-            margin-top: 5px;
+            font-weight: bold;
+            line-height: 1.2;
+            margin-bottom: 5px;
         }
         .contact-info {
-            font-size: 9px;
-            color: #444;
-            margin-top: 8px;
-            line-height: 1.4;
+            font-size: 8.5px;
+            line-height: 1.3;
         }
-        .header-frame {
-            width: 100%;
-            height: 5px;
-            background: linear-gradient(to right, #1a5490, #28a745, #ffc107);
-            margin-top: 10px;
+
+        /* Section Centrale (Logos) */
+        .center-column {
+            vertical-align: middle;
+            text-align: center;
+        }
+        .embleme-img {
+            max-width: 75px;
+            max-height: 75px;
+            height: auto;
+            margin: 0 auto 5px auto;
+            display: block;
+        }
+        .logo-estic-img {
+            max-width: 110px;
+            max-height: 110px;
+            height: auto;
+            margin: 5px auto 0 auto;
+            display: block;
         }
     </style>
 </head>
 <body>
-    <div class="official-header">
-        <div class="header-top">
-            <!-- Logo République / Emblème -->
-            <div class="logo-section">
-                @if($embleme_path && file_exists($embleme_path))
-                    <img src="{{ $embleme_path }}" alt="Emblème">
-                @endif
-            </div>
 
-            <!-- Informations centrales -->
-            <div class="center-section">
-                <div class="republique">
-                    République du Cameroun<br>
-                    Paix - Travail - Patrie<br>
-                    ********
-                </div>
-                <div class="ecole-name">{{ $ecole->libelle_ecole }}</div>
-                @if($ecole->libelle_ecole_en)
-                    <div class="ecole-name-en">{{ $ecole->libelle_ecole_en }}</div>
-                @endif
-                @if($ecole->devise)
-                    <div class="devise">"{{ $ecole->devise }}"</div>
-                @endif
-                <div class="contact-info">
-                    @if($ecole->bp_ecole) BP: {{ $ecole->bp_ecole }} - @endif
-                    @if($ecole->localisation) {{ $ecole->localisation }} @endif
-                    @if($ecole->region) ({{ $ecole->region_label }}) @endif
-                    <br>
-                    @if($ecole->telephone_ecole) Tél: {{ $ecole->telephone_ecole }} @endif
-                    @if($ecole->email_ecole) - Email: {{ $ecole->email_ecole }} @endif
-                    @if($ecole->siteweb_ecole) <br> Web: {{ $ecole->siteweb_ecole }} @endif
-                </div>
+<div class="header-container">
+    <div class="header-table">
+        
+        <div class="header-column">
+            <div class="republique">
+                REPUBLIQUE DU CAMEROUN<br>
+                <span class="devise">Paix – Travail – Patrie</span>
             </div>
-
-            <!-- Logo École -->
-            <div class="logo-section">
-                @if($logo_path && file_exists($logo_path))
-                    <img src="{{ $logo_path }}" alt="Logo">
-                @endif
+            <div class="separator">----------</div>
+            <div class="university">
+                {{ strtoupper($ecole->universite_rattachement ?? "UNIVERSITE D'EBOLOWA") }}
+            </div>
+            <div class="separator">----------</div>
+            <div class="school">
+                {{ strtoupper($ecole->libelle_ecole ?? "ECOLE SUPERIEURE DE TRANSPORT, DE LOGISTIQUE ET DE COMMERCE") }}
+            </div>
+            <div class="separator">----------</div>
+            <div class="contact-info">
+                BP. {{ $ecole->bp_ecole ?? '22' }} AMBAM<br>
+                Tél.: {{ $ecole->telephone_ecole ?? '(+237) 222 482 412' }}<br>
+                E-Mail: {{ $ecole->email_ecole ?? 'estic@estic.unv-ebolowa.cm' }}<br>
+                Site web: {{ $ecole->siteweb_ecole ?? 'www.estic.unv-ebolowa.cm' }}
             </div>
         </div>
 
-        <!-- Cadre décoratif -->
-        <div class="header-frame"></div>
+        <div class="header-column center-column">
+            @if($embleme_path)
+                <img src="{{ $embleme_path }}" class="embleme-img" alt="Emblème">
+            @endif
+            
+            @if($logo_path)
+                <img src="{{ $logo_path }}" class="logo-estic-img" alt="Logo École">
+            @endif
+        </div>
+
+        <div class="header-column">
+            <div class="republique">
+                REPUBLIC OF CAMEROON<br>
+                <span class="devise">Peace – Work – Fatherland</span>
+            </div>
+            <div class="separator">----------</div>
+            <div class="university">
+                {{ strtoupper($ecole->universite_rattachement_en ?? "THE UNIVERSITY OF EBOLOWA") }}
+            </div>
+            <div class="separator">----------</div>
+            <div class="school">
+                {{ strtoupper($ecole->libelle_ecole_en ?? "HIGHER INSTITUTE OF TRANSPORT, LOGISTICS AND COMMERCE") }}
+            </div>
+            <div class="separator">----------</div>
+            <div class="contact-info">
+                PO Box: {{ $ecole->bp_ecole ?? '22' }} AMBAM<br>
+                Phone: {{ $ecole->telephone_ecole ?? '(+237) 222 482 412' }}<br>
+                E-Mail: {{ $ecole->email_ecole ?? 'estic@estic.unv-ebolowa.cm' }}<br>
+                Website: {{ $ecole->siteweb_ecole ?? 'www.estic.unv-ebolowa.cm' }}
+            </div>
+        </div>
+
     </div>
+</div>
+
 </body>
 </html>

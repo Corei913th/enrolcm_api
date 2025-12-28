@@ -41,4 +41,94 @@ class Ecole extends Model
     {
         return $this->region ? RegionCameroun::label($this->region) : null;
     }
+
+    /**
+     * Obtenir le chemin complet du logo pour les PDFs
+     */
+    public function getLogoFullPathAttribute()
+    {
+        if (!$this->logo_path) {
+            return null;
+        }
+        
+        $path = storage_path('app/public/' . $this->logo_path);
+        
+        if (!file_exists($path)) {
+            return null;
+        }
+        
+        // Convertir en base64 pour DomPDF
+        $imageData = base64_encode(file_get_contents($path));
+        $mimeType = mime_content_type($path);
+        
+        return 'data:' . $mimeType . ';base64,' . $imageData;
+    }
+
+    /**
+     * Obtenir le chemin complet de l'emblème pour les PDFs
+     */
+    public function getEmblemeFullPathAttribute()
+    {
+        if (!$this->embleme_path) {
+            return null;
+        }
+        
+        $path = storage_path('app/public/' . $this->embleme_path);
+        
+        if (!file_exists($path)) {
+            return null;
+        }
+        
+        // Convertir en base64 pour DomPDF
+        $imageData = base64_encode(file_get_contents($path));
+        $mimeType = mime_content_type($path);
+        
+        return 'data:' . $mimeType . ';base64,' . $imageData;
+    }
+
+    /**
+     * Obtenir le chemin complet du header frame pour les PDFs
+     */
+    public function getHeaderFrameFullPathAttribute()
+    {
+        if (!$this->header_frame_path) {
+            return null;
+        }
+        
+        $path = storage_path('app/public/' . $this->header_frame_path);
+        
+        if (!file_exists($path)) {
+            return null;
+        }
+        
+        // Convertir en base64 pour DomPDF
+        $imageData = base64_encode(file_get_contents($path));
+        $mimeType = mime_content_type($path);
+        
+        return 'data:' . $mimeType . ';base64,' . $imageData;
+    }
+
+    /**
+     * Obtenir l'URL publique du logo
+     */
+    public function getLogoUrlAttribute()
+    {
+        return $this->logo_path ? asset('storage/' . $this->logo_path) : null;
+    }
+
+    /**
+     * Obtenir l'URL publique de l'emblème
+     */
+    public function getEmblemeUrlAttribute()
+    {
+        return $this->embleme_path ? asset('storage/' . $this->embleme_path) : null;
+    }
+
+    /**
+     * Obtenir l'URL publique du header frame
+     */
+    public function getHeaderFrameUrlAttribute()
+    {
+        return $this->header_frame_path ? asset('storage/' . $this->header_frame_path) : null;
+    }
 }

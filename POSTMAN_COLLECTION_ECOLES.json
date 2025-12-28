@@ -1,254 +1,399 @@
 {
-  "info": {
-    "name": "API Écoles - Gestion Fichiers",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
-  },
-  "item": [
-    {
-      "name": "1. Créer une école avec fichiers",
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Authorization",
-            "value": "Bearer {{token}}",
-            "type": "text"
-          }
-        ],
-        "body": {
-          "mode": "formdata",
-          "formdata": [
-            {
-              "key": "code_ecole",
-              "value": "ENSP",
-              "type": "text"
-            },
-            {
-              "key": "libelle_ecole",
-              "value": "École Nationale Supérieure Polytechnique",
-              "type": "text"
-            },
-            {
-              "key": "libelle_ecole_en",
-              "value": "National Advanced School of Engineering",
-              "type": "text"
-            },
-            {
-              "key": "region",
-              "value": "CENTRE",
-              "type": "text"
-            },
-            {
-              "key": "localisation",
-              "value": "Yaoundé",
-              "type": "text"
-            },
-            {
-              "key": "devise",
-              "value": "Excellence et Innovation",
-              "type": "text"
-            },
-            {
-              "key": "bp_ecole",
-              "value": "BP 8390",
-              "type": "text"
-            },
-            {
-              "key": "email_ecole",
-              "value": "contact@ensp.cm",
-              "type": "text"
-            },
-            {
-              "key": "telephone_ecole",
-              "value": "+237222234567",
-              "type": "text"
-            },
-            {
-              "key": "directeur_nom",
-              "value": "Pr. Jean KOULIDIATI",
-              "type": "text"
-            },
-            {
-              "key": "type_etablissement",
-              "value": "public",
-              "type": "text"
-            },
-            {
-              "key": "logo",
-              "type": "file",
-              "src": "/path/to/logo.png"
-            },
-            {
-              "key": "embleme",
-              "type": "file",
-              "src": "/path/to/embleme.png"
-            },
-            {
-              "key": "header_frame",
-              "type": "file",
-              "src": "/path/to/header.jpg"
-            }
-          ]
-        },
-        "url": {
-          "raw": "{{base_url}}/api/ecoles",
-          "host": ["{{base_url}}"],
-          "path": ["api", "ecoles"]
-        }
-      }
-    },
-    {
-      "name": "2. Uploader un fichier",
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Authorization",
-            "value": "Bearer {{token}}",
-            "type": "text"
-          }
-        ],
-        "body": {
-          "mode": "formdata",
-          "formdata": [
-            {
-              "key": "type",
-              "value": "logo",
-              "type": "text",
-              "description": "logo, embleme ou header_frame"
-            },
-            {
-              "key": "file",
-              "type": "file",
-              "src": "/path/to/new-logo.png"
-            }
-          ]
-        },
-        "url": {
-          "raw": "{{base_url}}/api/ecoles/{{ecole_id}}/upload-file",
-          "host": ["{{base_url}}"],
-          "path": ["api", "ecoles", "{{ecole_id}}", "upload-file"]
-        }
-      }
-    },
-    {
-      "name": "3. Supprimer un fichier",
-      "request": {
-        "method": "DELETE",
-        "header": [
-          {
-            "key": "Authorization",
-            "value": "Bearer {{token}}",
-            "type": "text"
-          },
-          {
-            "key": "Content-Type",
-            "value": "application/json",
-            "type": "text"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"type\": \"logo\"\n}"
-        },
-        "url": {
-          "raw": "{{base_url}}/api/ecoles/{{ecole_id}}/delete-file",
-          "host": ["{{base_url}}"],
-          "path": ["api", "ecoles", "{{ecole_id}}", "delete-file"]
-        }
-      }
-    },
-    {
-      "name": "4. Générer une attestation PDF",
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Authorization",
-            "value": "Bearer {{token}}",
-            "type": "text"
-          },
-          {
-            "key": "Content-Type",
-            "value": "application/json",
-            "type": "text"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"etudiant_nom\": \"Jean DUPONT\",\n  \"numero\": \"ATT-2024-001\",\n  \"date_naissance\": \"1995-05-15\",\n  \"lieu_naissance\": \"Yaoundé\",\n  \"contenu\": \"a été régulièrement inscrit et a suivi avec assiduité les cours de l'année académique 2023-2024.\"\n}"
-        },
-        "url": {
-          "raw": "{{base_url}}/api/ecoles/{{ecole_id}}/generate-attestation",
-          "host": ["{{base_url}}"],
-          "path": ["api", "ecoles", "{{ecole_id}}", "generate-attestation"]
-        }
-      }
-    },
-    {
-      "name": "5. Prévisualiser l'entête PDF",
-      "request": {
-        "method": "GET",
-        "header": [
-          {
-            "key": "Authorization",
-            "value": "Bearer {{token}}",
-            "type": "text"
-          }
-        ],
-        "url": {
-          "raw": "{{base_url}}/api/ecoles/{{ecole_id}}/preview-header",
-          "host": ["{{base_url}}"],
-          "path": ["api", "ecoles", "{{ecole_id}}", "preview-header"]
-        }
-      }
-    },
-    {
-      "name": "6. Mettre à jour une école avec fichiers",
-      "request": {
-        "method": "PUT",
-        "header": [
-          {
-            "key": "Authorization",
-            "value": "Bearer {{token}}",
-            "type": "text"
-          }
-        ],
-        "body": {
-          "mode": "formdata",
-          "formdata": [
-            {
-              "key": "libelle_ecole",
-              "value": "École Nationale Supérieure Polytechnique de Yaoundé",
-              "type": "text"
-            },
-            {
-              "key": "logo",
-              "type": "file",
-              "src": "/path/to/updated-logo.png"
-            }
-          ]
-        },
-        "url": {
-          "raw": "{{base_url}}/api/ecoles/{{ecole_id}}",
-          "host": ["{{base_url}}"],
-          "path": ["api", "ecoles", "{{ecole_id}}"]
-        }
-      }
-    }
-  ],
-  "variable": [
-    {
-      "key": "base_url",
-      "value": "http://localhost:8000"
-    },
-    {
-      "key": "token",
-      "value": "your_sanctum_token_here"
-    },
-    {
-      "key": "ecole_id",
-      "value": "uuid-of-ecole"
-    }
-  ]
+	"info": {
+		"_postman_id": "ecoles-api-collection",
+		"name": "API Écoles - EnrolCM (Tests Complets)",
+		"description": "Collection complète pour tester l'API de gestion des écoles",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://127.0.0.1:8000/api",
+			"type": "string"
+		},
+		{
+			"key": "ecole_id",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "1. Lister toutes les écoles",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/ecoles?page=1&per_page=15",
+					"host": ["{{base_url}}"],
+					"path": ["ecoles"],
+					"query": [
+						{
+							"key": "page",
+							"value": "1",
+							"description": "Numéro de page"
+						},
+						{
+							"key": "per_page",
+							"value": "15",
+							"description": "Nombre d'éléments par page"
+						},
+						{
+							"key": "region",
+							"value": "CENTRE",
+							"description": "Filtrer par région",
+							"disabled": true
+						},
+						{
+							"key": "est_actif",
+							"value": "1",
+							"description": "Filtrer par statut actif",
+							"disabled": true
+						}
+					]
+				},
+				"description": "Récupère la liste paginée de toutes les écoles avec filtres optionnels"
+			},
+			"response": []
+		},
+		{
+			"name": "2. Lister les écoles actives",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/ecoles/actives",
+					"host": ["{{base_url}}"],
+					"path": ["ecoles", "actives"]
+				},
+				"description": "Récupère uniquement les écoles actives (pour les sélections)"
+			},
+			"response": []
+		},
+		{
+			"name": "3. Créer une nouvelle école",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"if (pm.response.code === 201) {",
+							"    var jsonData = pm.response.json();",
+							"    pm.collectionVariables.set('ecole_id', jsonData.data.id);",
+							"    console.log('École créée avec ID: ' + jsonData.data.id);",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"code_ecole\": \"ESSTIC\",\n    \"libelle_ecole\": \"École Supérieure des Sciences et Techniques de l'Information et de la Communication\",\n    \"region\": \"CENTRE\",\n    \"localisation\": \"Yaoundé\",\n    \"email_ecole\": \"contact@esstic.cm\",\n    \"telephone_ecole\": \"+237222789012\",\n    \"siteweb_ecole\": \"https://esstic.cm\",\n    \"devise\": \"Communiquer pour Innover\",\n    \"bp_ecole\": \"BP 1234\",\n    \"est_actif\": true\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/ecoles",
+					"host": ["{{base_url}}"],
+					"path": ["ecoles"]
+				},
+				"description": "Crée une nouvelle école. L'ID est sauvegardé automatiquement dans la variable ecole_id."
+			},
+			"response": []
+		},
+		{
+			"name": "4. Voir une école par ID",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/ecoles/{{ecole_id}}",
+					"host": ["{{base_url}}"],
+					"path": ["ecoles", "{{ecole_id}}"]
+				},
+				"description": "Récupère les détails d'une école par son ID"
+			},
+			"response": []
+		},
+		{
+			"name": "5. Voir une école par code",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/ecoles/code/ENSP",
+					"host": ["{{base_url}}"],
+					"path": ["ecoles", "code", "ENSP"]
+				},
+				"description": "Récupère les détails d'une école par son code"
+			},
+			"response": []
+		},
+		{
+			"name": "6. Modifier une école",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"libelle_ecole\": \"École Supérieure des Sciences et Techniques de l'Information - Mise à jour\",\n    \"email_ecole\": \"info@esstic.cm\",\n    \"telephone_ecole\": \"+237222789013\",\n    \"devise\": \"Innovation et Communication\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/ecoles/{{ecole_id}}",
+					"host": ["{{base_url}}"],
+					"path": ["ecoles", "{{ecole_id}}"]
+				},
+				"description": "Modifie les informations d'une école existante"
+			},
+			"response": []
+		},
+		{
+			"name": "7. Activer/Désactiver une école",
+			"request": {
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/ecoles/{{ecole_id}}/toggle-status",
+					"host": ["{{base_url}}"],
+					"path": ["ecoles", "{{ecole_id}}", "toggle-status"]
+				},
+				"description": "Bascule le statut actif/inactif d'une école"
+			},
+			"response": []
+		},
+		{
+			"name": "8. Upload logo école",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "file",
+							"type": "file",
+							"src": [],
+							"description": "Fichier logo (image)"
+						},
+						{
+							"key": "type",
+							"value": "logo",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{base_url}}/ecoles/{{ecole_id}}/upload-file",
+					"host": ["{{base_url}}"],
+					"path": ["ecoles", "{{ecole_id}}", "upload-file"]
+				},
+				"description": "Upload le logo de l'école (PNG, JPG, JPEG, max 2MB)"
+			},
+			"response": []
+		},
+		{
+			"name": "9. Upload emblème école",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "file",
+							"type": "file",
+							"src": [],
+							"description": "Fichier emblème (image)"
+						},
+						{
+							"key": "type",
+							"value": "embleme",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{base_url}}/ecoles/{{ecole_id}}/upload-file",
+					"host": ["{{base_url}}"],
+					"path": ["ecoles", "{{ecole_id}}", "upload-file"]
+				},
+				"description": "Upload l'emblème de l'école (PNG, JPG, JPEG, max 2MB)"
+			},
+			"response": []
+		},
+		{
+			"name": "10. Supprimer logo école",
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"type\": \"logo\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/ecoles/{{ecole_id}}/delete-file",
+					"host": ["{{base_url}}"],
+					"path": ["ecoles", "{{ecole_id}}", "delete-file"]
+				},
+				"description": "Supprime le logo de l'école"
+			},
+			"response": []
+		},
+		{
+			"name": "11. Supprimer emblème école",
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"type\": \"embleme\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/ecoles/{{ecole_id}}/delete-file",
+					"host": ["{{base_url}}"],
+					"path": ["ecoles", "{{ecole_id}}", "delete-file"]
+				},
+				"description": "Supprime l'emblème de l'école"
+			},
+			"response": []
+		},
+		{
+			"name": "12. Générer attestation PDF",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"candidat_nom\": \"KAMGA Jean\",\n    \"candidat_prenom\": \"Pierre\",\n    \"numero_candidat\": \"CAND2024001\",\n    \"concours\": \"Concours d'entrée 2024\",\n    \"date_concours\": \"2024-06-15\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/ecoles/{{ecole_id}}/generate-attestation",
+					"host": ["{{base_url}}"],
+					"path": ["ecoles", "{{ecole_id}}", "generate-attestation"]
+				},
+				"description": "Génère une attestation PDF pour un candidat"
+			},
+			"response": []
+		},
+		{
+			"name": "13. Prévisualiser en-tête PDF",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/ecoles/{{ecole_id}}/preview-header",
+					"host": ["{{base_url}}"],
+					"path": ["ecoles", "{{ecole_id}}", "preview-header"]
+				},
+				"description": "Prévisualise l'en-tête PDF de l'école dans le navigateur"
+			},
+			"response": []
+		},
+		{
+			"name": "14. Supprimer une école",
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/ecoles/{{ecole_id}}",
+					"host": ["{{base_url}}"],
+					"path": ["ecoles", "{{ecole_id}}"]
+				},
+				"description": "Supprime définitivement une école (attention: action irréversible)"
+			},
+			"response": []
+		}
+	]
 }

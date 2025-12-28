@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\DTOs\Ecoles\EcoleData;
+use App\DTOs\Ecoles\CreateEcoleDTO;
 use App\Exceptions\Business\EcoleException;
 use App\Http\Requests\Ecoles\StoreEcoleRequest;
 use App\Http\Requests\Ecoles\UpdateEcoleRequest;
@@ -50,8 +50,8 @@ class EcoleController extends Controller
             $ecole = $this->ecoleService->getById($id);
             
             return api_success(
-                new EcoleResource($ecole),
-                'École récupérée avec succès'
+                'École récupérée avec succès',
+                new EcoleResource($ecole)
             );
         } catch (EcoleException $e) {
             return api_error($e->getMessage(), null, $e->getCode());
@@ -67,8 +67,8 @@ class EcoleController extends Controller
             $ecole = $this->ecoleService->getByCode($code);
             
             return api_success(
-                new EcoleResource($ecole),
-                'École récupérée avec succès'
+                'École récupérée avec succès',
+                new EcoleResource($ecole)
             );
         } catch (EcoleException $e) {
             return api_error($e->getMessage(), null, $e->getCode());
@@ -85,7 +85,7 @@ class EcoleController extends Controller
             
             DB::transaction(function () use ($request, &$ecole) {
                 // Créer l'école
-                $ecoleData = EcoleData::from($request->except(['logo', 'embleme', 'header_frame']));
+                $ecoleData = CreateEcoleDTO::from($request->except(['logo', 'embleme', 'header_frame']));
                 $ecole = $this->ecoleService->create($ecoleData);
 
                 // Uploader les fichiers si présents
@@ -137,7 +137,7 @@ class EcoleController extends Controller
             
             DB::transaction(function () use ($request, $id, &$ecole) {
                 // Mettre à jour les données de base
-                $ecoleData = EcoleData::from($request->except(['logo', 'embleme', 'header_frame']));
+                $ecoleData = CreateEcoleDTO::from($request->except(['logo', 'embleme', 'header_frame']));
                 $ecole = $this->ecoleService->update($id, $ecoleData);
 
                 // Uploader les nouveaux fichiers si présents
@@ -228,8 +228,8 @@ class EcoleController extends Controller
             $ecoles = $this->ecoleService->getActive();
             
             return api_success(
-                EcoleResource::collection($ecoles),
-                'Écoles actives récupérées avec succès'
+                'Écoles actives récupérées avec succès',
+                EcoleResource::collection($ecoles)
             );
         } catch (EcoleException $e) {
             return api_error($e->getMessage(), null, $e->getCode());
@@ -266,8 +266,8 @@ class EcoleController extends Controller
             ]);
 
             return api_success(
-                new EcoleResource($ecole->fresh()),
-                'Fichier uploadé avec succès'
+                'Fichier uploadé avec succès',
+                new EcoleResource($ecole->fresh())
             );
         } catch (\Exception $e) {
             return api_error($e->getMessage());
@@ -299,8 +299,8 @@ class EcoleController extends Controller
             ]);
 
             return api_success(
-                new EcoleResource($ecole->fresh()),
-                'Fichier supprimé avec succès'
+                'Fichier supprimé avec succès',
+                new EcoleResource($ecole->fresh())
             );
         } catch (\Exception $e) {
             return api_error($e->getMessage());

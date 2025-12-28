@@ -2,7 +2,7 @@
 
 namespace App\Services\Ecoles;
 
-use App\DTOs\Ecoles\EcoleData;
+use App\DTOs\Ecoles\CreateEcoleDTO;
 use App\Exceptions\Business\EcoleException;
 use App\Models\Ecole;
 use Illuminate\Database\Eloquent\Collection;
@@ -93,7 +93,7 @@ class EcoleService
     /**
      * Créer une nouvelle école
      */
-    public function create(EcoleData $data): Ecole
+    public function create(CreateEcoleDTO $data): Ecole
     {
         try {
             return DB::transaction(function () use ($data) {
@@ -125,7 +125,7 @@ class EcoleService
     /**
      * Mettre à jour une école
      */
-    public function update(string $id, EcoleData $data): Ecole
+    public function update(string $id, CreateEcoleDTO $data): Ecole
     {
         try {
             return DB::transaction(function () use ($id, $data) {

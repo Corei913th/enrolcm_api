@@ -3,7 +3,6 @@
 namespace App\Http\Requests\Ecoles;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rules\Enum;
 use Illuminate\Validation\Rule;
 use App\Enums\RegionCameroun;
 use Illuminate\Contracts\Validation\Validator;
@@ -35,7 +34,7 @@ class UpdateEcoleRequest extends FormRequest
                 Rule::unique('ecoles', 'code_ecole')->ignore($ecoleId)
             ],
             'libelle_ecole' => 'sometimes|required|string|max:200',
-            'region' => ['sometimes', 'required', new Enum(RegionCameroun::class)],
+            'region' => ['sometimes', 'required', 'in:' . implode(',', RegionCameroun::values())],
             'localisation' => 'nullable|string|max:200',
             'email_ecole' => 'nullable|email|max:100',
             'telephone_ecole' => 'nullable|string|max:20',

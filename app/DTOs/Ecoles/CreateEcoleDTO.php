@@ -4,7 +4,7 @@ namespace App\DTOs\Ecoles;
 
 use Spatie\LaravelData\Data;
 
-class EcoleData extends Data
+class CreateEcoleDTO extends Data
 {
     public function __construct(
         public string $code_ecole,

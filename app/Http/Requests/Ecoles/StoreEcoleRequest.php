@@ -3,7 +3,6 @@
 namespace App\Http\Requests\Ecoles;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rules\Enum;
 use App\Enums\RegionCameroun;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
@@ -26,7 +25,7 @@ class StoreEcoleRequest extends FormRequest
         return [
             'code_ecole' => 'required|string|max:20|unique:ecoles,code_ecole',
             'libelle_ecole' => 'required|string|max:200',
-            'region' => ['required', new Enum(RegionCameroun::class)],
+            'region' => ['required', 'in:' . implode(',', RegionCameroun::values())],
             'localisation' => 'nullable|string|max:200',
             'email_ecole' => 'nullable|email|max:100',
             'telephone_ecole' => 'nullable|string|max:20',
