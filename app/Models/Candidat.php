@@ -46,7 +46,7 @@ class Candidat extends Model
         'statut_matrimonial',
         'nom_pere',
         'telephone_pere',
-        'numero_recu',
+        'pru', // PRU = Paiement Reference Unique
         'telephone_candidat',
         'region',
         'departement',
