@@ -15,9 +15,9 @@ class CreatePaiementRequest extends FormRequest
     {
         return [
             'concours_id' => ['required', 'uuid', 'exists:concours,id'],
-            'reference' => ['required', 'string', 'max:50', 'exists:payment_references,reference'],
+            'reference' => ['required', 'string', 'max:50'],
             'montant' => ['required', 'numeric', 'min:0'],
-            'preuve_paiement' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
+            'preuve' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
         ];
     }
 
@@ -27,15 +27,14 @@ class CreatePaiementRequest extends FormRequest
             'concours_id.required' => 'Le concours est obligatoire',
             'concours_id.uuid' => 'L\'identifiant du concours est invalide',
             'concours_id.exists' => 'Le concours spécifié n\'existe pas',
-            'reference.required' => 'La référence de paiement est obligatoire',
-            'reference.exists' => 'La référence de paiement est invalide',
+            'reference.required' => 'La référence de paiement (PRU) est obligatoire',
             'montant.required' => 'Le montant est obligatoire',
             'montant.numeric' => 'Le montant doit être un nombre',
             'montant.min' => 'Le montant doit être positif',
-            'preuve_paiement.required' => 'La preuve de paiement est obligatoire',
-            'preuve_paiement.file' => 'La preuve doit être un fichier',
-            'preuve_paiement.mimes' => 'La preuve doit être au format JPG, PNG ou PDF',
-            'preuve_paiement.max' => 'La preuve ne doit pas dépasser 5MB',
+            'preuve.required' => 'La preuve de paiement est obligatoire',
+            'preuve.file' => 'La preuve doit être un fichier',
+            'preuve.mimes' => 'La preuve doit être au format JPG, PNG ou PDF',
+            'preuve.max' => 'La preuve ne doit pas dépasser 5MB',
         ];
     }
 }
