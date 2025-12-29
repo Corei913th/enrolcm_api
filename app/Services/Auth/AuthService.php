@@ -12,18 +12,29 @@ use App\Services\Users\UserService;
 
 class AuthService
 {
-
     public function __construct(
-         private readonly UserService $userService,
-
+        private readonly UserService $userService,
     ) {}
 
     /**
-     * Authentifier un utilisateur
+     * Authentifier un utilisateur (hors candidat).
+     *
+     * @param LoginDTO $dto DTO contenant user_name et mot_de_passe
+     *
+     * @return array Tableau contenant :
+     *   - user : Utilisateur avec relations chargées
+     *   - access_token : Token d'accès
+     *   - refresh_token : Token de rafraîchissement
+     *   - token_type : Type du token (Bearer)
+     *   - expires_in : Durée de validité en secondes
+     *
+     * @throws ValidationException Si identifiants incorrects ou compte désactivé
      */
     public function login(LoginDTO $dto): array
     {
-        $utilisateur = Utilisateur::where('user_name', $dto->user_name)->where('type_utilisateur', '!=', TypeUtilisateur::CANDIDAT)->first();
+        $utilisateur = Utilisateur::where('user_name', $dto->user_name)
+            ->where('type_utilisateur', '!=', TypeUtilisateur::CANDIDAT)
+            ->first();
 
         if (!$utilisateur || !Hash::check($dto->mot_de_passe, $utilisateur->mot_de_passe)) {
             throw ValidationException::withMessages([
@@ -37,11 +48,9 @@ class AuthService
             ]);
         }
 
-        // Générer access token et refresh token
         $accessToken = $this->userService->generateToken($utilisateur, 'auth_token', 60); // 60 minutes
         $refreshToken = $this->userService->generateRefreshToken($utilisateur, 30); // 30 jours
 
-        // Charger les relations selon le type d'utilisateur
         $relations = $this->getRelationsForUser($utilisateur);
 
         return [
@@ -54,7 +63,11 @@ class AuthService
     }
 
     /**
-     * Rafraîchir le token d'accès
+     * Rafraîchir le token d'accès.
+     *
+     * @param string $refreshToken Token de rafraîchissement
+     *
+     * @return array Nouveau token d'accès et refresh token
      */
     public function refreshToken(string $refreshToken): array
     {
@@ -62,7 +75,11 @@ class AuthService
     }
 
     /**
-     * Déconnecter un utilisateur
+     * Déconnecter un utilisateur (supprimer le token courant).
+     *
+     * @param Utilisateur $utilisateur Utilisateur connecté
+     *
+     * @return void
      */
     public function logout(Utilisateur $utilisateur): void
     {
@@ -70,17 +87,26 @@ class AuthService
     }
 
     /**
-     * Déconnecter de tous les appareils
+     * Déconnecter un utilisateur de tous les appareils.
+     *
+     * @param Utilisateur $utilisateur Utilisateur connecté
+     *
+     * @return void
      */
     public function logoutAll(Utilisateur $utilisateur): void
     {
         $utilisateur->tokens()->delete();
     }
 
-  
-
     /**
-     * Changer le mot de passe
+     * Changer le mot de passe de l'utilisateur.
+     *
+     * @param Utilisateur $utilisateur Utilisateur connecté
+     * @param ChangePasswordDTO $dto DTO contenant old_password et new_password
+     *
+     * @return void
+     *
+     * @throws ValidationException Si l'ancien mot de passe est incorrect
      */
     public function changePassword(Utilisateur $utilisateur, ChangePasswordDTO $dto): void
     {
@@ -94,13 +120,17 @@ class AuthService
             'mot_de_passe' => Hash::make($dto->new_password),
         ]);
 
-        // Révoquer tous les tokens sauf le token actuel
         $currentToken = $utilisateur->currentAccessToken();
         $utilisateur->tokens()->where('id', '!=', $currentToken->id)->delete();
     }
 
     /**
-     * Réinitialiser le mot de passe (sans ancien mot de passe)
+     * Réinitialiser le mot de passe (sans ancien mot de passe).
+     *
+     * @param string $user_name Nom d'utilisateur
+     * @param string $newPassword Nouveau mot de passe
+     *
+     * @return void
      */
     public function resetPassword(string $user_name, string $newPassword): void
     {
@@ -110,27 +140,32 @@ class AuthService
             'mot_de_passe' => Hash::make($newPassword),
         ]);
 
-        // Révoquer tous les tokens
         $utilisateur->tokens()->delete();
     }
 
-    
-
     /**
-     * Activer/Désactiver un compte
+     * Activer ou désactiver un compte utilisateur.
+     *
+     * @param Utilisateur $utilisateur Utilisateur concerné
+     * @param bool $status True pour activer, False pour désactiver
+     *
+     * @return void
      */
     public function toggleAccountStatus(Utilisateur $utilisateur, bool $status): void
     {
         $utilisateur->update(['est_actif' => $status]);
 
-        // Si désactivé, révoquer tous les tokens
         if (!$status) {
             $utilisateur->tokens()->delete();
         }
     }
 
     /**
-     * Obtenir les relations à charger selon le type d'utilisateur
+     * Obtenir les relations à charger selon le type d'utilisateur.
+     *
+     * @param Utilisateur $utilisateur Utilisateur concerné
+     *
+     * @return array Liste des relations à charger
      */
     private function getRelationsForUser(Utilisateur $utilisateur): array
     {
@@ -154,10 +189,12 @@ class AuthService
         return $relations;
     }
 
-    
-
     /**
-     * Obtenir les informations de l'utilisateur connecté
+     * Obtenir les informations de l'utilisateur connecté.
+     *
+     * @param Utilisateur $utilisateur Utilisateur connecté
+     *
+     * @return Utilisateur Utilisateur avec relations chargées
      */
     public function getCurrentUser(Utilisateur $utilisateur): Utilisateur
     {
@@ -165,7 +202,11 @@ class AuthService
     }
 
     /**
-     * Vérifier si l'user_name existe déjà
+     * Vérifier si un user_name existe déjà.
+     *
+     * @param string $user_name Nom d'utilisateur
+     *
+     * @return bool True si existe, False sinon
      */
     public function user_nameExists(string $user_name): bool
     {
@@ -173,7 +214,9 @@ class AuthService
     }
 
     /**
-     * Générer un code de vérification
+     * Générer un code de vérification aléatoire (6 chiffres).
+     *
+     * @return string Code de vérification
      */
     public function generateVerificationCode(): string
     {
