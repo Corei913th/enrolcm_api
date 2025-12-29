@@ -1,9 +1,9 @@
 <?php
 
-use Illuminate\Http\Request;
+
 use Illuminate\Support\Facades\Route;
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', 'admin'])
+    ->prefix('users')
+    ->group(base_path('routes/api/users.php'));
 
-    
-});
