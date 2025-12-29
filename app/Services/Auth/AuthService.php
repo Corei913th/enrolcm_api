@@ -3,21 +3,23 @@
 namespace App\Services\Auth;
 
 use App\Models\Utilisateur;
-use App\Models\Candidat;
-use App\Models\Admin;
-use App\Models\Correcteur;
-use App\Models\ResponsableCentre;
 use App\Enums\TypeUtilisateur;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
-use App\Models\Role;
 use App\DTOs\Auth\LoginDTO;
 use App\DTOs\Auth\CreateCandidatAccountDTO;
 use App\DTOs\Auth\ChangePasswordDTO;
+use App\Services\Candidats\CandidatService;
+
 
 class AuthService
 {
+
+    public function __construct(
+         private readonly CandidatService $candidatService,
+
+    ) {}
+
     /**
      * Authentifier un utilisateur
      */
@@ -68,99 +70,14 @@ class AuthService
     /**
      * Inscrire un nouveau candidat
      */
-    public function createCandidatAccount(CreateCandidatAccountDTO $dto): array
+    public function createCandidatAccount(CreateCandidatAccountDTO $dto): Utilisateur
     {
-        DB::beginTransaction();
+        
+        $user = $this->candidatService->createPartialCandidat($dto);
 
-        try {
-            // Créer l'utilisateur
-            $utilisateur = Utilisateur::create([
-                'user_name' => $dto->user_name,
-                'mot_de_passe' => Hash::make($dto->mot_de_passe),
-                'type_utilisateur' => TypeUtilisateur::CANDIDAT,
-                'est_actif' => true,
-                'email_verifie' => false,
-            ]);
-
-            // Créer le profil candidat
-            $candidat = Candidat::create([
-                'utilisateur_id' => $utilisateur->id,
-                'nationalite_cand' => $dto->nationalite_cand,
-                'numero_recu' => $dto->user_name,
-            ]);
-
-            // Assigner le rôle candidat par défaut si existe
-            $this->assignDefaultRole($utilisateur, 'candidat');
-
-            DB::commit();
-
-            // Créer un token
-            $token = $utilisateur->createToken('auth-token')->plainTextToken;
-
-            return [
-                'user' => $utilisateur->load('candidat'),
-                'token' => $token,
-            ];
-        } catch (\Exception $e) {
-            DB::rollBack();
-            throw $e;
-        }
+        return $user;
     }
-
-    /**
-     * Créer un utilisateur admin/correcteur/responsable
-     */
-    public function createUser(array $data, string $type): Utilisateur
-    {
-        DB::beginTransaction();
-
-        try {
-            // Créer l'utilisateur
-            $utilisateur = Utilisateur::create([
-                'user_name' => $data['user_name'],
-                'mot_de_passe' => Hash::make($data['mot_de_passe']),
-                'telephone' => $data['telephone'] ?? null,
-                'type_utilisateur' => $type,
-                'est_actif' => $data['est_actif'] ?? true,
-                'user_name_verifie' => $data['user_name_verifie'] ?? false,
-            ]);
-
-            // Créer le profil spécifique selon le type
-            switch ($type) {
-                case TypeUtilisateur::ADMIN:
-                    Admin::create([
-                        'utilisateur_id' => $utilisateur->id,
-                        'matricule' => $data['matricule'] ?? null,
-                    ]);
-                    $this->assignDefaultRole($utilisateur, 'admin');
-                    break;
-
-                case TypeUtilisateur::CORRECTEUR:
-                    Correcteur::create([
-                        'utilisateur_id' => $utilisateur->id,
-                        'specialite' => $data['specialite'] ?? null,
-                        'matricule_enseignant' => $data['matricule_enseignant'] ?? null,
-                    ]);
-                    $this->assignDefaultRole($utilisateur, 'correcteur');
-                    break;
-
-                case TypeUtilisateur::RESPONSABLE_CENTRE:
-                    ResponsableCentre::create([
-                        'utilisateur_id' => $utilisateur->id,
-                        'code_agent' => $data['code_agent'] ?? null,
-                    ]);
-                    $this->assignDefaultRole($utilisateur, 'responsable_centre');
-                    break;
-            }
-
-            DB::commit();
-
-            return $utilisateur->fresh($this->getRelationsForUser($utilisateur));
-        } catch (\Exception $e) {
-            DB::rollBack();
-            throw $e;
-        }
-    }
+    
 
     /**
      * Changer le mot de passe
@@ -197,19 +114,7 @@ class AuthService
         $utilisateur->tokens()->delete();
     }
 
-    /**
-     * Vérifier l'user_name
-     */
-    public function verifyuser_name(Utilisateur $utilisateur): void
-    {
-        if ($utilisateur->hasVerifieduser_name()) {
-            throw ValidationException::withMessages([
-                'user_name' => ['L\'user_name est déjà vérifié.'],
-            ]);
-        }
-
-        $utilisateur->markuser_nameAsVerified();
-    }
+    
 
     /**
      * Activer/Désactiver un compte
@@ -249,17 +154,7 @@ class AuthService
         return $relations;
     }
 
-    /**
-     * Assigner un rôle par défaut
-     */
-    private function assignDefaultRole(Utilisateur $utilisateur, string $roleName): void
-    {
-        $role = Role::where('nom_role', $roleName)->first();
-
-        if ($role) {
-            $utilisateur->roles()->attach($role->id);
-        }
-    }
+    
 
     /**
      * Obtenir les informations de l'utilisateur connecté
