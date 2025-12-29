@@ -37,7 +37,7 @@ return new class extends Migration
             $table->string('statut_matrimonial', 20)->nullable();
             $table->string('nom_pere', 100)->nullable();
             $table->string('telephone_pere', 20)->nullable();
-            $table->string('numero_recu', 50)->unique(); 
+            $table->string('pru', 50)->unique()->nullable(); // PRU - nullable car rempli après paiement
             $table->string('telephone_candidat', 20)->nullable();
             $table->enum('region', RegionCameroun::values())->nullable();
             $table->timestamps();
@@ -49,7 +49,7 @@ return new class extends Migration
             $table->index(['nom_cand', 'prenom_cand']);
             $table->index('code_cand');
             $table->index('numero_cni');
-            $table->index('numero_recu');
+            $table->index('pru');
             $table->index('date_naissance_cand');
             $table->index('est_actif');
         });

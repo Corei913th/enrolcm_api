@@ -47,6 +47,7 @@ class Concours extends Model
     public function filieres()
     {
         return $this->belongsToMany(Filiere::class, 'concours_filiere')
+            ->using(ConcoursFiliere::class)
             ->withPivot('nombre_places')
             ->withTimestamps();
     }
@@ -64,6 +65,21 @@ class Concours extends Model
     public function etatsConcours()
     {
         return $this->hasMany(EtatConcoursSession::class, 'concours_session_concours_id');
+    }
+
+    public function configurationPaiement()
+    {
+        return $this->hasOne(ConcoursPaiement::class, 'concours_id');
+    }
+
+    public function paiements()
+    {
+        return $this->hasMany(Paiement::class, 'concours_id');
+    }
+
+    public function paymentReferences()
+    {
+        return $this->hasMany(PaymentReference::class, 'concours_id');
     }
 
     public function isOuvert(): bool
