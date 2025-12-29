@@ -10,7 +10,12 @@ use Illuminate\Database\Eloquent\Collection;
 class ConcoursPaiementService
 {
     /**
-     * Créer ou mettre à jour la configuration de paiement d'un concours
+     * Créer ou mettre à jour la configuration de paiement d'un concours.
+     *
+     * @param string $concoursId UUID du concours
+     * @param array $data Données de configuration (banque, compte, montant, date_limite, etc.)
+     *
+     * @return ConcoursPaiement Configuration créée ou mise à jour
      */
     public function configurerPaiement(string $concoursId, array $data): ConcoursPaiement
     {
@@ -29,7 +34,11 @@ class ConcoursPaiementService
     }
 
     /**
-     * Récupérer la configuration de paiement d'un concours
+     * Récupérer la configuration de paiement d'un concours.
+     *
+     * @param string $concoursId UUID du concours
+     *
+     * @return ConcoursPaiement|null Configuration ou null si inexistante
      */
     public function getConfiguration(string $concoursId): ?ConcoursPaiement
     {
@@ -37,7 +46,9 @@ class ConcoursPaiementService
     }
 
     /**
-     * Récupérer toutes les configurations actives
+     * Récupérer toutes les configurations actives et non expirées.
+     *
+     * @return Collection Liste des configurations actives
      */
     public function getConfigurationsActives(): Collection
     {
@@ -48,7 +59,11 @@ class ConcoursPaiementService
     }
 
     /**
-     * Désactiver la configuration de paiement d'un concours
+     * Désactiver la configuration de paiement d'un concours.
+     *
+     * @param string $configId ID de la configuration
+     *
+     * @return ConcoursPaiement Configuration mise à jour
      */
     public function desactiver(string $configId): ConcoursPaiement
     {
@@ -58,7 +73,11 @@ class ConcoursPaiementService
     }
 
     /**
-     * Activer la configuration de paiement d'un concours
+     * Activer la configuration de paiement d'un concours.
+     *
+     * @param string $configId ID de la configuration
+     *
+     * @return ConcoursPaiement Configuration mise à jour
      */
     public function activer(string $configId): ConcoursPaiement
     {
@@ -68,7 +87,11 @@ class ConcoursPaiementService
     }
 
     /**
-     * Vérifier si un concours a une configuration de paiement valide
+     * Vérifier si un concours a une configuration de paiement valide.
+     *
+     * @param string $concoursId UUID du concours
+     *
+     * @return bool True si configuration active et non expirée
      */
     public function hasConfigurationValide(string $concoursId): bool
     {
@@ -82,7 +105,11 @@ class ConcoursPaiementService
     }
 
     /**
-     * Récupérer les configurations expirant bientôt
+     * Récupérer les configurations expirant bientôt.
+     *
+     * @param int $jours Nombre de jours avant expiration (par défaut 7)
+     *
+     * @return Collection Liste des configurations expirant bientôt
      */
     public function getConfigurationsExpirantBientot(int $jours = 7): Collection
     {
@@ -97,21 +124,28 @@ class ConcoursPaiementService
     }
 
     /**
-     * Prolonger la date limite de paiement
+     * Prolonger la date limite de paiement d'une configuration.
+     *
+     * @param string $configId ID de la configuration
+     * @param int $jours Nombre de jours à ajouter
+     *
+     * @return ConcoursPaiement Configuration mise à jour
      */
     public function prolongerDateLimite(string $configId, int $jours): ConcoursPaiement
     {
         $config = ConcoursPaiement::findOrFail($configId);
-        
+
         $nouvelleDateLimite = $config->date_limite->addDays($jours);
-        
+
         $config->update(['date_limite' => $nouvelleDateLimite]);
-        
+
         return $config->fresh();
     }
 
     /**
-     * Statistiques des configurations
+     * Statistiques globales des configurations de paiement.
+     *
+     * @return array Tableau des statistiques (total, actives, non_expirees, expirees, montant_moyen)
      */
     public function getStatistiques(): array
     {
@@ -125,7 +159,11 @@ class ConcoursPaiementService
     }
 
     /**
-     * Valider les données de configuration
+     * Valider les données de configuration avant sauvegarde.
+     *
+     * @param array $data Données de configuration
+     *
+     * @return array Tableau des erreurs (vide si aucune erreur)
      */
     public function validerConfiguration(array $data): array
     {

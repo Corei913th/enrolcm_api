@@ -19,8 +19,13 @@ class PaiementController extends Controller
     ) {}
 
     /**
-     * Upload preuve de paiement (AVANT création compte)
-     * POST /api/payments
+     * Upload preuve de paiement (AVANT création compte).
+     *
+     * Endpoint : POST /api/payments
+     *
+     * @param CreatePaiementRequest $request Requête validée contenant concours_id, reference, montant et preuve
+     *
+     * @return JsonResponse Réponse JSON avec paiement créé ou erreur
      */
     public function store(CreatePaiementRequest $request): JsonResponse
     {
@@ -39,14 +44,19 @@ class PaiementController extends Controller
     }
 
     /**
-     * Vérifier si un PRU est valide (AVANT création compte)
-     * POST /api/payments/verify-pru
+     * Vérifier si un PRU est valide (AVANT création compte).
+     *
+     * Endpoint : POST /api/payments/verify-pru
+     *
+     * @param VerifyPRURequest $request Requête validée contenant pru et concours_id
+     *
+     * @return JsonResponse Réponse JSON indiquant validité du PRU
      */
     public function verifyPRU(VerifyPRURequest $request): JsonResponse
     {
         try {
-            $isValid = $this->paiementService->verifyPRU(
-                reference: $request->pru,
+            $isValid = $this->paiementService->isPRUValid(
+                pru: $request->pru,
                 concoursId: $request->concours_id
             );
 
@@ -61,8 +71,13 @@ class PaiementController extends Controller
     }
 
     /**
-     * Liste des paiements (Admin)
-     * GET /api/payments
+     * Liste des paiements (Admin).
+     *
+     * Endpoint : GET /api/payments
+     *
+     * @param FilterPaiementsRequest $request Requête validée avec filtres et pagination
+     *
+     * @return JsonResponse Réponse JSON paginée des paiements
      */
     public function index(FilterPaiementsRequest $request): JsonResponse
     {
@@ -75,8 +90,13 @@ class PaiementController extends Controller
     }
 
     /**
-     * Paiements en attente (Admin)
-     * GET /api/payments/pending
+     * Paiements en attente (Admin).
+     *
+     * Endpoint : GET /api/payments/pending
+     *
+     * @param Request $request Requête avec pagination
+     *
+     * @return JsonResponse Réponse JSON paginée des paiements en attente
      */
     public function pending(Request $request): JsonResponse
     {
@@ -87,8 +107,13 @@ class PaiementController extends Controller
     }
 
     /**
-     * Détails d'un paiement
-     * GET /api/payments/{id}
+     * Détails d'un paiement.
+     *
+     * Endpoint : GET /api/payments/{id}
+     *
+     * @param string $id ID du paiement
+     *
+     * @return JsonResponse Réponse JSON avec détails du paiement ou erreur 404
      */
     public function show(string $id): JsonResponse
     {
@@ -101,13 +126,19 @@ class PaiementController extends Controller
     }
 
     /**
-     * Validation manuelle (Admin)
-     * POST /api/payments/{id}/validate
+     * Validation manuelle d'un paiement (Admin).
+     *
+     * Endpoint : POST /api/payments/{id}/validate
+     *
+     * @param string $id ID du paiement
+     * @param ValiderPaiementRequest $request Requête validée avec utilisateur
+     *
+     * @return JsonResponse Réponse JSON avec paiement validé ou erreur
      */
     public function validate(string $id, ValiderPaiementRequest $request): JsonResponse
     {
         try {
-            $paiement = $this->paiementService->manualValidate($id, auth()->id());
+            $paiement = $this->paiementService->manualValidate($id, $request->user()->id);
             return api_success($paiement, 'Paiement validé avec succès');
         } catch (\Exception $e) {
             return api_error($e->getMessage(), null, 400);
@@ -115,8 +146,14 @@ class PaiementController extends Controller
     }
 
     /**
-     * Rejet manuel (Admin)
-     * POST /api/payments/{id}/reject
+     * Rejet manuel d'un paiement (Admin).
+     *
+     * Endpoint : POST /api/payments/{id}/reject
+     *
+     * @param string $id ID du paiement
+     * @param RejeterPaiementRequest $request Requête validée contenant motif et utilisateur
+     *
+     * @return JsonResponse Réponse JSON avec paiement rejeté ou erreur
      */
     public function reject(string $id, RejeterPaiementRequest $request): JsonResponse
     {
@@ -124,7 +161,7 @@ class PaiementController extends Controller
             $paiement = $this->paiementService->reject(
                 paiementId: $id,
                 motif: $request->motif,
-                userId: auth()->id()
+                userId: $request->user()->id
             );
             return api_success($paiement, 'Paiement rejeté');
         } catch (\Exception $e) {
