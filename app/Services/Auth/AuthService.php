@@ -7,16 +7,14 @@ use App\Enums\TypeUtilisateur;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use App\DTOs\Auth\LoginDTO;
-use App\DTOs\Auth\CreateCandidatAccountDTO;
 use App\DTOs\Auth\ChangePasswordDTO;
-use App\Services\Candidats\CandidatService;
-
+use App\Services\Users\UserService;
 
 class AuthService
 {
 
     public function __construct(
-         private readonly CandidatService $candidatService,
+         private readonly UserService $userService,
 
     ) {}
 
@@ -25,7 +23,7 @@ class AuthService
      */
     public function login(LoginDTO $dto): array
     {
-        $utilisateur = Utilisateur::where('user_name', $dto->user_name)->first();
+        $utilisateur = Utilisateur::where('user_name', $dto->user_name)->where('type_utilisateur', '!=', TypeUtilisateur::CANDIDAT)->first();
 
         if (!$utilisateur || !Hash::check($dto->mot_de_passe, $utilisateur->mot_de_passe)) {
             throw ValidationException::withMessages([
@@ -40,7 +38,7 @@ class AuthService
         }
 
         // Créer un token API
-        $token = $utilisateur->createToken('auth-token')->plainTextToken;
+        $token = $this->userService->generateToken($utilisateur);
 
         // Charger les relations selon le type d'utilisateur
         $relations = $this->getRelationsForUser($utilisateur);
@@ -67,17 +65,7 @@ class AuthService
         $utilisateur->tokens()->delete();
     }
 
-    /**
-     * Inscrire un nouveau candidat
-     */
-    public function createCandidatAccount(CreateCandidatAccountDTO $dto): Utilisateur
-    {
-        
-        $user = $this->candidatService->createPartialCandidat($dto);
-
-        return $user;
-    }
-    
+  
 
     /**
      * Changer le mot de passe

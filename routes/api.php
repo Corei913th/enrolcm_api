@@ -7,3 +7,6 @@ Route::middleware(['auth:sanctum', 'admin'])
     ->prefix('users')
     ->group(base_path('routes/api/users.php'));
 
+Route::prefix('auth')->group(function () {
+    require __DIR__ . '/api/auth.php';
+});
