@@ -9,6 +9,7 @@ class CreateEcoleDTO extends Data
     public function __construct(
         public string $code_ecole,
         public string $libelle_ecole,
+        public ?string $libelle_ecole_en,
         public ?string $region,
         public ?string $localisation,
         public ?string $email_ecole,

@@ -11,13 +11,21 @@
         body {
             font-family: 'DejaVu Sans', Arial, sans-serif;
             color: #000;
-            padding: 10px;
+            margin: 0;
+            padding: 0;
         }
-        /* Bordure double bleue comme sur l'image */
+        /* Bordure double élégante */
         .header-container {
-            width: 100%;
-            border: 3px double #003366;
-            padding: 8px;
+            width: 765px;
+            border: 4px double #003366;
+            padding: 10px;
+            margin: 0;
+            box-sizing: border-box;
+        }
+        .inner-border {
+            border: 2px solid #003366;
+            padding: 12px 8px;
+            box-sizing: border-box;
         }
         .header-table {
             display: table;
@@ -36,26 +44,33 @@
             font-size: 10px;
             font-weight: bold;
             line-height: 1.2;
+            color: #003366;
         }
         .devise {
             font-size: 9px;
             font-weight: normal;
+            color: #666;
+            font-style: italic;
         }
         .separator {
             font-size: 9px;
-            margin: 2px 0;
+            margin: 3px 0;
             letter-spacing: 2px;
+            color: #003366;
+            font-weight: bold;
         }
         .university {
             font-size: 11px;
             font-weight: bold;
             margin: 3px 0;
+            color: #003366;
         }
         .school {
             font-size: 10px;
             font-weight: bold;
             line-height: 1.2;
             margin-bottom: 5px;
+            color: #000;
         }
         .contact-info {
             font-size: 8.5px;
@@ -67,26 +82,38 @@
             vertical-align: middle;
             text-align: center;
         }
+        /* Emblème en haut */
         .embleme-img {
-            max-width: 75px;
-            max-height: 75px;
+            max-width: 180px;
+            max-height: 180px;
             height: auto;
-            margin: 0 auto 5px auto;
+            margin: 0 auto 10px auto;
             display: block;
         }
+        /* Logo école en bas */
         .logo-estic-img {
-            max-width: 110px;
-            max-height: 110px;
+            max-width: 180px;
+            max-height: 180px;
             height: auto;
-            margin: 5px auto 0 auto;
+            margin: 10px auto 5px auto;
             display: block;
+        }
+        /* Devise de l'école */
+        .ecole-devise {
+            font-size: 10px;
+            font-style: italic;
+            color: #003366;
+            font-weight: bold;
+            margin-top: 8px;
+            line-height: 1.2;
         }
     </style>
 </head>
 <body>
 
 <div class="header-container">
-    <div class="header-table">
+    <div class="inner-border">
+        <div class="header-table">
         
         <div class="header-column">
             <div class="republique">
@@ -94,16 +121,13 @@
                 <span class="devise">Paix – Travail – Patrie</span>
             </div>
             <div class="separator">----------</div>
-            <div class="university">
-                {{ strtoupper($ecole->universite_rattachement ?? "UNIVERSITE D'EBOLOWA") }}
-            </div>
-            <div class="separator">----------</div>
+           
             <div class="school">
                 {{ strtoupper($ecole->libelle_ecole ?? "ECOLE SUPERIEURE DE TRANSPORT, DE LOGISTIQUE ET DE COMMERCE") }}
             </div>
             <div class="separator">----------</div>
             <div class="contact-info">
-                BP. {{ $ecole->bp_ecole ?? '22' }} AMBAM<br>
+                BP. {{ $ecole->bp_ecole ?? '22' }} <br>
                 Tél.: {{ $ecole->telephone_ecole ?? '(+237) 222 482 412' }}<br>
                 E-Mail: {{ $ecole->email_ecole ?? 'estic@estic.unv-ebolowa.cm' }}<br>
                 Site web: {{ $ecole->siteweb_ecole ?? 'www.estic.unv-ebolowa.cm' }}
@@ -118,6 +142,10 @@
             @if($logo_path)
                 <img src="{{ $logo_path }}" class="logo-estic-img" alt="Logo École">
             @endif
+            
+            @if($ecole->devise)
+                <div class="ecole-devise">"{{ $ecole->devise }}"</div>
+            @endif
         </div>
 
         <div class="header-column">
@@ -126,22 +154,20 @@
                 <span class="devise">Peace – Work – Fatherland</span>
             </div>
             <div class="separator">----------</div>
-            <div class="university">
-                {{ strtoupper($ecole->universite_rattachement_en ?? "THE UNIVERSITY OF EBOLOWA") }}
-            </div>
-            <div class="separator">----------</div>
+          
             <div class="school">
                 {{ strtoupper($ecole->libelle_ecole_en ?? "HIGHER INSTITUTE OF TRANSPORT, LOGISTICS AND COMMERCE") }}
             </div>
             <div class="separator">----------</div>
             <div class="contact-info">
-                PO Box: {{ $ecole->bp_ecole ?? '22' }} AMBAM<br>
+                PO Box: {{ $ecole->bp_ecole ?? '22' }} <br>
                 Phone: {{ $ecole->telephone_ecole ?? '(+237) 222 482 412' }}<br>
                 E-Mail: {{ $ecole->email_ecole ?? 'estic@estic.unv-ebolowa.cm' }}<br>
                 Website: {{ $ecole->siteweb_ecole ?? 'www.estic.unv-ebolowa.cm' }}
             </div>
         </div>
 
+        </div>
     </div>
 </div>
 

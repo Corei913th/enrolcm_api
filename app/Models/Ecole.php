@@ -14,6 +14,7 @@ class Ecole extends Model
     protected $fillable = [
         'code_ecole',
         'libelle_ecole',
+        'libelle_ecole_en',
         'region',
         'localisation',
         'logo_url',
@@ -24,6 +25,13 @@ class Ecole extends Model
         'telephone_ecole',
         'embleme_ecole',
         'est_actif',
+        // Champs pour les fichiers
+        'logo_path',
+        'logo_original_name',
+        'embleme_path',
+        'embleme_original_name',
+        'header_frame_path',
+        'header_frame_original_name',
     ];
 
     protected $casts = [
