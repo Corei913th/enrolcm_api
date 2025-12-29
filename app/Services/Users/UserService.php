@@ -2,13 +2,15 @@
 
 namespace App\Services\Users;
 
-
-use App\DTOs\Auth\CreateCandidatAccountDTO;
+use App\DTOs\Users\CreateUserDTO;
 use App\Enums\TypeUtilisateur;
+use App\Models\Admin;
+use App\Models\Correcteur;
+use App\Models\ResponsableCentre;
 use App\Models\Utilisateur;
+use App\Services\Roles\RoleService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Laravel\Sanctum\PersonalAccessToken;
 
 class UserService
 {
@@ -233,27 +235,73 @@ class UserService
     {
         return DB::transaction(function () use ($dto) {
             $user = Utilisateur::create([
+                'email' => $dto->email,
                 'user_name' => $dto->user_name,
                 'mot_de_passe' => Hash::make($dto->mot_de_passe),
-                'type_utilisateur' => TypeUtilisateur::CANDIDAT,
-                'est_actif' => true,
+                'type_utilisateur' => $dto->type_utilisateur,
                 'email_verifie' => false,
+                'telephone' => $dto->telephone,
             ]);
+
+            $this->completeStaffWithRole($dto, $user);
+
             return $user;
         });
     }
 
-    public function createStaff(array $data, string $type): Utilisateur
+
+
+    /**
+     * Compléter la création d'un staff avec son rôle spécifique.
+     *
+     * @param CreateUserDTO $dto DTO contenant les données du staff
+     * @param Utilisateur $user Utilisateur créé
+     *
+     * @return void
+     */
+    public function completeStaffWithRole(CreateUserDTO $dto, Utilisateur $user): void
     {
-        return DB::transaction(function () use ($data, $type) {
-            $user = Utilisateur::create([
-                'user_name' => $data['user_name'],
-                'mot_de_passe' => Hash::make($data['mot_de_passe']),
-                'type_utilisateur' => $type,
-                'est_actif' => $data['est_actif'] ?? true,
-            ]);
+        switch ($dto->type_utilisateur) {
+            case TypeUtilisateur::ADMIN:
+                Admin::create([
+                    'utilisateur_id' => $user->id,
+                    'matricule' => $dto->matricule
+                ]);
+                $this->assignRole($user, TypeUtilisateur::ADMIN);
+                break;
 
-            return $user;
-        });
+            case TypeUtilisateur::RESPONSABLE_CENTRE:
+                ResponsableCentre::create([
+                    'utilisateur_id' => $user->id,
+                    'code_agent' => $dto->code_agent
+                ]);
+                $this->assignRole($user, TypeUtilisateur::RESPONSABLE_CENTRE);
+                break;
+
+            case TypeUtilisateur::CORRECTEUR:
+                Correcteur::create([
+                    'utilisateur_id' => $user->id,
+                    'matricule_enseignant' => $dto->matricule_enseignant,
+                    'specialite' => $dto->specialite,
+                ]);
+                $this->assignRole($user, TypeUtilisateur::CORRECTEUR);
+                break;
+        }
     }
+
+    /**
+     * Assigner un rôle à un utilisateur.
+     *
+     * @param Utilisateur $user Utilisateur concerné
+     * @param string $roleName Nom du rôle à assigner
+     *
+     * @return void
+     */
+    private function assignRole(Utilisateur $user, string $roleName): void
+    {
+        $this->roleService->assignRole($user, $roleName);
+    }
+
+
 }
+    
