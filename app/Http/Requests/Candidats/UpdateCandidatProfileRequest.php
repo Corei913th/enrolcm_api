@@ -5,6 +5,7 @@ namespace App\Http\Requests\Candidats;
 use Illuminate\Foundation\Http\FormRequest;
 use App\Enums\Genre;
 use App\Enums\RegionCameroun;
+use App\Enums\SerieBac;
 
 class UpdateCandidatProfileRequest extends FormRequest
 {

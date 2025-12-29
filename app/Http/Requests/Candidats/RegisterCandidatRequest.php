@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Candidats;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class RegisterCandidatRequest extends FormRequest
 {
@@ -18,7 +19,14 @@ class RegisterCandidatRequest extends FormRequest
             'nom' => ['required', 'string', 'max:100'],
             'prenom' => ['required', 'string', 'max:100'],
             'email' => ['required', 'email', 'unique:utilisateurs,email'],
-            'telephone' => ['required', 'string', 'max:20'],
+            'telephone' => [
+                'sometimes',
+                'required',
+                'string',
+                'regex:/^(6[5-9]\d{7}|2[2-3]\d{7})$/',
+                Rule::unique('candidats', 'telephone_candidat'),
+                Rule::unique('utilisateurs', 'telephone'),
+            ],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
             'concours_id' => ['required', 'uuid', 'exists:concours,id'],
             'session_id' => ['required', 'uuid', 'exists:sessions,id'],
