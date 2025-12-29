@@ -16,12 +16,11 @@ use App\Http\Resources\UtilisateurResource;
 
 class AuthController extends Controller
 {
-    protected $authService;
 
-    public function __construct(AuthService $authService)
-    {
-        $this->authService = $authService;
-    }
+    public function __construct(
+        private readonly AuthService $authService
+        )
+    {  }
 
     /**
      * Connexion
@@ -53,8 +52,7 @@ class AuthController extends Controller
             $result = $this->authService->createCandidatAccount($dto);
 
             return api_created([
-                'user' => new UtilisateurResource($result['user']),
-                'token' => $result['token'],
+                'user' => new UtilisateurResource($result),
             ], 'Inscription réussie');
         } catch (\Exception $e) {
             return api_error($e->getMessage(), null, 400);
@@ -106,31 +104,4 @@ class AuthController extends Controller
         }
     }
 
-    /**
-     * Vérifier l'user_name
-     */
-    public function verifyUserName(Request $request)
-    {
-        try {
-            $this->authService->verifyuser_name($request->user());
-
-            return api_updated(null, 'Nom d\'utilisateur vérifié avec succès');
-        } catch (\Exception $e) {
-            return api_error($e->getMessage(), null, 400);
-        }
-    }
-
-    /**
-     * Vérifier si un user_name existe
-     */
-    public function checkUserName(Request $request)
-    {
-        $request->validate([
-            'user_name' => 'required|string'
-        ]);
-
-        $exists = $this->authService->user_nameExists($request->user_name);
-
-        return api_success(['exists' => $exists]);
-    }
 }
