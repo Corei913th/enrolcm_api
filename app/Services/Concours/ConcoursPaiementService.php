@@ -4,42 +4,55 @@ namespace App\Services\Concours;
 
 use App\Models\ConcoursPaiement;
 use App\Models\Concours;
+use App\DTOs\Concours\ConfigurePaymentDTO;
+use App\Exceptions\ConcoursException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Collection;
 
 class ConcoursPaiementService
 {
-    /**
-     * Configurer le paiement d'un concours
-     */
-    public function configurerPaiement(string $concoursId, array $data): ConcoursPaiement
+    public function configurePayment(string $concoursId, ConfigurePaymentDTO $dto): ConcoursPaiement
     {
-        return DB::transaction(function () use ($concoursId, $data) {
+        $concours = Concours::find($concoursId);
+        
+        if (!$concours) {
+            throw ConcoursException::notFound($concoursId);
+        }
+
+        if ($dto->montant <= 0) {
+            throw ConcoursException::invalidMontant();
+        }
+
+        if ($dto->date_limite >= $concours->date_limite_depot) {
+            throw ConcoursException::invalidDateLimite();
+        }
+
+        return DB::transaction(function () use ($concoursId, $dto) {
             $config = ConcoursPaiement::where('concours_id', $concoursId)->first();
 
             if ($config) {
-                $config->update($data);
+                $config->update($dto->toArray());
                 return $config->fresh();
             }
 
-            return ConcoursPaiement::create(array_merge($data, [
+            return ConcoursPaiement::create(array_merge($dto->toArray(), [
                 'concours_id' => $concoursId,
             ]));
         });
     }
 
-    /**
-     * Récupérer la configuration de paiement d'un concours
-     */
-    public function getConfiguration(string $concoursId): ?ConcoursPaiement
+    public function getConfiguration(string $concoursId): ConcoursPaiement
     {
-        return ConcoursPaiement::where('concours_id', $concoursId)->first();
+        $config = ConcoursPaiement::where('concours_id', $concoursId)->first();
+        
+        if (!$config) {
+            throw ConcoursException::paiementNotConfigured($concoursId);
+        }
+
+        return $config;
     }
 
-    /**
-     * Récupérer toutes les configurations actives
-     */
-    public function getConfigurationsActives(): Collection
+    public function getActiveConfigurations(): Collection
     {
         return ConcoursPaiement::with('concours')
             ->actif()
@@ -47,49 +60,46 @@ class ConcoursPaiementService
             ->get();
     }
 
-    /**
-     * Désactiver la configuration
-     */
-    public function desactiver(string $configId): ConcoursPaiement
+    public function deactivate(string $configId): ConcoursPaiement
     {
-        $config = ConcoursPaiement::findOrFail($configId);
+        $config = ConcoursPaiement::find($configId);
+        
+        if (!$config) {
+            throw new \Exception("Payment configuration not found.", 404);
+        }
+
         $config->update(['est_actif' => false]);
         return $config->fresh();
     }
 
-    /**
-     * Activer la configuration
-     */
-    public function activer(string $configId): ConcoursPaiement
+    public function activate(string $configId): ConcoursPaiement
     {
-        $config = ConcoursPaiement::findOrFail($configId);
+        $config = ConcoursPaiement::find($configId);
+        
+        if (!$config) {
+            throw new \Exception("Payment configuration not found.", 404);
+        }
+
         $config->update(['est_actif' => true]);
         return $config->fresh();
     }
 
-    /**
-     * Vérifier si un concours a une configuration valide
-     */
-    public function hasConfigurationValide(string $concoursId): bool
+    public function hasValidConfiguration(string $concoursId): bool
     {
-        $config = $this->getConfiguration($concoursId);
-
-        if (!$config) {
+        try {
+            $config = $this->getConfiguration($concoursId);
+            return $config->est_actif && !$config->isExpire();
+        } catch (ConcoursException $e) {
             return false;
         }
-
-        return $config->est_actif && !$config->isExpire();
     }
 
-    /**
-     * Récupérer les informations de paiement pour un concours (API publique)
-     */
-    public function getInfosPaiement(string $concoursId): array
+    public function getPaymentInfo(string $concoursId): array
     {
-        $config = $this->getConfiguration($concoursId);
+        $config = ConcoursPaiement::where('concours_id', $concoursId)->first();
 
         if (!$config || !$config->est_actif) {
-            throw new \Exception('Configuration de paiement non disponible pour ce concours');
+            throw ConcoursException::paiementNotConfigured($concoursId);
         }
 
         return [
@@ -102,16 +112,16 @@ class ConcoursPaiementService
         ];
     }
 
-    /**
-     * Prolonger la date limite
-     */
-    public function prolongerDateLimite(string $configId, int $jours): ConcoursPaiement
+    public function extendDeadline(string $configId, int $days): ConcoursPaiement
     {
-        $config = ConcoursPaiement::findOrFail($configId);
+        $config = ConcoursPaiement::find($configId);
         
-        $nouvelleDateLimite = $config->date_limite->addDays($jours);
+        if (!$config) {
+            throw new \Exception("Payment configuration not found.", 404);
+        }
         
-        $config->update(['date_limite' => $nouvelleDateLimite]);
+        $newDeadline = $config->date_limite->addDays($days);
+        $config->update(['date_limite' => $newDeadline]);
         
         return $config->fresh();
     }

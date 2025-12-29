@@ -1,0 +1,44 @@
+<?php
+
+namespace App\DTOs\Concours;
+
+class CreateConcoursDTO
+{
+    public function __construct(
+        public readonly string $libelle_concours,
+        public readonly ?string $description,
+        public readonly string $date_debut,
+        public readonly string $date_limite_depot,
+        public readonly ?int $nombre_places,
+        public readonly string $spec_concours_id,
+        public readonly ?string $session_id = null,
+        public readonly bool $est_actif = true
+    ) {}
+
+    public static function fromRequest(array $data): self
+    {
+        return new self(
+            libelle_concours: $data['libelle_concours'],
+            description: $data['description'] ?? null,
+            date_debut: $data['date_debut'],
+            date_limite_depot: $data['date_limite_depot'],
+            nombre_places: $data['nombre_places'] ?? null,
+            spec_concours_id: $data['spec_concours_id'],
+            session_id: $data['session_id'] ?? null,
+            est_actif: $data['est_actif'] ?? true
+        );
+    }
+
+    public function toArray(): array
+    {
+        return array_filter([
+            'libelle_concours' => $this->libelle_concours,
+            'description' => $this->description,
+            'date_debut' => $this->date_debut,
+            'date_limite_depot' => $this->date_limite_depot,
+            'nombre_places' => $this->nombre_places,
+            'spec_concours_id' => $this->spec_concours_id,
+            'est_actif' => $this->est_actif,
+        ], fn($value) => $value !== null);
+    }
+}
