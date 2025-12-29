@@ -4,10 +4,9 @@ namespace App\Enums;
 
 enum StatutPaiement: string
 {
-    case EN_ATTENTE = 'EN_ATTENTE';
-    case OCR_VERIFIE = 'OCR_VERIFIE';
-    case VALIDE = 'VALIDE';
-    case REJETE = 'REJETE';
+    case PENDING = 'PENDING';
+    case VERIFIED = 'VERIFIED';
+    case REJECTED = 'REJECTED';
 
     public static function values(): array
     {
@@ -17,20 +16,18 @@ enum StatutPaiement: string
     public function label(): string
     {
         return match($this) {
-            self::EN_ATTENTE => 'En attente',
-            self::OCR_VERIFIE => 'OCR vérifié',
-            self::VALIDE => 'Validé',
-            self::REJETE => 'Rejeté',
+            self::PENDING => 'En attente',
+            self::VERIFIED => 'Vérifié',
+            self::REJECTED => 'Rejeté',
         };
     }
 
     public function color(): string
     {
         return match($this) {
-            self::EN_ATTENTE => 'warning',
-            self::OCR_VERIFIE => 'info',
-            self::VALIDE => 'success',
-            self::REJETE => 'danger',
+            self::PENDING => 'warning',
+            self::VERIFIED => 'success',
+            self::REJECTED => 'danger',
         };
     }
 }

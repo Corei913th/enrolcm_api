@@ -10,9 +10,9 @@ return new class extends Migration
     {
         Schema::create('paiements', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->uuid('candidat_id');
+            $table->uuid('candidat_id')->nullable(); // Nullable car candidat créé APRÈS paiement
             $table->uuid('concours_id');
-            $table->string('reference', 50);
+            $table->string('reference', 50)->unique(); // PRU unique
             $table->decimal('montant', 10, 2);
             $table->string('preuve_paiement');
             
@@ -24,17 +24,17 @@ return new class extends Migration
             $table->decimal('ocr_confidence', 3, 2)->nullable();
             $table->json('ocr_raw_data')->nullable();
             
-            $table->enum('statut', ['EN_ATTENTE', 'OCR_VERIFIE', 'VALIDE', 'REJETE'])->default('EN_ATTENTE');
+            $table->enum('statut', ['PENDING', 'VERIFIED', 'REJECTED'])->default('PENDING');
             $table->text('motif_rejet')->nullable();
             $table->timestamp('validated_at')->nullable();
             $table->uuid('validated_by')->nullable();
             $table->timestamps();
             
-            $table->foreign('candidat_id')->references('utilisateur_id')->on('candidats')->onDelete('cascade');
+            $table->foreign('candidat_id')->references('utilisateur_id')->on('candidats')->onDelete('set null');
             $table->foreign('concours_id')->references('id')->on('concours')->onDelete('cascade');
             $table->foreign('validated_by')->references('id')->on('utilisateurs')->onDelete('set null');
             
-            $table->unique(['candidat_id', 'concours_id']);
+            $table->index('candidat_id');
             $table->index('reference');
             $table->index('statut');
             $table->index(['concours_id', 'statut']);
