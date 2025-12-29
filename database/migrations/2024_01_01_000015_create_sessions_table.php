@@ -13,8 +13,7 @@ return new class extends Migration
             $table->string('libelle_session', 200);
             $table->text('desc_session')->nullable();
             $table->boolean('est_actif')->default(true);
-            $table->timestamp('created_at')->useCurrent();
-            $table->timestamp('updated_at')->useCurrent();
+            $table->timestamps();
             
             $table->index('est_actif');
         });

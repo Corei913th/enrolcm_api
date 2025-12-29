@@ -13,8 +13,8 @@ return new class extends Migration
             $table->string('libelle_permission', 100);
             $table->text('desc_permission')->nullable();
             $table->boolean('est_actif')->default(true);
-            $table->timestamp('created_at')->useCurrent();
-            $table->timestamp('updated_at')->useCurrent();
+            $table->timestamps();
+
         });
     }
 

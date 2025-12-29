@@ -13,6 +13,7 @@ class Concours extends Model
     protected $table = 'concours';
 
     protected $fillable = [
+        'spec_concours_id',
         'libelle_concours',
         'date_limite_depot',
         'date_examen',
@@ -38,6 +39,19 @@ class Concours extends Model
             ->withTimestamps();
     }
 
+    public function specConcours()
+    {
+        return $this->belongsTo(SpecConcours::class, 'spec_concours_id');
+    }
+
+    public function filieres()
+    {
+        return $this->belongsToMany(Filiere::class, 'concours_filiere')
+            ->using(ConcoursFiliere::class)
+            ->withPivot('nombre_places')
+            ->withTimestamps();
+    }
+
     public function concoursSessions()
     {
         return $this->hasMany(ConcoursSession::class, 'concours_id');
@@ -51,6 +65,21 @@ class Concours extends Model
     public function etatsConcours()
     {
         return $this->hasMany(EtatConcoursSession::class, 'concours_session_concours_id');
+    }
+
+    public function configurationPaiement()
+    {
+        return $this->hasOne(ConcoursPaiement::class, 'concours_id');
+    }
+
+    public function paiements()
+    {
+        return $this->hasMany(Paiement::class, 'concours_id');
+    }
+
+    public function paymentReferences()
+    {
+        return $this->hasMany(PaymentReference::class, 'concours_id');
     }
 
     public function isOuvert(): bool

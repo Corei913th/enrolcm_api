@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\StatutInscription;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -19,9 +20,11 @@ class Candidature extends Model
         'candidat_id',
         'concours_id',
         'session_id',
+        'centre_id',
         'date_candidature',
         'code_cand_temp',
         'code_cand_def',
+        'statut_inscription',
         'qr_code',
         'date_inscription',
         'date_depot_physique',
@@ -34,6 +37,7 @@ class Candidature extends Model
         'date_inscription' => 'date',
         'date_depot_physique' => 'date',
         'date_validation' => 'datetime',
+        'statut_inscription' => StatutInscription::class,
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',
@@ -55,9 +59,20 @@ class Candidature extends Model
         return $this->belongsTo(Session::class, 'session_id');
     }
 
+    public function centre()
+    {
+        return $this->belongsTo(Centre::class, 'centre_id');
+    }
+
     public function concoursSession()
     {
         return $this->belongsTo(ConcoursSession::class, ['concours_id', 'session_id'], ['concours_id', 'session_id']);
+    }
+
+    public function paiement()
+    {
+        return $this->hasOne(Paiement::class, 'concours_id', 'concours_id')
+            ->where('candidat_id', $this->candidat_id);
     }
 
     public function documents()
@@ -84,6 +99,16 @@ class Candidature extends Model
     {
         return $this->hasOne(EtatCandidature::class, 'candidature_id')
             ->latest('date_etat');
+    }
+
+    public function affectationsSalles()
+    {
+        return $this->hasMany(CandidatureSalle::class, 'candidature_id');
+    }
+
+    public function convocation()
+    {
+        return $this->hasOne(Convocation::class, 'candidature_id');
     }
 
     // Scopes
@@ -192,4 +217,31 @@ class Candidature extends Model
             && !$this->isValidee()
             && !$this->isRejetee();
     }
+
+    // Helpers pour statut inscription
+    public function isActif(): bool
+    {
+        return $this->statut_inscription === StatutInscription::ACTIF;
+    }
+
+    public function isInvalide(): bool
+    {
+        return $this->statut_inscription === StatutInscription::INVALIDE;
+    }
+
+    public function activer(): void
+    {
+        $this->update(['statut_inscription' => StatutInscription::ACTIF]);
+    }
+
+    public function invalider(): void
+    {
+        $this->update(['statut_inscription' => StatutInscription::INVALIDE]);
+    }
+
+    public function hasPaiementValide(): bool
+    {
+        return $this->paiement && $this->paiement->statut === \App\Enums\StatutPaiement::VERIFIED;
+    }
 }
+
