@@ -2,324 +2,258 @@
 
 namespace App\Services\Candidats;
 
-use App\DTOs\Auth\CreateCandidatAccountDTO;
-use App\DTOs\Candidats\UpdateCandidatDTO;
-use App\Exceptions\Business\ResourceNotFoundException;
 use App\Models\Candidat;
 use App\Models\Utilisateur;
-use App\Services\Roles\RoleService;
-use App\Services\Users\UserService;
-use Exception;
+use App\Models\Paiement;
+use App\Models\Candidature;
+use App\DTOs\Candidats\VerifyPRUDTO;
+use App\DTOs\Candidats\RegisterCandidatDTO;
+use App\DTOs\Candidats\LoginCandidatDTO;
+use App\DTOs\Candidats\UpdateCandidatProfileDTO;
+use App\Enums\TypeUtilisateur;
+use App\Enums\StatutPaiement;
+use App\Enums\StatutInscription;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 
-class  CandidatService
+class CandidatService
 {
+    /**
+     * Vérifier si un PRU est valide et disponible pour création de compte
+     */
+    public function verifyPRU(VerifyPRUDTO $dto): array
+    {
+        $paiement = Paiement::where('reference', $dto->pru)
+            ->where('concours_id', $dto->concoursId)
+            ->where('statut', StatutPaiement::VERIFIED)
+            ->whereNull('candidat_id')
+            ->first();
 
-    public function __construct(
-        private readonly UserService $users,
-        private readonly RoleService $roles,
-    ) {}
+        if (!$paiement) {
+            return [
+                'valid' => false,
+                'message' => 'PRU invalide ou déjà utilisé'
+            ];
+        }
 
+        // Vérifier date limite
+        $config = $paiement->concours->configurationPaiement;
+        if ($config && $config->date_limite < now()) {
+            return [
+                'valid' => false,
+                'message' => 'La date limite d\'inscription est dépassée'
+            ];
+        }
 
-    public function createPartialCandidat(
-        CreateCandidatAccountDTO $dto,
-        ?Utilisateur $user = null
-    ): Utilisateur {
-        return DB::transaction(function () use ($dto, $user) {
-
-            $existingCandidat = Candidat::where('numero_recu', $dto->user_name)->first();
-            if ($existingCandidat) {
-                throw new Exception(
-                    'Un candidat avec ce numéro de reçu existe déjà.'
-                );
-            }
-
-            $user ??= $this->users->createCandidatAccount($dto);
-
-            $candidat = Candidat::create([
-                'utilisateur_id'     => $user->id,
-                'numero_recu'        => $dto->user_name,
-                'nationalite_cand'   => $dto->nationalite_cand,
-            ]);
-
-            $this->roles->assignDefault($user, 'CANDIDAT');
-
-            return $user->setRelation('candidat', $candidat);
-        });
+        return [
+            'valid' => true,
+            'concours' => $paiement->concours,
+            'montant' => $paiement->montant
+        ];
     }
 
-    public function updateCandidat(
-        UpdateCandidatDTO $dto,
-    ): Candidat {
+    /**
+     * Créer un compte candidat après validation du paiement
+     * WORKFLOW: PRU validé → Création Utilisateur → Création Candidat → Liaison Paiement → Création Candidature
+     */
+    public function register(RegisterCandidatDTO $dto): array
+    {
         return DB::transaction(function () use ($dto) {
-
-            $existingCandidat = Candidat::where('utilisateur_id', $dto->utilisateur_id)->first();
-            if (!$existingCandidat) {
-                throw new ResourceNotFoundException(
-                    'Candidat',
-                    $dto->utilisateur_id
-                );
+            // 1. Vérifier PRU
+            $verifyDTO = new VerifyPRUDTO($dto->pru, $dto->concoursId);
+            $verification = $this->verifyPRU($verifyDTO);
+            
+            if (!$verification['valid']) {
+                throw new \Exception($verification['message']);
             }
 
-            $existingCandidat->update($dto->toArray());
+            // 2. Vérifier que l'email n'existe pas
+            if (Utilisateur::where('email', $dto->email)->exists()) {
+                throw new \Exception('Cet email est déjà utilisé');
+            }
 
-            return $existingCandidat;
+            // 3. Créer Utilisateur (username = PRU)
+            $utilisateur = Utilisateur::create([
+                'user_name' => $dto->pru,
+                'email' => $dto->email,
+                'mot_de_passe' => Hash::make($dto->password),
+                'telephone' => $dto->telephone,
+                'type_utilisateur' => TypeUtilisateur::CANDIDAT,
+                'est_actif' => true,
+                'email_verifie' => false,
+            ]);
+
+            // 4. Créer Candidat
+            $candidat = Candidat::create([
+                'utilisateur_id' => $utilisateur->id,
+                'nom_cand' => $dto->nom,
+                'prenom_cand' => $dto->prenom,
+                'pru' => $dto->pru,
+                'telephone_candidat' => $dto->telephone,
+                'nationalite_cand' => 'Camerounaise',
+            ]);
+
+            // 5. Lier Paiement au Candidat
+            $paiement = Paiement::where('reference', $dto->pru)
+                ->where('concours_id', $dto->concoursId)
+                ->firstOrFail();
+            
+            $paiement->update(['candidat_id' => $utilisateur->id]);
+
+            // 6. Créer Candidature automatiquement avec statut ACTIF
+            $candidature = Candidature::create([
+                'candidat_id' => $utilisateur->id,
+                'concours_id' => $dto->concoursId,
+                'session_id' => $dto->sessionId,
+                'statut_inscription' => StatutInscription::ACTIF,
+                'date_candidature' => now(),
+                'date_inscription' => $paiement->validated_at ?? now(),
+            ]);
+
+            // 7. Générer token
+            $token = $utilisateur->createToken('auth_token')->plainTextToken;
+
+            return [
+                'user' => $utilisateur->load('candidat'),
+                'candidature' => $candidature,
+                'token' => $token,
+            ];
         });
     }
 
     /**
-     * Récupérer tous les candidats avec pagination
+     * Login avec PRU + password
      */
-    public function getAllCandidats(int $perPage = 15, array $filters = [])
+    public function login(LoginCandidatDTO $dto): array
+    {
+        $utilisateur = Utilisateur::where('user_name', $dto->pru)
+            ->where('type_utilisateur', TypeUtilisateur::CANDIDAT)
+            ->where('est_actif', true)
+            ->first();
+
+        if (!$utilisateur || !Hash::check($dto->password, $utilisateur->mot_de_passe)) {
+            throw new \Exception('PRU ou mot de passe incorrect');
+        }
+
+        $token = $utilisateur->createToken('auth_token')->plainTextToken;
+
+        return [
+            'user' => $utilisateur->load(['candidat', 'candidat.candidatures']),
+            'token' => $token,
+        ];
+    }
+
+    /**
+     * Mettre à jour le profil candidat
+     */
+    public function updateProfile(string $utilisateurId, UpdateCandidatProfileDTO $dto): Candidat
+    {
+        return DB::transaction(function () use ($utilisateurId, $dto) {
+            $candidat = Candidat::where('utilisateur_id', $utilisateurId)->firstOrFail();
+            $candidat->update($dto->toArray());
+            return $candidat->fresh();
+        });
+    }
+
+    /**
+     * Récupérer un candidat par ID
+     */
+    public function getById(string $utilisateurId): Candidat
+    {
+        $candidat = Candidat::with(['utilisateur', 'candidatures.concours', 'candidatures.session'])
+            ->where('utilisateur_id', $utilisateurId)
+            ->firstOrFail();
+
+        return $candidat;
+    }
+
+    /**
+     * Récupérer un candidat par PRU
+     */
+    public function getByPRU(string $pru): Candidat
+    {
+        $candidat = Candidat::with(['utilisateur', 'candidatures'])
+            ->where('pru', $pru)
+            ->firstOrFail();
+
+        return $candidat;
+    }
+
+    /**
+     * Liste des candidats (Admin)
+     */
+    public function getAll(array $filters = [], int $perPage = 20)
     {
         $query = Candidat::with(['utilisateur']);
 
-        // Par défaut, exclure les candidats inactifs (sauf si demandé explicitement)
-        if (!isset($filters['include_inactive']) || !$filters['include_inactive']) {
-            $query->whereHas('utilisateur', function ($q) {
-                $q->where('est_actif', true);
-            });
-        }
-
-        // Filtrer uniquement les inactifs si demandé
-        if (isset($filters['only_inactive']) && $filters['only_inactive']) {
-            $query->whereHas('utilisateur', function ($q) {
-                $q->where('est_actif', false);
-            });
-        }
-
-        // Filtres optionnels
-        if (!empty($filters['search'])) {
+        if (isset($filters['search'])) {
             $search = $filters['search'];
             $query->where(function ($q) use ($search) {
                 $q->where('nom_cand', 'like', "%{$search}%")
                   ->orWhere('prenom_cand', 'like', "%{$search}%")
-                  ->orWhere('numero_recu', 'like', "%{$search}%")
+                  ->orWhere('pru', 'like', "%{$search}%")
                   ->orWhere('telephone_candidat', 'like', "%{$search}%");
             });
         }
 
-        if (!empty($filters['region'])) {
+        if (isset($filters['region'])) {
             $query->where('region', $filters['region']);
         }
 
-        if (!empty($filters['sexe_cand'])) {
-            $query->where('sexe_cand', $filters['sexe_cand']);
-        }
-
-        if (!empty($filters['nationalite_cand'])) {
-            $query->where('nationalite_cand', $filters['nationalite_cand']);
-        }
-
-        return $query->orderBy('created_at', 'desc')->paginate($perPage);
-    }
-
-    /**
-     * Récupérer un candidat par son ID utilisateur
-     */
-    public function getCandidatById(string $utilisateurId): Candidat
-    {
-        $candidat = Candidat::with(['utilisateur'])->where('utilisateur_id', $utilisateurId)->first();
-
-        if (!$candidat) {
-            throw new ResourceNotFoundException('Candidat', $utilisateurId);
-        }
-
-        return $candidat;
-    }
-
-    /**
-     * Récupérer un candidat par son numéro de reçu
-     */
-    public function getCandidatByNumeroRecu(string $numeroRecu): Candidat
-    {
-        $candidat = Candidat::with(['utilisateur'])->where('numero_recu', $numeroRecu)->first();
-
-        if (!$candidat) {
-            throw new ResourceNotFoundException('Candidat', $numeroRecu);
-        }
-
-        return $candidat;
-    }
-
-    /**
-     * Supprimer un candidat (soft delete - désactivation du compte)
-     */
-    public function deleteCandidat(string $utilisateurId): bool
-    {
-        return DB::transaction(function () use ($utilisateurId) {
-            $candidat = $this->getCandidatById($utilisateurId);
-
-            // Désactiver l'utilisateur associé (soft delete)
-            $utilisateur = Utilisateur::find($utilisateurId);
-            if ($utilisateur) {
-                $utilisateur->update(['est_actif' => false]);
-                
-                // Révoquer tous les tokens d'accès
-                $utilisateur->tokens()->delete();
-                
-                return true;
-            }
-
-            return false;
-        });
-    }
-
-    /**
-     * Réactiver un candidat
-     */
-    public function activateCandidat(string $utilisateurId): bool
-    {
-        $candidat = $this->getCandidatById($utilisateurId);
-
-        $utilisateur = Utilisateur::find($utilisateurId);
-        if ($utilisateur) {
-            $utilisateur->update(['est_actif' => true]);
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
-     * Rechercher des candidats selon des critères
-     */
-    public function searchCandidats(array $criteria, int $perPage = 15)
-    {
-        $query = Candidat::with(['utilisateur']);
-
-        foreach ($criteria as $field => $value) {
-            if (!empty($value)) {
-                if (in_array($field, ['nom_cand', 'prenom_cand', 'numero_recu'])) {
-                    $query->where($field, 'like', "%{$value}%");
-                } else {
-                    $query->where($field, $value);
-                }
-            }
+        if (isset($filters['est_actif'])) {
+            $query->whereHas('utilisateur', function ($q) use ($filters) {
+                $q->where('est_actif', $filters['est_actif']);
+            });
         }
 
         return $query->orderBy('created_at', 'desc')->paginate($perPage);
     }
 
     /**
-     * Obtenir les statistiques des candidats
+     * Statistiques candidats
      */
-    public function getCandidatStats(): array
+    public function getStats(): array
     {
         $total = Candidat::count();
         $actifs = Candidat::whereHas('utilisateur', fn($q) => $q->where('est_actif', true))->count();
-        
+
         return [
-            // Statistiques générales
             'total' => $total,
             'actifs' => $actifs,
             'inactifs' => $total - $actifs,
-            'inscrits_recemment' => Candidat::where('created_at', '>=', now()->subDays(7))->count(),
             'inscrits_aujourdhui' => Candidat::whereDate('created_at', today())->count(),
             'inscrits_ce_mois' => Candidat::whereMonth('created_at', now()->month)
                 ->whereYear('created_at', now()->year)
                 ->count(),
-            
-            // Répartition par sexe
-            'par_sexe' => Candidat::selectRaw('sexe_cand, COUNT(*) as count')
-                ->whereNotNull('sexe_cand')
-                ->groupBy('sexe_cand')
-                ->pluck('count', 'sexe_cand')
-                ->toArray(),
-            
-            // Répartition par région (important pour concours nationaux)
             'par_region' => Candidat::selectRaw('region, COUNT(*) as count')
                 ->whereNotNull('region')
                 ->groupBy('region')
                 ->orderByDesc('count')
                 ->pluck('count', 'region')
                 ->toArray(),
-            
-            // Répartition par nationalité
-            'par_nationalite' => Candidat::selectRaw('nationalite_cand, COUNT(*) as count')
-                ->whereNotNull('nationalite_cand')
-                ->groupBy('nationalite_cand')
-                ->orderByDesc('count')
-                ->pluck('count', 'nationalite_cand')
-                ->toArray(),
-            
-            // Répartition par tranche d'âge
-            'par_tranche_age' => [
-                '16-20' => Candidat::whereBetween('age_cand', [16, 20])->count(),
-                '21-25' => Candidat::whereBetween('age_cand', [21, 25])->count(),
-                '26-30' => Candidat::whereBetween('age_cand', [26, 30])->count(),
-                '31-35' => Candidat::whereBetween('age_cand', [31, 35])->count(),
-            ],
-            
-            // Statistiques académiques
-            'avec_diplome' => Candidat::whereNotNull('diplome_admission')->count(),
-            'par_niveau_scolaire' => Candidat::selectRaw('niveau_scolaire, COUNT(*) as count')
-                ->whereNotNull('niveau_scolaire')
-                ->groupBy('niveau_scolaire')
-                ->orderByDesc('count')
-                ->pluck('count', 'niveau_scolaire')
-                ->toArray(),
-            'par_filiere_origine' => Candidat::selectRaw('filiere_origine, COUNT(*) as count')
-                ->whereNotNull('filiere_origine')
-                ->groupBy('filiere_origine')
-                ->orderByDesc('count')
-                ->limit(10) // Top 10 filières
-                ->pluck('count', 'filiere_origine')
-                ->toArray(),
-            'par_mention' => Candidat::selectRaw('mention, COUNT(*) as count')
-                ->whereNotNull('mention')
-                ->groupBy('mention')
-                ->orderByDesc('count')
-                ->pluck('count', 'mention')
-                ->toArray(),
-            
-            // Statistiques sociales
-            'avec_handicap' => Candidat::whereNotNull('handicap')->count(),
-            'par_statut_matrimonial' => Candidat::selectRaw('statut_matrimonial, COUNT(*) as count')
-                ->whereNotNull('statut_matrimonial')
-                ->groupBy('statut_matrimonial')
-                ->pluck('count', 'statut_matrimonial')
-                ->toArray(),
-            
-            // Taux de complétion du profil
-            'profils_complets' => Candidat::whereNotNull('nom_cand')
-                ->whereNotNull('prenom_cand')
-                ->whereNotNull('date_naissance_cand')
-                ->whereNotNull('numero_cni')
-                ->whereNotNull('telephone_candidat')
-                ->count(),
-            'profils_incomplets' => Candidat::where(function($q) {
-                $q->whereNull('nom_cand')
-                  ->orWhereNull('prenom_cand')
-                  ->orWhereNull('date_naissance_cand')
-                  ->orWhereNull('numero_cni')
-                  ->orWhereNull('telephone_candidat');
-            })->count(),
-            
-            // Évolution temporelle (7 derniers jours)
-            'evolution_7_jours' => Candidat::selectRaw('DATE(created_at) as date, COUNT(*) as count')
-                ->where('created_at', '>=', now()->subDays(7))
-                ->groupBy('date')
-                ->orderBy('date')
-                ->pluck('count', 'date')
-                ->toArray(),
         ];
     }
 
     /**
-     * Vérifier si un candidat existe
+     * Désactiver un candidat
      */
-    public function candidatExists(string $utilisateurId): bool
+    public function deactivate(string $utilisateurId): bool
     {
-        return Candidat::where('utilisateur_id', $utilisateurId)->exists();
+        return DB::transaction(function () use ($utilisateurId) {
+            $utilisateur = Utilisateur::findOrFail($utilisateurId);
+            $utilisateur->update(['est_actif' => false]);
+            $utilisateur->tokens()->delete();
+            return true;
+        });
     }
 
     /**
-     * Vérifier si un numéro de reçu existe
+     * Activer un candidat
      */
-    public function numeroRecuExists(string $numeroRecu): bool
+    public function activate(string $utilisateurId): bool
     {
-        return Candidat::where('numero_recu', $numeroRecu)->exists();
+        $utilisateur = Utilisateur::findOrFail($utilisateurId);
+        $utilisateur->update(['est_actif' => true]);
+        return true;
     }
 }
-

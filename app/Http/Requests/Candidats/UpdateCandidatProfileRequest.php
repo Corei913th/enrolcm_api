@@ -2,14 +2,13 @@
 
 namespace App\Http\Requests\Candidats;
 
+use Illuminate\Foundation\Http\FormRequest;
 use App\Enums\Genre;
 use App\Enums\RegionCameroun;
-use App\Enums\SerieBac;
-use Illuminate\Foundation\Http\FormRequest;
 
-class UpdateCandidatRequest extends FormRequest
+class UpdateCandidatProfileRequest extends FormRequest
 {
-    public function authorize()
+    public function authorize(): bool
     {
         return true;
     }

@@ -3,244 +3,183 @@
 namespace App\Http\Controllers\Candidats;
 
 use App\Http\Controllers\Controller;
-use App\DTOs\Candidats\UpdateCandidatDTO;
-use App\Exceptions\Business\ResourceNotFoundException;
-use App\Http\Requests\Candidats\UpdateCandidatRequest;
-use App\Http\Resources\CandidatResource;
-use Illuminate\Http\Request;
-use Illuminate\Validation\ValidationException;
 use App\Services\Candidats\CandidatService;
+use App\Http\Requests\Candidats\VerifyPRURequest;
+use App\Http\Requests\Candidats\RegisterCandidatRequest;
+use App\Http\Requests\Candidats\LoginCandidatRequest;
+use App\Http\Requests\Candidats\UpdateCandidatProfileRequest;
+use App\DTOs\Candidats\VerifyPRUDTO;
+use App\DTOs\Candidats\RegisterCandidatDTO;
+use App\DTOs\Candidats\LoginCandidatDTO;
+use App\DTOs\Candidats\UpdateCandidatProfileDTO;
+use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 
 class CandidatController extends Controller
 {
-
-
     public function __construct(
         private readonly CandidatService $candidatService
     ) {}
 
     /**
-     * Liste de tous les candidats avec pagination
-     *
-     * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
+     * Vérifier PRU (PUBLIC - avant création compte)
+     * POST /api/candidates/verify-pru
      */
-    public function index(Request $request)
+    public function verifyPRU(VerifyPRURequest $request): JsonResponse
     {
         try {
-            $perPage = $request->input('per_page', 15);
-            $filters = $request->only([
-                'search',
-                'region',
-                'sexe_cand',
-                'nationalite_cand',
-                'include_inactive',
-                'only_inactive'
-            ]);
+            $dto = VerifyPRUDTO::fromRequest($request->validated());
+            $result = $this->candidatService->verifyPRU($dto);
 
-            $candidats = $this->candidatService->getAllCandidats($perPage, $filters);
+            if ($result['valid']) {
+                return api_success($result, 'PRU valide');
+            }
 
-            return api_paginated(
-                CandidatResource::collection($candidats),
-                'Liste des candidats récupérée avec succès'
-            );
+            return api_error($result['message'], null, 400);
         } catch (\Exception $e) {
-            return api_error($e->getMessage(), null, 500);
+            return api_error($e->getMessage(), null, 400);
         }
     }
 
     /**
-     * Afficher un candidat spécifique
-     *
-     * @param string $id
-     * @return \Illuminate\Http\JsonResponse
+     * Créer compte candidat (PUBLIC - après paiement validé)
+     * POST /api/candidates/register
      */
-    public function show(string $id)
+    public function register(RegisterCandidatRequest $request): JsonResponse
     {
         try {
-            $candidat = $this->candidatService->getCandidatById($id);
+            $dto = RegisterCandidatDTO::fromRequest($request->validated());
+            $result = $this->candidatService->register($dto);
 
-            return api_success([
-                'candidat' => new CandidatResource($candidat),
-            ]);
-        } catch (ResourceNotFoundException $e) {
-            return api_not_found($e->getMessage());
+            return api_created($result, 'Compte créé avec succès');
         } catch (\Exception $e) {
-            return api_error($e->getMessage(), null, 500);
+            return api_error($e->getMessage(), null, 400);
         }
     }
 
     /**
-     * Mise à jour du candidat connecté (complétion du profil)
-     *
-     * @param UpdateCandidatRequest $request
-     * @return \Illuminate\Http\JsonResponse
+     * Login candidat (PUBLIC)
+     * POST /api/candidates/login
      */
-    public function update(UpdateCandidatRequest $request)
+    public function login(LoginCandidatRequest $request): JsonResponse
     {
         try {
-            $dto = UpdateCandidatDTO::fromRequest($request);            
-            $result = $this->candidatService->updateCandidat($dto);
+            $dto = LoginCandidatDTO::fromRequest($request->validated());
+            $result = $this->candidatService->login($dto);
 
-            return api_updated([
-                'candidat' => new CandidatResource($result),
-            ], 'Profil mis à jour avec succès');
-        } catch (ValidationException $e) {
-            return api_validation_error($e->errors(), $e->getMessage());
-        } catch (ResourceNotFoundException $e) {
-            return api_not_found($e->getMessage());
+            return api_success($result, 'Connexion réussie');
         } catch (\Exception $e) {
-            return api_error($e->getMessage(), null, 500);
+            return api_error($e->getMessage(), null, 401);
         }
     }
 
     /**
-     * Désactiver un candidat
-     *
-     * @param string $id
-     * @return \Illuminate\Http\JsonResponse
+     * Profil du candidat connecté
+     * GET /api/candidates/me
      */
-    public function destroy(string $id)
+    public function me(Request $request): JsonResponse
     {
         try {
-            $this->candidatService->deleteCandidat($id);
-
-            return api_deleted('Candidat désactivé avec succès');
-        } catch (ResourceNotFoundException $e) {
-            return api_not_found($e->getMessage());
+            $candidat = $this->candidatService->getById(auth()->id());
+            return api_success($candidat);
         } catch (\Exception $e) {
-            return api_error($e->getMessage(), null, 500);
+            return api_error($e->getMessage(), null, 404);
         }
     }
 
     /**
-     * Réactiver un candidat désactivé
-     *
-     * @param string $id
-     * @return \Illuminate\Http\JsonResponse
+     * Mettre à jour profil
+     * PUT /api/candidates/me
      */
-    public function activate(string $id)
+    public function updateProfile(UpdateCandidatProfileRequest $request): JsonResponse
     {
         try {
-            $this->candidatService->activateCandidat($id);
+            $dto = UpdateCandidatProfileDTO::fromRequest($request->validated());
+            $candidat = $this->candidatService->updateProfile(auth()->id(), $dto);
 
-            return api_updated(null, 'Candidat réactivé avec succès');
-        } catch (ResourceNotFoundException $e) {
-            return api_not_found($e->getMessage());
+            return api_success($candidat, 'Profil mis à jour avec succès');
         } catch (\Exception $e) {
-            return api_error($e->getMessage(), null, 500);
+            return api_error($e->getMessage(), null, 400);
         }
     }
 
     /**
-     * Rechercher des candidats selon des critères
-     *
-     * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
+     * Liste des candidats (ADMIN)
+     * GET /api/candidates
      */
-    public function search(Request $request)
+    public function index(Request $request): JsonResponse
+    {
+        $filters = $request->only(['search', 'region', 'est_actif']);
+        $perPage = $request->input('per_page', 20);
+
+        $candidats = $this->candidatService->getAll($filters, $perPage);
+
+        return api_paginated($candidats, 'Liste des candidats');
+    }
+
+    /**
+     * Détails d'un candidat (ADMIN)
+     * GET /api/candidates/{id}
+     */
+    public function show(string $id): JsonResponse
     {
         try {
-            $criteria = $request->only([
-                'nom_cand',
-                'prenom_cand',
-                'numero_recu',
-                'telephone_candidat',
-                'region',
-                'sexe_cand',
-                'nationalite_cand',
-            ]);
-
-            $perPage = $request->input('per_page', 15);
-            $candidats = $this->candidatService->searchCandidats($criteria, $perPage);
-
-            return api_paginated(
-                CandidatResource::collection($candidats),
-                'Résultats de recherche'
-            );
+            $candidat = $this->candidatService->getById($id);
+            return api_success($candidat);
         } catch (\Exception $e) {
-            return api_error($e->getMessage(), null, 500);
+            return api_error('Candidat introuvable', null, 404);
         }
     }
 
     /**
-     * Obtenir les statistiques des candidats
-     *
-     * @return \Illuminate\Http\JsonResponse
+     * Statistiques candidats (ADMIN)
+     * GET /api/candidates/stats
      */
-    public function stats()
+    public function stats(): JsonResponse
+    {
+        $stats = $this->candidatService->getStats();
+        return api_success($stats);
+    }
+
+    /**
+     * Désactiver un candidat (ADMIN)
+     * POST /api/candidates/{id}/deactivate
+     */
+    public function deactivate(string $id): JsonResponse
     {
         try {
-            $stats = $this->candidatService->getCandidatStats();
-
-            return api_success(['stats' => $stats]);
+            $this->candidatService->deactivate($id);
+            return api_success(null, 'Candidat désactivé avec succès');
         } catch (\Exception $e) {
-            return api_error($e->getMessage(), null, 500);
+            return api_error($e->getMessage(), null, 400);
         }
     }
 
     /**
-     * Récupérer un candidat par son numéro de reçu
-     *
-     * @param string $numero
-     * @return \Illuminate\Http\JsonResponse
+     * Activer un candidat (ADMIN)
+     * POST /api/candidates/{id}/activate
      */
-    public function getByNumeroRecu(string $numero)
+    public function activate(string $id): JsonResponse
     {
         try {
-            $candidat = $this->candidatService->getCandidatByNumeroRecu($numero);
-
-            return api_success([
-                'candidat' => new CandidatResource($candidat),
-            ]);
-        } catch (ResourceNotFoundException $e) {
-            return api_not_found($e->getMessage());
+            $this->candidatService->activate($id);
+            return api_success(null, 'Candidat activé avec succès');
         } catch (\Exception $e) {
-            return api_error($e->getMessage(), null, 500);
+            return api_error($e->getMessage(), null, 400);
         }
     }
 
     /**
-     * Vérifier la disponibilité d'un numéro de reçu
-     *
-     * @param string $numero
-     * @return \Illuminate\Http\JsonResponse
+     * Récupérer candidat par PRU (ADMIN)
+     * GET /api/candidates/pru/{pru}
      */
-    public function checkNumeroRecu(string $numero)
+    public function getByPRU(string $pru): JsonResponse
     {
         try {
-            $exists = $this->candidatService->numeroRecuExists($numero);
-
-            return api_success([
-                'exists' => $exists,
-                'message' => $exists 
-                    ? 'Ce numéro de reçu est déjà utilisé' 
-                    : 'Numéro de reçu disponible',
-            ]);
+            $candidat = $this->candidatService->getByPRU($pru);
+            return api_success($candidat);
         } catch (\Exception $e) {
-            return api_error($e->getMessage(), null, 500);
-        }
-    }
-
-    /**
-     * Obtenir le profil du candidat connecté
-     *
-     * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function me(Request $request)
-    {
-        try {
-            $user = $request->user();
-            $candidat = $this->candidatService->getCandidatById($user->id);
-
-            return api_success([
-                'candidat' => new CandidatResource($candidat),
-            ]);
-        } catch (ResourceNotFoundException $e) {
-            return api_not_found($e->getMessage());
-        } catch (\Exception $e) {
-            return api_error($e->getMessage(), null, 500);
+            return api_error('Candidat introuvable', null, 404);
         }
     }
 }
