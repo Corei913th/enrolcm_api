@@ -10,8 +10,8 @@ class PermissionResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'nom_permission' => $this->nom_permission,
-            'description' => $this->description,
+            'libelle_permission' => $this->libelle_permission,
+            'description' => $this->desc_permission,
         ];
     }
 }
