@@ -37,16 +37,28 @@ class AuthService
             ]);
         }
 
-        // Créer un token API
-        $token = $this->userService->generateToken($utilisateur);
+        // Générer access token et refresh token
+        $accessToken = $this->userService->generateToken($utilisateur, 'auth_token', 60); // 60 minutes
+        $refreshToken = $this->userService->generateRefreshToken($utilisateur, 30); // 30 jours
 
         // Charger les relations selon le type d'utilisateur
         $relations = $this->getRelationsForUser($utilisateur);
 
         return [
             'user' => $utilisateur->load($relations),
-            'token' => $token,
+            'access_token' => $accessToken['access_token'],
+            'refresh_token' => $refreshToken['refresh_token'],
+            'token_type' => $accessToken['token_type'],
+            'expires_in' => $accessToken['expires_in'],
         ];
+    }
+
+    /**
+     * Rafraîchir le token d'accès
+     */
+    public function refreshToken(string $refreshToken): array
+    {
+        return $this->userService->refreshAccessToken($refreshToken);
     }
 
     /**
