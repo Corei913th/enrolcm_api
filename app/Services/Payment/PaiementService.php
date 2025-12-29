@@ -93,7 +93,9 @@ class PaiementService
     /**
      * Auto-validation d'un paiement via OCR.
      *
-     * Vérifie référence, montant ±5% et date.
+     * Vérifie montant ±5% et date.
+     * Note: La référence n'est pas vérifiée car le PRU est fourni manuellement
+     * et diffère du numéro de reçu bancaire extrait par OCR.
      * Si OK → statut VERIFIED.
      *
      * @param Paiement $paiement Paiement à valider
@@ -111,11 +113,10 @@ class PaiementService
             return false;
         }
 
-        $referenceValide = $this->verifyReference($paiement);
         $montantValide = $this->verifyAmount($paiement, $config->montant);
         $dateValide = $this->verifyDate($paiement, $config->date_limite);
 
-        if ($referenceValide && $montantValide && $dateValide) {
+        if ($montantValide && $dateValide) {
             $paiement->update([
                 'statut' => StatutPaiement::VERIFIED,
                 'validated_at' => now(),
@@ -262,18 +263,6 @@ class PaiementService
             ->first();
 
         return $paiement?->validated_at;
-    }
-
-    /**
-     * Vérifie si la référence OCR correspond au PRU.
-     *
-     * @param Paiement $paiement Paiement à vérifier
-     *
-     * @return bool True si la référence est cohérente
-     */
-    private function verifyReference(Paiement $paiement): bool
-    {
-        return $paiement->reference_ocr === $paiement->reference;
     }
 
     /**
