@@ -5,10 +5,8 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Services\Auth\AuthService;
 use App\Http\Requests\Auth\LoginRequest;
-use App\Http\Requests\Auth\RegisterCandidatRequest;
 use App\Http\Requests\Auth\ChangePasswordRequest;
 use App\DTOs\Auth\LoginDTO;
-use App\DTOs\Auth\RegisterCandidatDTO;
 use App\DTOs\Auth\ChangePasswordDTO;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
@@ -16,15 +14,21 @@ use App\Http\Resources\UtilisateurResource;
 
 class AuthController extends Controller
 {
-    protected $authService;
-
-    public function __construct(AuthService $authService)
-    {
-        $this->authService = $authService;
-    }
+    public function __construct(
+        private readonly AuthService $authService
+    ) {}
 
     /**
-     * Connexion
+     * Connexion d'un utilisateur.
+     *
+     * Endpoint : POST /api/auth/login
+     *
+     * @param LoginRequest $request Requête validée contenant user_name et mot_de_passe
+     *
+     * @return \Illuminate\Http\JsonResponse Réponse JSON avec utilisateur et tokens
+     *
+     * @throws ValidationException Si la requête est invalide
+     * @throws \Exception Si l'authentification échoue
      */
     public function login(LoginRequest $request)
     {
@@ -34,7 +38,10 @@ class AuthController extends Controller
 
             return api_success([
                 'user' => new UtilisateurResource($result['user']),
-                'token' => $result['token'],
+                'access_token' => $result['access_token'],
+                'refresh_token' => $result['refresh_token'],
+                'token_type' => $result['token_type'],
+                'expires_in' => $result['expires_in'],
             ], 'Connexion réussie');
         } catch (ValidationException $e) {
             return api_validation_error($e->errors(), $e->getMessage());
@@ -44,25 +51,46 @@ class AuthController extends Controller
     }
 
     /**
-     * Inscription candidat
+     * Rafraîchir le token d'accès.
+     *
+     * Endpoint : POST /api/auth/refresh
+     *
+     * @param Request $request Requête contenant le refresh_token
+     *
+     * @return \Illuminate\Http\JsonResponse Réponse JSON avec nouveaux tokens
+     *
+     * @throws \Exception Si le refresh échoue
      */
-    public function register(RegisterCandidatRequest $request)
+    public function refresh(Request $request)
     {
         try {
-            $dto = RegisterCandidatDTO::fromRequest($request);
-            $result = $this->authService->registerCandidat($dto);
+            $refreshToken = $request->input('refresh_token');
 
-            return api_created([
-                'user' => new UtilisateurResource($result['user']),
-                'token' => $result['token'],
-            ], 'Inscription réussie');
+            if (!$refreshToken) {
+                return api_error('Refresh token manquant', null, 400);
+            }
+
+            $result = $this->authService->refreshToken($refreshToken);
+
+            return api_success([
+                'access_token' => $result['access_token'],
+                'refresh_token' => $result['refresh_token'],
+                'token_type' => $result['token_type'],
+                'expires_in' => $result['expires_in'],
+            ], 'Token rafraîchi avec succès');
         } catch (\Exception $e) {
-            return api_error($e->getMessage(), null, 400);
+            return api_error($e->getMessage(), null, 401);
         }
     }
 
     /**
-     * Déconnexion
+     * Déconnexion de l'utilisateur courant.
+     *
+     * Endpoint : POST /api/auth/logout
+     *
+     * @param Request $request Requête contenant l'utilisateur connecté
+     *
+     * @return \Illuminate\Http\JsonResponse Réponse JSON succès
      */
     public function logout(Request $request)
     {
@@ -72,7 +100,13 @@ class AuthController extends Controller
     }
 
     /**
-     * Déconnexion de tous les appareils
+     * Déconnexion de tous les appareils.
+     *
+     * Endpoint : POST /api/auth/logout-all
+     *
+     * @param Request $request Requête contenant l'utilisateur connecté
+     *
+     * @return \Illuminate\Http\JsonResponse Réponse JSON succès
      */
     public function logoutAll(Request $request)
     {
@@ -82,7 +116,13 @@ class AuthController extends Controller
     }
 
     /**
-     * Obtenir l'utilisateur connecté
+     * Obtenir l'utilisateur connecté.
+     *
+     * Endpoint : GET /api/auth/me
+     *
+     * @param Request $request Requête contenant l'utilisateur connecté
+     *
+     * @return \Illuminate\Http\JsonResponse Réponse JSON avec utilisateur
      */
     public function me(Request $request)
     {
@@ -92,7 +132,15 @@ class AuthController extends Controller
     }
 
     /**
-     * Changer le mot de passe
+     * Changer le mot de passe de l'utilisateur connecté.
+     *
+     * Endpoint : POST /api/auth/change-password
+     *
+     * @param ChangePasswordRequest $request Requête validée contenant current_password et new_password
+     *
+     * @return \Illuminate\Http\JsonResponse Réponse JSON succès ou erreur
+     *
+     * @throws \Exception Si le changement échoue
      */
     public function changePassword(ChangePasswordRequest $request)
     {
@@ -104,33 +152,5 @@ class AuthController extends Controller
         } catch (\Exception $e) {
             return api_error($e->getMessage(), null, 400);
         }
-    }
-
-    /**
-     * Vérifier l'user_name
-     */
-    public function verifyUserName(Request $request)
-    {
-        try {
-            $this->authService->verifyuser_name($request->user());
-
-            return api_updated(null, 'Nom d\'utilisateur vérifié avec succès');
-        } catch (\Exception $e) {
-            return api_error($e->getMessage(), null, 400);
-        }
-    }
-
-    /**
-     * Vérifier si un user_name existe
-     */
-    public function checkUserName(Request $request)
-    {
-        $request->validate([
-            'user_name' => 'required|string'
-        ]);
-
-        $exists = $this->authService->user_nameExists($request->user_name);
-
-        return api_success(['exists' => $exists]);
     }
 }

@@ -49,7 +49,7 @@ return new class extends Migration
             $table->index(['nom_cand', 'prenom_cand']);
             $table->index('code_cand');
             $table->index('numero_cni');
-            $table->index('numero_recu');
+            $table->index('pru');
             $table->index('date_naissance_cand');
             $table->index('est_actif');
         });

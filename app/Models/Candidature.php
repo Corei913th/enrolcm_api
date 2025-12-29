@@ -219,44 +219,29 @@ class Candidature extends Model
     }
 
     // Helpers pour statut inscription
-    public function isBrouillon(): bool
+    public function isActif(): bool
     {
-        return $this->statut_inscription === StatutInscription::BROUILLON;
+        return $this->statut_inscription === StatutInscription::ACTIF;
     }
 
-    public function isSuspendue(): bool
+    public function isInvalide(): bool
     {
-        return $this->statut_inscription === StatutInscription::SUSPENDUE;
+        return $this->statut_inscription === StatutInscription::INVALIDE;
     }
 
-    public function isConfirmee(): bool
+    public function activer(): void
     {
-        return $this->statut_inscription === StatutInscription::CONFIRMEE;
-    }
-
-    public function isInvalidee(): bool
-    {
-        return $this->statut_inscription === StatutInscription::INVALIDEE;
-    }
-
-    public function suspendre(): void
-    {
-        $this->update(['statut_inscription' => StatutInscription::SUSPENDUE]);
-    }
-
-    public function confirmer(): void
-    {
-        $this->update(['statut_inscription' => StatutInscription::CONFIRMEE]);
+        $this->update(['statut_inscription' => StatutInscription::ACTIF]);
     }
 
     public function invalider(): void
     {
-        $this->update(['statut_inscription' => StatutInscription::INVALIDEE]);
+        $this->update(['statut_inscription' => StatutInscription::INVALIDE]);
     }
 
     public function hasPaiementValide(): bool
     {
-        return $this->paiement && $this->paiement->isValide();
+        return $this->paiement && $this->paiement->statut === \App\Enums\StatutPaiement::VERIFIED;
     }
 }
 
