@@ -4,6 +4,7 @@ namespace App\Http\Requests\Admin\Users;
 
 use Illuminate\Foundation\Http\FormRequest;
 use App\Enums\TypeUtilisateur;
+use Illuminate\Validation\Rule;
 
 class StoreUserRequest extends FormRequest
 {
@@ -18,7 +19,14 @@ class StoreUserRequest extends FormRequest
             'email' => 'sometimes|email|unique:utilisateurs,email',
             'user_name' => 'required|string|unique:utilisateurs,user_name',
             'mot_de_passe' => 'required|string|min:6|confirmed',
-            'telephone' => 'sometimes|string|max:20',
+            'telephone' => [
+                'sometimes',
+                'required',
+                'string',
+                'regex:/^(6[5-9]\d{7}|2[2-3]\d{7})$/',
+                Rule::unique('candidats', 'telephone_candidat'),
+                Rule::unique('utilisateurs', 'telephone'),
+            ],
             'type_utilisateur' => 'required|in:' . implode(',', TypeUtilisateur::values()),
             
             // Champs spécifiques Admin
