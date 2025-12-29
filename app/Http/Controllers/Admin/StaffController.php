@@ -4,11 +4,12 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\DTOs\Users\CreateUserDTO;
+use App\Enums\TypeUtilisateur;
 use App\Http\Requests\Admin\StoreUserRequest;
 use App\Http\Resources\UtilisateurResource;
 use App\Services\Users\UserService;
 
-class UserController extends Controller
+class StaffController extends Controller
 {
     
   

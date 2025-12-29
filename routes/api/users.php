@@ -1,11 +1,11 @@
 <?php
 
-use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\StaffController;
 use Illuminate\Support\Facades\Route;
 
 
 
-Route::post('', [UserController::class, 'store']);
+Route::post('', [StaffController::class, 'store']);
 
 
 
