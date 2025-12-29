@@ -14,8 +14,7 @@ return new class extends Migration
             $table->integer('capacite');
             $table->uuid('centre_id')->nullable();
             $table->boolean('est_actif')->default(true);
-            $table->timestamp('created_at')->useCurrent();
-            $table->timestamp('updated_at')->useCurrent();
+            $table->timestamps();
 
             $table->foreign('centre_id')->references('id')->on('centres')->onDelete('restrict');
         });

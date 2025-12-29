@@ -23,8 +23,7 @@ return new class extends Migration
             $table->string('telephone_ecole', 20)->nullable();
             $table->string('embleme_ecole', 500)->nullable();
             $table->boolean('est_actif')->default(true);
-            $table->timestamp('created_at')->useCurrent();
-            $table->timestamp('updated_at')->useCurrent();
+            $table->timestamps();
             
             $table->index('region');
             $table->index('est_actif');

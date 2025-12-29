@@ -12,7 +12,7 @@ return new class extends Migration
             $table->uuid('concours_id');
             $table->uuid('filiere_id');
             $table->integer('nombre_places')->default(0);
-            $table->timestamp('created_at')->useCurrent();
+            $table->timestamps();
             
             $table->primary(['concours_id', 'filiere_id']);
             $table->foreign('concours_id')->references('id')->on('concours')->onDelete('cascade');

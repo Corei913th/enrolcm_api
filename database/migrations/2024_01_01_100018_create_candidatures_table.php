@@ -22,8 +22,7 @@ return new class extends Migration
             $table->timestamp('date_validation')->nullable();
             $table->text('motif_rejet')->nullable();
             $table->timestamp('deleted_at')->nullable();
-            $table->timestamp('created_at')->useCurrent();
-            $table->timestamp('updated_at')->useCurrent();
+            $table->timestamps();
             
             $table->foreign('candidat_id')->references('utilisateur_id')->on('candidats')->onDelete('restrict');
             $table->foreign(['concours_id', 'session_id'])
