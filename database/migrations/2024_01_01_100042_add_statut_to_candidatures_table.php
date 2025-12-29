@@ -9,8 +9,8 @@ return new class extends Migration
     public function up()
     {
         Schema::table('candidatures', function (Blueprint $table) {
-            $table->enum('statut_inscription', ['BROUILLON', 'SUSPENDUE', 'CONFIRMEE', 'INVALIDEE'])
-                ->default('BROUILLON')
+            $table->enum('statut_inscription', ['ACTIF', 'INVALIDE'])
+                ->default('ACTIF')
                 ->after('code_cand_def');
         });
     }

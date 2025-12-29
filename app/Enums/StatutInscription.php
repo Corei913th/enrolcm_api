@@ -4,10 +4,8 @@ namespace App\Enums;
 
 enum StatutInscription: string
 {
-    case BROUILLON = 'BROUILLON';
-    case SUSPENDUE = 'SUSPENDUE';
-    case CONFIRMEE = 'CONFIRMEE';
-    case INVALIDEE = 'INVALIDEE';
+    case ACTIF = 'ACTIF';
+    case INVALIDE = 'INVALIDE';
 
     public static function values(): array
     {
@@ -17,20 +15,16 @@ enum StatutInscription: string
     public function label(): string
     {
         return match($this) {
-            self::BROUILLON => 'Brouillon',
-            self::SUSPENDUE => 'Suspendue',
-            self::CONFIRMEE => 'Confirmée',
-            self::INVALIDEE => 'Invalidée',
+            self::ACTIF => 'Actif',
+            self::INVALIDE => 'Invalide',
         };
     }
 
     public function color(): string
     {
         return match($this) {
-            self::BROUILLON => 'secondary',
-            self::SUSPENDUE => 'warning',
-            self::CONFIRMEE => 'success',
-            self::INVALIDEE => 'danger',
+            self::ACTIF => 'success',
+            self::INVALIDE => 'danger',
         };
     }
 }
