@@ -14,7 +14,7 @@ class EcoleResource extends JsonResource
             'code_ecole' => $this->code_ecole,
             'libelle_ecole' => $this->libelle_ecole,
             'region' => $this->region,
-            'region_label' => RegionCameroun::label($this->region),
+            'region_label' => $this->region?->label(),
             'ville' => $this->ville,
             'adresse' => $this->adresse,
             'telephone' => $this->telephone,

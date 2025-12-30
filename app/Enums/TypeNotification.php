@@ -2,59 +2,42 @@
 
 namespace App\Enums;
 
-class TypeNotification
+enum TypeNotification: string
 {
     // Candidature
-    public const CANDIDATURE_SOUMISE = 'CANDIDATURE_SOUMISE';
-    public const CANDIDATURE_VALIDEE = 'CANDIDATURE_VALIDEE';
-    public const CANDIDATURE_REJETEE = 'CANDIDATURE_REJETEE';
-    public const DOSSIER_INCOMPLET = 'DOSSIER_INCOMPLET';
-    
-    // Convocation
-    public const CONVOCATION_DISPONIBLE = 'CONVOCATION_DISPONIBLE';
-    public const RAPPEL_EXAMEN = 'RAPPEL_EXAMEN';
-    
-    // Résultats
-    public const RESULTATS_DISPONIBLES = 'RESULTATS_DISPONIBLES';
-    public const ADMISSION = 'ADMISSION';
-    public const ECHEC = 'ECHEC';
-    public const LISTE_ATTENTE = 'LISTE_ATTENTE';
-    
-    // Paiement
-    public const PAIEMENT_RECU = 'PAIEMENT_RECU';
-    public const PAIEMENT_VALIDE = 'PAIEMENT_VALIDE';
-    public const PAIEMENT_REJETE = 'PAIEMENT_REJETE';
-    
-    // Système
-    public const INFORMATION_GENERALE = 'INFORMATION_GENERALE';
-    public const ALERTE = 'ALERTE';
-    public const RAPPEL = 'RAPPEL';
-    
+    case CANDIDATURE_SOUMISE = 'CANDIDATURE_SOUMISE';
+    case CANDIDATURE_VALIDEE = 'CANDIDATURE_VALIDEE';
+    case CANDIDATURE_REJETEE = 'CANDIDATURE_REJETEE';
+    case DOSSIER_INCOMPLET = 'DOSSIER_INCOMPLET';
+
+        // Convocation
+    case CONVOCATION_DISPONIBLE = 'CONVOCATION_DISPONIBLE';
+    case RAPPEL_EXAMEN = 'RAPPEL_EXAMEN';
+
+        // Résultats
+    case RESULTATS_DISPONIBLES = 'RESULTATS_DISPONIBLES';
+    case ADMISSION = 'ADMISSION';
+    case ECHEC = 'ECHEC';
+    case LISTE_ATTENTE = 'LISTE_ATTENTE';
+
+        // Paiement
+    case PAIEMENT_RECU = 'PAIEMENT_RECU';
+    case PAIEMENT_VALIDE = 'PAIEMENT_VALIDE';
+    case PAIEMENT_REJETE = 'PAIEMENT_REJETE';
+
+        // Système
+    case INFORMATION_GENERALE = 'INFORMATION_GENERALE';
+    case ALERTE = 'ALERTE';
+    case RAPPEL = 'RAPPEL';
+
     public static function values(): array
     {
-        return [
-            self::CANDIDATURE_SOUMISE,
-            self::CANDIDATURE_VALIDEE,
-            self::CANDIDATURE_REJETEE,
-            self::DOSSIER_INCOMPLET,
-            self::CONVOCATION_DISPONIBLE,
-            self::RAPPEL_EXAMEN,
-            self::RESULTATS_DISPONIBLES,
-            self::ADMISSION,
-            self::ECHEC,
-            self::LISTE_ATTENTE,
-            self::PAIEMENT_RECU,
-            self::PAIEMENT_VALIDE,
-            self::PAIEMENT_REJETE,
-            self::INFORMATION_GENERALE,
-            self::ALERTE,
-            self::RAPPEL,
-        ];
+        return array_column(self::cases(), 'value');
     }
 
-    public static function label(string $value): string
+    public function label(): string
     {
-        $labels = [
+        return match ($this) {
             self::CANDIDATURE_SOUMISE => 'Candidature soumise',
             self::CANDIDATURE_VALIDEE => 'Candidature validée',
             self::CANDIDATURE_REJETEE => 'Candidature rejetée',
@@ -71,8 +54,6 @@ class TypeNotification
             self::INFORMATION_GENERALE => 'Information générale',
             self::ALERTE => 'Alerte',
             self::RAPPEL => 'Rappel',
-        ];
-
-        return $labels[$value] ?? $value;
+        };
     }
 }

@@ -25,10 +25,10 @@ class EtatSession extends Model
         'created_at' => 'datetime',
     ];
 
-    
+
     public function getLibelleLabel()
     {
-        return EtatSessionEnum::label($this->libelle_etat);
+        return EtatSession::tryFrom($this->libelle_etat)?->label();
     }
 
     public function isOpen()

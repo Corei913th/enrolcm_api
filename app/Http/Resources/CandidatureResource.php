@@ -15,14 +15,23 @@ class CandidatureResource extends JsonResource
             'session_id' => $this->session_id,
             'code_cand_temp' => $this->code_cand_temp,
             'code_cand_def' => $this->code_cand_def,
+            'statut_inscription' => $this->statut_inscription,
             'date_candidature' => $this->date_candidature?->format('Y-m-d H:i:s'),
             'date_inscription' => $this->date_inscription?->format('Y-m-d'),
             'date_depot_physique' => $this->date_depot_physique?->format('Y-m-d'),
             'date_validation' => $this->date_validation?->format('Y-m-d H:i:s'),
             'motif_rejet' => $this->motif_rejet,
+            
+            // Méthodes helpers
+            'is_actif' => $this->isActif(),
+            'is_invalide' => $this->isInvalide(),
             'is_validee' => $this->isValidee(),
             'is_rejetee' => $this->isRejetee(),
-            'created_at' => $this->created_at?->format('Y-m-d H:i:s'),            
+            
+            'created_at' => $this->created_at?->format('Y-m-d H:i:s'),
+            'updated_at' => $this->updated_at?->format('Y-m-d H:i:s'),
+            
+            // Relations
             'candidat' => new CandidatResource($this->whenLoaded('candidat')),
             'concours' => new ConcoursResource($this->whenLoaded('concours')),
             'session' => new SessionResource($this->whenLoaded('session')),

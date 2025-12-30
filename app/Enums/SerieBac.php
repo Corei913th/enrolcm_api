@@ -2,36 +2,26 @@
 
 namespace App\Enums;
 
-class SerieBac
+enum SerieBac: string
 {
-    public const A = 'A';
-    public const C = 'C';
-    public const D = 'D';
-    public const E = 'E';
-    public const F = 'F';
-    public const G = 'G';
-    public const TI = 'TI';
-    public const ESF = 'ESF';
-    public const AUTRE = 'AUTRE';
+    case A = 'A';
+    case C = 'C';
+    case D = 'D';
+    case E = 'E';
+    case F = 'F';
+    case G = 'G';
+    case TI = 'TI';
+    case ESF = 'ESF';
+    case AUTRE = 'AUTRE';
 
     public static function values(): array
     {
-        return [
-            self::A,
-            self::C,
-            self::D,
-            self::E,
-            self::F,
-            self::G,
-            self::TI,
-            self::ESF,
-            self::AUTRE,
-        ];
+        return array_column(self::cases(), 'value');
     }
 
-    public static function label(string $value): string
+    public function label(): string
     {
-        $labels = [
+        return match ($this) {
             self::A => 'Série A (Littéraire)',
             self::C => 'Série C (Mathématiques et Sciences Physiques)',
             self::D => 'Série D (Mathématiques et Sciences de la Vie)',
@@ -41,8 +31,6 @@ class SerieBac
             self::TI => 'Série TI (Tecnnologie de l\' Informatique)',
             self::ESF => 'Série ESF (Économie Sociale et Familiale)',
             self::AUTRE => 'Autre série',
-        ];
-
-        return $labels[$value] ?? $value;
+        };
     }
 }

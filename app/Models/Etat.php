@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use App\Enums\EtatCandidature;
+use App\Models\EtatCandidature as ModelsEtatCandidature;
 
 class Etat extends Model
 {
@@ -25,16 +26,16 @@ class Etat extends Model
         'created_at' => 'datetime',
     ];
 
-    
+
     public function etatCandidatures()
     {
-        return $this->hasMany(EtatCandidature::class, 'etat_id');
+        return $this->hasMany(ModelsEtatCandidature::class, 'etat_id');
     }
 
     // Helpers
     public function getLibelleLabel()
     {
-        return EtatCandidature::label($this->libelle_etat);
+        return EtatCandidature::tryFrom($this->libelle_etat)?->label();
     }
 
     public static function getByLibelle($libelle)
