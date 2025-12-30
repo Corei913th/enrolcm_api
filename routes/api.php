@@ -4,4 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 // Middleware désactivé temporairement pour les tests
-require __DIR__.'/api/ecoles.php';
+Route::prefix('v1')->group(function () {
+    require __DIR__.'/api/ecoles.php';
+    require __DIR__.'/api/departements.php';
+});
