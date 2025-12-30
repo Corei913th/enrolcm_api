@@ -12,6 +12,16 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class ConcoursPaiementService
 {
+    /**
+     * Configurer ou mettre à jour le paiement d’un concours.
+     *
+     * @param string $concoursId ID du concours
+     * @param ConfigurePaymentDTO $dto DTO contenant les informations de configuration
+     *
+     * @return ConcoursPaiement Configuration créée ou mise à jour
+     *
+     * @throws ConcoursException Si le concours est introuvable, montant invalide ou date limite incorrecte
+     */
     public function configurePayment(string $concoursId, ConfigurePaymentDTO $dto): ConcoursPaiement
     {
         try {
@@ -42,6 +52,15 @@ class ConcoursPaiementService
         });
     }
 
+    /**
+     * Récupérer la configuration de paiement d’un concours.
+     *
+     * @param string $concoursId ID du concours
+     *
+     * @return ConcoursPaiement Configuration trouvée
+     *
+     * @throws ConcoursException Si aucune configuration n’est définie
+     */
     public function getConfiguration(string $concoursId): ConcoursPaiement
     {
         $config = ConcoursPaiement::where('concours_id', $concoursId)->first();
@@ -53,6 +72,11 @@ class ConcoursPaiementService
         return $config;
     }
 
+    /**
+     * Récupérer toutes les configurations actives et non expirées.
+     *
+     * @return Collection Liste des configurations actives
+     */
     public function getActiveConfigurations(): Collection
     {
         return ConcoursPaiement::with('concours')
@@ -61,6 +85,15 @@ class ConcoursPaiementService
             ->get();
     }
 
+    /**
+     * Désactiver une configuration de paiement.
+     *
+     * @param string $configId ID de la configuration
+     *
+     * @return ConcoursPaiement Configuration mise à jour
+     *
+     * @throws \Exception Si la configuration est introuvable
+     */
     public function deactivate(string $configId): ConcoursPaiement
     {
         try {
@@ -73,6 +106,15 @@ class ConcoursPaiementService
         return $config->fresh();
     }
 
+    /**
+     * Activer une configuration de paiement.
+     *
+     * @param string $configId ID de la configuration
+     *
+     * @return ConcoursPaiement Configuration mise à jour
+     *
+     * @throws \Exception Si la configuration est introuvable
+     */
     public function activate(string $configId): ConcoursPaiement
     {
         try {
@@ -81,14 +123,17 @@ class ConcoursPaiementService
             throw new \Exception("Payment configuration not found.", 404);
         }
 
-        if (!$config) {
-            throw new \Exception("Payment configuration not found.", 404);
-        }
-
         $config->update(['est_actif' => true]);
         return $config->fresh();
     }
 
+    /**
+     * Vérifier si un concours possède une configuration de paiement valide.
+     *
+     * @param string $concoursId ID du concours
+     *
+     * @return bool True si configuration valide, False sinon
+     */
     public function hasValidConfiguration(string $concoursId): bool
     {
         try {
@@ -99,6 +144,15 @@ class ConcoursPaiementService
         }
     }
 
+    /**
+     * Obtenir les informations de paiement d’un concours.
+     *
+     * @param string $concoursId ID du concours
+     *
+     * @return array Tableau contenant montant, banque, numéro de compte, bénéficiaire, date limite et instructions
+     *
+     * @throws ConcoursException Si aucune configuration active n’est trouvée
+     */
     public function getPaymentInfo(string $concoursId): array
     {
         $config = ConcoursPaiement::where('concours_id', $concoursId)->first();
@@ -117,6 +171,16 @@ class ConcoursPaiementService
         ];
     }
 
+    /**
+     * Étendre la date limite de paiement.
+     *
+     * @param string $configId ID de la configuration
+     * @param int $days Nombre de jours à ajouter
+     *
+     * @return ConcoursPaiement Configuration mise à jour
+     *
+     * @throws \Exception Si la configuration est introuvable
+     */
     public function extendDeadline(string $configId, int $days): ConcoursPaiement
     {
         try {

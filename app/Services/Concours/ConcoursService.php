@@ -9,27 +9,60 @@ use App\DTOs\Concours\CreateConcoursDTO;
 use App\DTOs\Concours\UpdateConcoursDTO;
 use App\Exceptions\ConcoursException;
 use App\Enums\EtatSession as EtatSessionEnum;
+use App\Models\Session;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
+
 class ConcoursService
 {
+    /**
+     * Créer un concours.
+     *
+     * @param CreateConcoursDTO $dto DTO contenant les informations du concours
+     *
+     * @return Concours Concours créé avec ses relations
+     *
+     * @throws ConcoursException Si les dates sont incohérentes
+     * @throws \Exception Si le nombre de places est invalide ou si la session est inactive
+     */
     public function create(CreateConcoursDTO $dto): Concours
     {
         if ($dto->date_limite_depot <= $dto->date_debut) {
             throw ConcoursException::invalidDateRange();
         }
 
+        if (isset($dto->nombre_places) && $dto->nombre_places <= 0) {
+            throw new \Exception('Le nombre de places doit être positif');
+        }
+
+        if (isset($dto->session_id)) {
+            $session = Session::findOrFail($dto->session_id);
+            if (!$session->est_actif) {
+                throw new \Exception('Impossible de créer un concours pour une session inactive');
+            }
+            if (!$session->accepteInscriptions()) {
+                throw new \Exception('La session n\'accepte plus les inscriptions');
+            }
+        }
+
+        $existingConcours = Concours::where('libelle_concours', $dto->libelle_concours);
+        if (isset($dto->session_id)) {
+            $existingConcours->whereHas('sessions', function ($query) use ($dto) {
+                $query->where('sessions.id', $dto->session_id);
+            });
+        }
+        if ($existingConcours->exists()) {
+            throw new \Exception('Un concours avec ce libellé existe déjà pour cette session');
+        }
+
         return DB::transaction(function () use ($dto) {
-            // Create concours
             $concours = Concours::create($dto->toArray());
 
-            // Attach to session if provided
             if (isset($dto->session_id)) {
                 $concours->sessions()->attach($dto->session_id);
 
-                // Create default state "OUVERTE" for concours-session
                 $etatOuverte = EtatSession::getByLibelle(EtatSessionEnum::OUVERTE);
 
                 if ($etatOuverte) {
@@ -46,6 +79,16 @@ class ConcoursService
         });
     }
 
+    /**
+     * Mettre à jour un concours existant.
+     *
+     * @param string $id ID du concours
+     * @param UpdateConcoursDTO $dto DTO contenant les nouvelles données
+     *
+     * @return Concours Concours mis à jour
+     *
+     * @throws ConcoursException Si le concours est introuvable ou si les dates sont incohérentes
+     */
     public function update(string $id, UpdateConcoursDTO $dto): Concours
     {
         try {
@@ -66,13 +109,18 @@ class ConcoursService
         });
     }
 
+    /**
+     * Supprimer un concours.
+     *
+     * @param string $id ID du concours
+     *
+     * @return bool True si suppression réussie
+     *
+     * @throws ConcoursException Si le concours est introuvable ou possède des inscriptions actives
+     */
     public function delete(string $id): bool
     {
         $concours = Concours::findOrFail($id);
-
-        if (!$concours) {
-            throw ConcoursException::notFound($id);
-        }
 
         if ($concours->candidatures()->where('statut_inscription', 'ACTIF')->exists()) {
             throw ConcoursException::hasActiveInscriptions($id);
@@ -83,6 +131,15 @@ class ConcoursService
         });
     }
 
+    /**
+     * Récupérer un concours par ID.
+     *
+     * @param string $id ID du concours
+     *
+     * @return Concours Concours avec ses relations
+     *
+     * @throws ConcoursException Si le concours est introuvable
+     */
     public function getById(string $id): Concours
     {
         try {
@@ -92,6 +149,14 @@ class ConcoursService
         }
     }
 
+    /**
+     * Récupérer tous les concours avec filtres et pagination.
+     *
+     * @param array $filters Filtres disponibles : est_actif, spec_concours_id, search, session_id
+     * @param int $perPage Nombre d’éléments par page
+     *
+     * @return LengthAwarePaginator Liste paginée des concours
+     */
     public function getAll(array $filters = [], int $perPage = 20): LengthAwarePaginator
     {
         $query = Concours::with(['specConcours', 'configurationPaiement', 'sessions']);
@@ -117,6 +182,13 @@ class ConcoursService
         return $query->orderBy('created_at', 'desc')->paginate($perPage);
     }
 
+    /**
+     * Récupérer les concours disponibles (actifs et non expirés).
+     *
+     * @param int $perPage Nombre d’éléments par page
+     *
+     * @return LengthAwarePaginator Liste paginée des concours disponibles
+     */
     public function getAvailableConcours(int $perPage = 20): LengthAwarePaginator
     {
         return Concours::with(['configurationPaiement', 'filieres', 'sessions'])
@@ -126,6 +198,15 @@ class ConcoursService
             ->paginate($perPage);
     }
 
+    /**
+     * Activer un concours.
+     *
+     * @param string $id ID du concours
+     *
+     * @return Concours Concours activé
+     *
+     * @throws ConcoursException Si le concours est introuvable ou déjà actif
+     */
     public function activate(string $id): Concours
     {
         try {
@@ -142,6 +223,15 @@ class ConcoursService
         return $concours->fresh();
     }
 
+    /**
+     * Désactiver un concours.
+     *
+     * @param string $id ID du concours
+     *
+     * @return Concours Concours désactivé
+     *
+     * @throws ConcoursException Si le concours est introuvable ou déjà inactif
+     */
     public function deactivate(string $id): Concours
     {
         try {
@@ -158,6 +248,16 @@ class ConcoursService
         return $concours->fresh();
     }
 
+
+    /**
+     * Vérifier si un concours est ouvert.
+     *
+     * @param string $id ID du concours
+     *
+     * @return bool True si le concours est ouvert, False sinon
+     *
+     * @throws ConcoursException Si le concours est introuvable
+     */
     public function isOpen(string $id): bool
     {
         try {
@@ -169,6 +269,22 @@ class ConcoursService
         return $concours->isOuvert();
     }
 
+    /**
+     * Obtenir les statistiques d’un concours.
+     *
+     * @param string $id ID du concours
+     *
+     * @return array Tableau contenant :
+     *   - total_candidatures
+     *   - candidatures_confirmees
+     *   - total_paiements
+     *   - paiements_valides
+     *   - montant_total
+     *   - nombre_sessions
+     *   - sessions_actives
+     *
+     * @throws ConcoursException Si le concours est introuvable
+     */
     public function getStats(string $id): array
     {
         try {
@@ -188,6 +304,16 @@ class ConcoursService
         ];
     }
 
+    /**
+     * Attacher une session à un concours.
+     *
+     * @param string $concoursId ID du concours
+     * @param string $sessionId ID de la session
+     *
+     * @return void
+     *
+     * @throws ConcoursException Si le concours est introuvable
+     */
     public function attachSession(string $concoursId, string $sessionId): void
     {
         try {
@@ -200,7 +326,6 @@ class ConcoursService
             DB::transaction(function () use ($concours, $sessionId) {
                 $concours->sessions()->attach($sessionId);
 
-                // Create default state "OUVERTE"
                 $etatOuverte = EtatSession::getByLibelle(EtatSessionEnum::OUVERTE);
 
                 if ($etatOuverte) {
@@ -215,6 +340,16 @@ class ConcoursService
         }
     }
 
+    /**
+     * Détacher une session d’un concours.
+     *
+     * @param string $concoursId ID du concours
+     * @param string $sessionId ID de la session
+     *
+     * @return void
+     *
+     * @throws ConcoursException Si le concours est introuvable
+     */
     public function detachSession(string $concoursId, string $sessionId): void
     {
         try {
@@ -224,16 +359,26 @@ class ConcoursService
         }
 
         DB::transaction(function () use ($concours, $sessionId) {
-            // Delete associated states
             EtatConcoursSession::where('concours_session_concours_id', $concours->id)
                 ->where('concours_session_session_id', $sessionId)
                 ->delete();
 
-            // Detach session
             $concours->sessions()->detach($sessionId);
         });
     }
 
+    /**
+     * Changer l’état d’une session liée à un concours.
+     *
+     * @param string $concoursId ID du concours
+     * @param string $sessionId ID de la session
+     * @param string $etatLibelle Libellé de l’état (ex: OUVERTE, FERMÉE)
+     *
+     * @return void
+     *
+     * @throws ConcoursException Si le concours est introuvable
+     * @throws \Exception Si l’état est introuvable
+     */
     public function changeSessionState(string $concoursId, string $sessionId, string $etatLibelle): void
     {
         try {
@@ -258,6 +403,14 @@ class ConcoursService
         });
     }
 
+    /**
+     * Obtenir l’état courant d’une session liée à un concours.
+     *
+     * @param string $concoursId ID du concours
+     * @param string $sessionId ID de la session
+     *
+     * @return string|null Libellé de l’état courant ou null si aucun état
+     */
     public function getCurrentSessionState(string $concoursId, string $sessionId): ?string
     {
         $etatConcours = EtatConcoursSession::where('concours_session_concours_id', $concoursId)

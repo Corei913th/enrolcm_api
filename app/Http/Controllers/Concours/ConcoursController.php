@@ -22,24 +22,51 @@ class ConcoursController extends Controller
         private readonly ConcoursPaiementService $paymentService
     ) {}
 
+    /**
+     * Liste des concours avec filtres et pagination.
+     *
+     * Endpoint : GET /api/concours
+     *
+     * @param Request $request Requête contenant filtres et pagination
+     *
+     * @return JsonResponse Réponse JSON paginée
+     */
     public function index(Request $request): JsonResponse
     {
         $filters = $request->only(['est_actif', 'spec_concours_id', 'search', 'session_id']);
         $perPage = $request->input('per_page', 20);
-        
+
         $concours = $this->concoursService->getAll($filters, $perPage);
-        
+
         return api_paginated($concours, 'Liste des concours');
     }
 
+    /**
+     * Liste des concours disponibles (ouverts).
+     *
+     * Endpoint : GET /api/concours/availables
+     *
+     * @param Request $request Requête avec pagination
+     *
+     * @return JsonResponse Réponse JSON paginée
+     */
     public function availables(Request $request): JsonResponse
     {
         $perPage = $request->input('per_page', 20);
         $concours = $this->concoursService->getAvailableConcours($perPage);
-        
+
         return api_paginated($concours, 'Concours ouverts');
     }
 
+    /**
+     * Détails d’un concours.
+     *
+     * Endpoint : GET /api/concours/{id}
+     *
+     * @param string $id ID du concours
+     *
+     * @return JsonResponse Réponse JSON avec détails du concours
+     */
     public function show(string $id): JsonResponse
     {
         try {
@@ -50,6 +77,15 @@ class ConcoursController extends Controller
         }
     }
 
+    /**
+     * Créer un concours.
+     *
+     * Endpoint : POST /api/concours
+     *
+     * @param CreateConcoursRequest $request Requête validée
+     *
+     * @return JsonResponse Réponse JSON avec concours créé
+     */
     public function store(CreateConcoursRequest $request): JsonResponse
     {
         try {
@@ -61,6 +97,16 @@ class ConcoursController extends Controller
         }
     }
 
+    /**
+     * Mettre à jour un concours.
+     *
+     * Endpoint : PUT /api/concours/{id}
+     *
+     * @param string $id ID du concours
+     * @param UpdateConcoursRequest $request Requête validée
+     *
+     * @return JsonResponse Réponse JSON avec concours mis à jour
+     */
     public function update(string $id, UpdateConcoursRequest $request): JsonResponse
     {
         try {
@@ -72,6 +118,15 @@ class ConcoursController extends Controller
         }
     }
 
+    /**
+     * Supprimer un concours.
+     *
+     * Endpoint : DELETE /api/concours/{id}
+     *
+     * @param string $id ID du concours
+     *
+     * @return JsonResponse Réponse JSON succès ou erreur
+     */
     public function destroy(string $id): JsonResponse
     {
         try {
@@ -82,6 +137,15 @@ class ConcoursController extends Controller
         }
     }
 
+    /**
+     * Activer un concours.
+     *
+     * Endpoint : POST /api/concours/{id}/activate
+     *
+     * @param string $id ID du concours
+     *
+     * @return JsonResponse Réponse JSON avec concours activé
+     */
     public function activate(string $id): JsonResponse
     {
         try {
@@ -92,6 +156,15 @@ class ConcoursController extends Controller
         }
     }
 
+    /**
+     * Désactiver un concours.
+     *
+     * Endpoint : POST /api/concours/{id}/deactivate
+     *
+     * @param string $id ID du concours
+     *
+     * @return JsonResponse Réponse JSON avec concours désactivé
+     */
     public function deactivate(string $id): JsonResponse
     {
         try {
@@ -102,6 +175,16 @@ class ConcoursController extends Controller
         }
     }
 
+    /**
+     * Configurer le paiement d’un concours.
+     *
+     * Endpoint : POST /api/concours/{id}/configure-payment
+     *
+     * @param string $id ID du concours
+     * @param ConfigurerPaiementRequest $request Requête validée
+     *
+     * @return JsonResponse Réponse JSON avec configuration enregistrée
+     */
     public function configurePayment(string $id, ConfigurerPaiementRequest $request): JsonResponse
     {
         try {
@@ -113,6 +196,15 @@ class ConcoursController extends Controller
         }
     }
 
+    /**
+     * Obtenir les informations de paiement d’un concours.
+     *
+     * Endpoint : GET /api/concours/{id}/payment-info
+     *
+     * @param string $id ID du concours
+     *
+     * @return JsonResponse Réponse JSON avec infos de paiement
+     */
     public function paymentInfo(string $id): JsonResponse
     {
         try {
@@ -123,6 +215,15 @@ class ConcoursController extends Controller
         }
     }
 
+    /**
+     * Obtenir les statistiques d’un concours.
+     *
+     * Endpoint : GET /api/concours/{id}/stats
+     *
+     * @param string $id ID du concours
+     *
+     * @return JsonResponse Réponse JSON avec statistiques
+     */
     public function stats(string $id): JsonResponse
     {
         try {
@@ -133,6 +234,16 @@ class ConcoursController extends Controller
         }
     }
 
+    /**
+     * Attacher une session à un concours.
+     *
+     * Endpoint : POST /api/concours/{id}/attach-session
+     *
+     * @param string $id ID du concours
+     * @param Request $request Requête contenant session_id
+     *
+     * @return JsonResponse Réponse JSON succès
+     */
     public function attachSession(string $id, Request $request): JsonResponse
     {
         try {
@@ -144,6 +255,16 @@ class ConcoursController extends Controller
         }
     }
 
+    /**
+     * Détacher une session d’un concours.
+     *
+     * Endpoint : DELETE /api/concours/{id}/detach-session/{sessionId}
+     *
+     * @param string $id ID du concours
+     * @param string $sessionId ID de la session
+     *
+     * @return JsonResponse Réponse JSON succès ou erreur
+     */
     public function detachSession(string $id, string $sessionId): JsonResponse
     {
         try {
@@ -154,6 +275,17 @@ class ConcoursController extends Controller
         }
     }
 
+    /**
+     * Modifier l’état d’une session liée à un concours.
+     *
+     * Endpoint : POST /api/concours/{id}/sessions/{sessionId}/change-state
+     *
+     * @param string $id ID du concours
+     * @param string $sessionId ID de la session
+     * @param Request $request Requête contenant le nouvel état (OUVERTE ou FERMEE)
+     *
+     * @return JsonResponse Réponse JSON succès ou erreur
+     */
     public function changeSessionState(string $id, string $sessionId, Request $request): JsonResponse
     {
         try {
@@ -165,6 +297,16 @@ class ConcoursController extends Controller
         }
     }
 
+    /**
+     * Obtenir l’état courant d’une session liée à un concours.
+     *
+     * Endpoint : GET /api/concours/{id}/sessions/{sessionId}/state
+     *
+     * @param string $id ID du concours
+     * @param string $sessionId ID de la session
+     *
+     * @return JsonResponse Réponse JSON avec l’état courant
+     */
     public function getSessionState(string $id, string $sessionId): JsonResponse
     {
         try {

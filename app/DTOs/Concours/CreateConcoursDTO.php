@@ -7,9 +7,9 @@ class CreateConcoursDTO
     public function __construct(
         public readonly string $libelle_concours,
         public readonly ?string $description,
-        public readonly string $date_debut,
+        public readonly string $date_debut, // Sera mappé vers date_examen
         public readonly string $date_limite_depot,
-        public readonly ?int $nombre_places,
+        public readonly ?int $nombre_places, // Sera mappé vers nbre_max_places
         public readonly string $spec_concours_id,
         public readonly ?string $session_id = null,
         public readonly bool $est_actif = true
@@ -34,9 +34,9 @@ class CreateConcoursDTO
         return array_filter([
             'libelle_concours' => $this->libelle_concours,
             'description' => $this->description,
-            'date_debut' => $this->date_debut,
+            'date_examen' => $this->date_debut, // Mapping correct
             'date_limite_depot' => $this->date_limite_depot,
-            'nombre_places' => $this->nombre_places,
+            'nbre_max_places' => $this->nombre_places, // Mapping correct
             'spec_concours_id' => $this->spec_concours_id,
             'est_actif' => $this->est_actif,
         ], fn($value) => $value !== null);
