@@ -2,32 +2,25 @@
 
 namespace App\Enums;
 
-class PrioriteNotification
+enum PrioriteNotification: string
 {
-    public const BASSE = 'basse';
-    public const NORMALE = 'normale';
-    public const HAUTE = 'haute';
-    public const URGENTE = 'urgente';
-    
+    case BASSE = 'basse';
+    case NORMALE = 'normale';
+    case HAUTE = 'haute';
+    case URGENTE = 'urgente';
+
     public static function values(): array
     {
-        return [
-            self::BASSE,
-            self::NORMALE,
-            self::HAUTE,
-            self::URGENTE,
-        ];
+        return array_column(self::cases(), 'value');
     }
 
-    public static function label(string $value): string
+    public function label(): string
     {
-        $labels = [
+        return match ($this) {
             self::BASSE => 'Basse',
             self::NORMALE => 'Normale',
             self::HAUTE => 'Haute',
             self::URGENTE => 'Urgente',
-        ];
-
-        return $labels[$value] ?? $value;
+        };
     }
 }

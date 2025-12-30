@@ -18,9 +18,9 @@ class NoteResource extends JsonResource
             'est_definitive' => $this->est_definitive,
             'est_eliminatoire' => $this->est_eliminatoire,
             'statut' => $this->statut,
-            'statut_label' => StatutNote::label($this->statut),
+            'statut_label' => $this->statut?->label(),
             'is_valide' => $this->isValide(),
-            'created_at' => $this->created_at?->format('Y-m-d H:i:s'),          
+            'created_at' => $this->created_at?->format('Y-m-d H:i:s'),
             'epreuve' => new EpreuveResource($this->whenLoaded('epreuve')),
         ];
     }

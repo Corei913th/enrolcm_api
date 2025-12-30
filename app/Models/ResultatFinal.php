@@ -39,7 +39,7 @@ class ResultatFinal extends Model
         'deleted_at' => 'datetime',
     ];
 
-    
+
     public function candidature()
     {
         return $this->belongsTo(Candidature::class, 'candidature_id');
@@ -71,12 +71,12 @@ class ResultatFinal extends Model
     // Helpers
     public function getDecisionLabel()
     {
-        return $this->decision ? DecisionAdmission::label($this->decision) : null;
+        return $this->decision?->label();
     }
 
     public function getMentionLabel()
     {
-        return $this->mention ? Mention::label($this->mention) : null;
+        return $this->mention?->label();
     }
 
     public function calculerMention()

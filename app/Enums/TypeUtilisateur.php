@@ -2,32 +2,25 @@
 
 namespace App\Enums;
 
-class TypeUtilisateur
+enum TypeUtilisateur: string
 {
-    public const ADMIN = 'ADMIN';
-    public const CANDIDAT = 'CANDIDAT';
-    public const RESPONSABLE_CENTRE = 'RESPONSABLE_CENTRE';
-    public const CORRECTEUR = 'CORRECTEUR';
+    case ADMIN = 'ADMIN';
+    case CANDIDAT = 'CANDIDAT';
+    case RESPONSABLE_CENTRE = 'RESPONSABLE_CENTRE';
+    case CORRECTEUR = 'CORRECTEUR';
 
     public static function values(): array
     {
-        return [
-            self::ADMIN,
-            self::CANDIDAT,
-            self::RESPONSABLE_CENTRE,
-            self::CORRECTEUR,
-        ];
+        return array_column(self::cases(), 'value');
     }
 
-    public static function label(string $value): string
+    public function label(): string
     {
-        $labels = [
+        return match ($this) {
             self::ADMIN => 'Administrateur',
             self::CANDIDAT => 'Candidat',
             self::RESPONSABLE_CENTRE => 'Responsable de Centre',
             self::CORRECTEUR => 'Correcteur',
-        ];
-
-        return $labels[$value] ?? $value;
+        };
     }
 }
