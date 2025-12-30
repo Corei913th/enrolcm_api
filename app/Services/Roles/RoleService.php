@@ -15,7 +15,7 @@ class RoleService
      */
     public function assignDefault(Utilisateur $user, TypeUtilisateur $roleName): void
     {
-        $role = Role::where('libelle_role', $roleName)->first();
+        $role = Role::where('libelle_role', $roleName->value)->first();
 
         if ($role) {
             $user->roles()->syncWithoutDetaching($role->id);
@@ -27,7 +27,7 @@ class RoleService
      */
     public function assignRole(Utilisateur $user, TypeUtilisateur $roleName): bool
     {
-        $role = Role::where('libelle_role', $roleName)->first();
+        $role = Role::where('libelle_role', $roleName->value)->first();
 
         if (!$role) {
             return false;
@@ -42,7 +42,7 @@ class RoleService
      */
     public function removeRole(Utilisateur $user, TypeUtilisateur $roleName): bool
     {
-        $role = Role::where('libelle_role', $roleName)->first();
+        $role = Role::where('libelle_role', $roleName->value)->first();
 
         if (!$role) {
             return false;
@@ -66,7 +66,7 @@ class RoleService
      */
     public function hasRole(Utilisateur $user, TypeUtilisateur $roleName): bool
     {
-        return $user->roles()->where('libelle_role', $roleName)->exists();
+        return $user->roles()->where('libelle_role', $roleName->value)->exists();
     }
 
     /**
@@ -107,7 +107,7 @@ class RoleService
      */
     public function getRoleByName(TypeUtilisateur $roleName): ?Role
     {
-        return Role::where('libelle_role', $roleName)->first();
+        return Role::where('libelle_role', $roleName->value)->first();
     }
 
     /**
