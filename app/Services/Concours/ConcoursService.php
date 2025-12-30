@@ -11,6 +11,7 @@ use App\Exceptions\ConcoursException;
 use App\Enums\EtatSession as EtatSessionEnum;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class ConcoursService
 {
@@ -30,7 +31,7 @@ class ConcoursService
 
                 // Create default state "OUVERTE" for concours-session
                 $etatOuverte = EtatSession::getByLibelle(EtatSessionEnum::OUVERTE);
-                
+
                 if ($etatOuverte) {
                     EtatConcoursSession::create([
                         'concours_session_concours_id' => $concours->id,
@@ -47,14 +48,14 @@ class ConcoursService
 
     public function update(string $id, UpdateConcoursDTO $dto): Concours
     {
-        $concours = Concours::find($id);
-        
-        if (!$concours) {
+        try {
+            $concours = Concours::findOrFail($id);
+        } catch (ModelNotFoundException $e) {
             throw ConcoursException::notFound($id);
         }
 
         $data = $dto->toArray();
-        
+
         if (isset($data['date_limite_depot'], $data['date_debut']) && $data['date_limite_depot'] <= $data['date_debut']) {
             throw ConcoursException::invalidDateRange();
         }
@@ -67,8 +68,8 @@ class ConcoursService
 
     public function delete(string $id): bool
     {
-        $concours = Concours::find($id);
-        
+        $concours = Concours::findOrFail($id);
+
         if (!$concours) {
             throw ConcoursException::notFound($id);
         }
@@ -84,13 +85,11 @@ class ConcoursService
 
     public function getById(string $id): Concours
     {
-        $concours = Concours::with(['specConcours', 'filieres', 'configurationPaiement', 'sessions'])->find($id);
-        
-        if (!$concours) {
+        try {
+            return Concours::with(['specConcours', 'filieres', 'configurationPaiement', 'sessions'])->findOrFail($id);
+        } catch (ModelNotFoundException $e) {
             throw ConcoursException::notFound($id);
         }
-
-        return $concours;
     }
 
     public function getAll(array $filters = [], int $perPage = 20): LengthAwarePaginator
@@ -129,9 +128,9 @@ class ConcoursService
 
     public function activate(string $id): Concours
     {
-        $concours = Concours::find($id);
-        
-        if (!$concours) {
+        try {
+            $concours = Concours::findOrFail($id);
+        } catch (ModelNotFoundException $e) {
             throw ConcoursException::notFound($id);
         }
 
@@ -145,9 +144,9 @@ class ConcoursService
 
     public function deactivate(string $id): Concours
     {
-        $concours = Concours::find($id);
-        
-        if (!$concours) {
+        try {
+            $concours = Concours::findOrFail($id);
+        } catch (ModelNotFoundException $e) {
             throw ConcoursException::notFound($id);
         }
 
@@ -161,9 +160,9 @@ class ConcoursService
 
     public function isOpen(string $id): bool
     {
-        $concours = Concours::find($id);
-        
-        if (!$concours) {
+        try {
+            $concours = Concours::findOrFail($id);
+        } catch (ModelNotFoundException $e) {
             throw ConcoursException::notFound($id);
         }
 
@@ -172,15 +171,15 @@ class ConcoursService
 
     public function getStats(string $id): array
     {
-        $concours = Concours::with(['candidatures', 'paiements', 'sessions'])->find($id);
-        
-        if (!$concours) {
+        try {
+            $concours = Concours::with(['candidatures', 'paiements', 'sessions'])->findOrFail($id);
+        } catch (ModelNotFoundException $e) {
             throw ConcoursException::notFound($id);
         }
 
         return [
             'total_candidatures' => $concours->candidatures()->count(),
-            'candidatures_confirmees' => $concours->candidatures()->where('statut_inscription', 'ACTIF')->count(),
+            'candidatures_confirmees' => $concours->candidatures()->where('statut_candidature', 'VALIDE')->count(),
             'total_paiements' => $concours->paiements()->count(),
             'paiements_valides' => $concours->paiements()->where('statut', 'VERIFIED')->count(),
             'montant_total' => $concours->paiements()->where('statut', 'VERIFIED')->sum('montant'),
@@ -191,9 +190,9 @@ class ConcoursService
 
     public function attachSession(string $concoursId, string $sessionId): void
     {
-        $concours = Concours::find($concoursId);
-        
-        if (!$concours) {
+        try {
+            $concours = Concours::findOrFail($concoursId);
+        } catch (ModelNotFoundException $e) {
             throw ConcoursException::notFound($concoursId);
         }
 
@@ -203,7 +202,7 @@ class ConcoursService
 
                 // Create default state "OUVERTE"
                 $etatOuverte = EtatSession::getByLibelle(EtatSessionEnum::OUVERTE);
-                
+
                 if ($etatOuverte) {
                     EtatConcoursSession::create([
                         'concours_session_concours_id' => $concours->id,
@@ -218,9 +217,9 @@ class ConcoursService
 
     public function detachSession(string $concoursId, string $sessionId): void
     {
-        $concours = Concours::find($concoursId);
-        
-        if (!$concours) {
+        try {
+            $concours = Concours::findOrFail($concoursId);
+        } catch (ModelNotFoundException $e) {
             throw ConcoursException::notFound($concoursId);
         }
 
@@ -237,14 +236,14 @@ class ConcoursService
 
     public function changeSessionState(string $concoursId, string $sessionId, string $etatLibelle): void
     {
-        $concours = Concours::find($concoursId);
-        
-        if (!$concours) {
+        try {
+            $concours = Concours::findOrFail($concoursId);
+        } catch (ModelNotFoundException $e) {
             throw ConcoursException::notFound($concoursId);
         }
 
         $etat = EtatSession::getByLibelle($etatLibelle);
-        
+
         if (!$etat) {
             throw new \Exception("État '{$etatLibelle}' introuvable.", 404);
         }

@@ -8,14 +8,15 @@ use App\DTOs\Concours\ConfigurePaymentDTO;
 use App\Exceptions\ConcoursException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class ConcoursPaiementService
 {
     public function configurePayment(string $concoursId, ConfigurePaymentDTO $dto): ConcoursPaiement
     {
-        $concours = Concours::find($concoursId);
-        
-        if (!$concours) {
+        try {
+            $concours = Concours::findOrFail($concoursId);
+        } catch (ModelNotFoundException $e) {
             throw ConcoursException::notFound($concoursId);
         }
 
@@ -44,7 +45,7 @@ class ConcoursPaiementService
     public function getConfiguration(string $concoursId): ConcoursPaiement
     {
         $config = ConcoursPaiement::where('concours_id', $concoursId)->first();
-        
+
         if (!$config) {
             throw ConcoursException::paiementNotConfigured($concoursId);
         }
@@ -62,9 +63,9 @@ class ConcoursPaiementService
 
     public function deactivate(string $configId): ConcoursPaiement
     {
-        $config = ConcoursPaiement::find($configId);
-        
-        if (!$config) {
+        try {
+            $config = ConcoursPaiement::findOrFail($configId);
+        } catch (ModelNotFoundException $e) {
             throw new \Exception("Payment configuration not found.", 404);
         }
 
@@ -74,8 +75,12 @@ class ConcoursPaiementService
 
     public function activate(string $configId): ConcoursPaiement
     {
-        $config = ConcoursPaiement::find($configId);
-        
+        try {
+            $config = ConcoursPaiement::findOrFail($configId);
+        } catch (ModelNotFoundException $e) {
+            throw new \Exception("Payment configuration not found.", 404);
+        }
+
         if (!$config) {
             throw new \Exception("Payment configuration not found.", 404);
         }
@@ -114,15 +119,15 @@ class ConcoursPaiementService
 
     public function extendDeadline(string $configId, int $days): ConcoursPaiement
     {
-        $config = ConcoursPaiement::find($configId);
-        
-        if (!$config) {
+        try {
+            $config = ConcoursPaiement::findOrFail($configId);
+        } catch (ModelNotFoundException $e) {
             throw new \Exception("Payment configuration not found.", 404);
         }
-        
+
         $newDeadline = $config->date_limite->addDays($days);
         $config->update(['date_limite' => $newDeadline]);
-        
+
         return $config->fresh();
     }
 }
