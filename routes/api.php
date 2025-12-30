@@ -7,4 +7,5 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('v1')->group(function () {
     require __DIR__.'/api/ecoles.php';
     require __DIR__.'/api/departements.php';
+    require __DIR__.'/api/filieres.php';
 });
