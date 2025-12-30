@@ -2,32 +2,25 @@
 
 namespace App\Enums;
 
-class CanalNotification
+enum CanalNotification: string
 {
-    public const APP = 'app';
-    public const EMAIL = 'email';
-    public const SMS = 'sms';
-    public const PUSH = 'push';
-    
+    case APP = 'app';
+    case EMAIL = 'email';
+    case SMS = 'sms';
+    case PUSH = 'push';
+
     public static function values(): array
     {
-        return [
-            self::APP,
-            self::EMAIL,
-            self::SMS,
-            self::PUSH,
-        ];
+        return array_column(self::cases(), 'value');
     }
 
-    public static function label(string $value): string
+    public function label(): string
     {
-        $labels = [
+        return match ($this) {
             self::APP => 'Application',
             self::EMAIL => 'Email',
             self::SMS => 'SMS',
             self::PUSH => 'Notification push',
-        ];
-
-        return $labels[$value] ?? $value;
+        };
     }
 }

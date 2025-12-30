@@ -2,32 +2,25 @@
 
 namespace App\Enums;
 
-class TypeEpreuve
+enum TypeEpreuve: string
 {
-    public const ECRIT = 'ECRIT';
-    public const ORAL = 'ORAL';
-    public const PRATIQUE = 'PRATIQUE';
-    public const QCM = 'QCM';
+    case ECRIT = 'ECRIT';
+    case ORAL = 'ORAL';
+    case PRATIQUE = 'PRATIQUE';
+    case QCM = 'QCM';
 
     public static function values(): array
     {
-        return [
-            self::ECRIT,
-            self::ORAL,
-            self::PRATIQUE,
-            self::QCM,
-        ];
+        return array_column(self::cases(), 'value');
     }
 
-    public static function label(string $value): string
+    public function label(): string
     {
-        $labels = [
+        return match ($this) {
             self::ECRIT => 'Écrit',
             self::ORAL => 'Oral',
             self::PRATIQUE => 'Pratique',
             self::QCM => 'QCM',
-        ];
-
-        return $labels[$value] ?? $value;
+        };
     }
 }

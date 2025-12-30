@@ -2,46 +2,31 @@
 
 namespace App\Enums;
 
-class TypeDocument
+enum TypeDocument: string
 {
-    public const FICHE_PAIEMENT = 'FICHE_PAIEMENT';
-    public const CNI = 'CNI';
-    public const ACTE_NAISSANCE = 'ACTE_NAISSANCE';
-    public const RELEVE_NOTE = 'RELEVE_NOTE';
-    public const CERTIFICAT_NATIONALITE = 'CERTIFICAT_NATIONALITE';
-    public const CERTIFICAT_MEDICAL = 'CERTIFICAT_MEDICAL';
-    public const PHOTO_IDENTITE = 'PHOTO_IDENTITE';
-    public const ATTESTATION_BAC = 'ATTESTATION_BAC';
-    public const DIPLOME = 'DIPLOME';
-    public const CERTIFICAT_SCOLARITE = 'CERTIFICAT_SCOLARITE';
-    public const ATTESTATION_REUSSITE = 'ATTESTATION_REUSSITE';
-    public const CASIER_JUDICIAIRE = 'CASIER_JUDICIAIRE';
-    public const CERTIFICAT_RESIDENCE = 'CERTIFICAT_RESIDENCE';
-    public const AUTRE = 'AUTRE';
+    case FICHE_PAIEMENT = 'FICHE_PAIEMENT';
+    case CNI = 'CNI';
+    case ACTE_NAISSANCE = 'ACTE_NAISSANCE';
+    case RELEVE_NOTE = 'RELEVE_NOTE';
+    case CERTIFICAT_NATIONALITE = 'CERTIFICAT_NATIONALITE';
+    case CERTIFICAT_MEDICAL = 'CERTIFICAT_MEDICAL';
+    case PHOTO_IDENTITE = 'PHOTO_IDENTITE';
+    case ATTESTATION_BAC = 'ATTESTATION_BAC';
+    case DIPLOME = 'DIPLOME';
+    case CERTIFICAT_SCOLARITE = 'CERTIFICAT_SCOLARITE';
+    case ATTESTATION_REUSSITE = 'ATTESTATION_REUSSITE';
+    case CASIER_JUDICIAIRE = 'CASIER_JUDICIAIRE';
+    case CERTIFICAT_RESIDENCE = 'CERTIFICAT_RESIDENCE';
+    case AUTRE = 'AUTRE';
 
     public static function values(): array
     {
-        return [
-            self::FICHE_PAIEMENT,
-            self::CNI,
-            self::ACTE_NAISSANCE,
-            self::RELEVE_NOTE,
-            self::CERTIFICAT_NATIONALITE,
-            self::CERTIFICAT_MEDICAL,
-            self::PHOTO_IDENTITE,
-            self::ATTESTATION_BAC,
-            self::DIPLOME,
-            self::CERTIFICAT_SCOLARITE,
-            self::ATTESTATION_REUSSITE,
-            self::CASIER_JUDICIAIRE,
-            self::CERTIFICAT_RESIDENCE,
-            self::AUTRE,
-        ];
+        return array_column(self::cases(), 'value');
     }
 
-    public static function label(string $value): string
+    public function label(): string
     {
-        $labels = [
+        return match ($this) {
             self::FICHE_PAIEMENT => 'Fiche de paiement',
             self::CNI => 'Carte Nationale d\'identité',
             self::ACTE_NAISSANCE => 'Acte de naissance',
@@ -56,8 +41,6 @@ class TypeDocument
             self::CASIER_JUDICIAIRE => 'Casier judiciaire',
             self::CERTIFICAT_RESIDENCE => 'Certificat de résidence',
             self::AUTRE => 'Autre document',
-        ];
-
-        return $labels[$value] ?? $value;
+        };
     }
 }

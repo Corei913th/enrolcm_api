@@ -2,32 +2,25 @@
 
 namespace App\Enums;
 
-class EtatCandidature
+enum EtatCandidature: string
 {
-    public const EN_ATTENTE = 'EN_ATTENTE';
-    public const EN_COURS = 'EN_COURS';
-    public const APPROUVEE = 'APPROUVEE';
-    public const REJETTEE = 'REJETTEE';
+    case EN_ATTENTE = 'EN_ATTENTE';
+    case EN_COURS = 'EN_COURS';
+    case APPROUVEE = 'APPROUVEE';
+    case REJETTEE = 'REJETTEE';
 
     public static function values(): array
     {
-        return [
-            self::EN_ATTENTE,
-            self::EN_COURS,
-            self::APPROUVEE,
-            self::REJETTEE,
-        ];
+        return array_column(self::cases(), 'value');
     }
 
-    public static function label(string $value): string
+    public function label(): string
     {
-        $labels = [
+        return match ($this) {
             self::EN_ATTENTE => 'En attente',
             self::EN_COURS => 'En cours',
             self::APPROUVEE => 'Approuvée',
             self::REJETTEE => 'Rejetée',
-        ];
-
-        return $labels[$value] ?? $value;
+        };
     }
 }

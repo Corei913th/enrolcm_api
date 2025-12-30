@@ -2,38 +2,27 @@
 
 namespace App\Enums;
 
-class RegionCameroun
+enum RegionCameroun: string
 {
-    public const ADAMAOUA = 'ADAMAOUA';
-    public const CENTRE = 'CENTRE';
-    public const EST = 'EST';
-    public const EXTREME_NORD = 'EXTREME_NORD';
-    public const LITTORAL = 'LITTORAL';
-    public const NORD = 'NORD';
-    public const NORD_OUEST = 'NORD_OUEST';
-    public const OUEST = 'OUEST';
-    public const SUD = 'SUD';
-    public const SUD_OUEST = 'SUD_OUEST';
+    case ADAMAOUA = 'ADAMAOUA';
+    case CENTRE = 'CENTRE';
+    case EST = 'EST';
+    case EXTREME_NORD = 'EXTREME_NORD';
+    case LITTORAL = 'LITTORAL';
+    case NORD = 'NORD';
+    case NORD_OUEST = 'NORD_OUEST';
+    case OUEST = 'OUEST';
+    case SUD = 'SUD';
+    case SUD_OUEST = 'SUD_OUEST';
 
     public static function values(): array
     {
-        return [
-            self::ADAMAOUA,
-            self::CENTRE,
-            self::EST,
-            self::EXTREME_NORD,
-            self::LITTORAL,
-            self::NORD,
-            self::NORD_OUEST,
-            self::OUEST,
-            self::SUD,
-            self::SUD_OUEST,
-        ];
+        return array_column(self::cases(), 'value');
     }
 
-    public static function label(string $value): string
+    public function label(): string
     {
-        $labels = [
+        return match ($this) {
             self::ADAMAOUA => 'Adamaoua',
             self::CENTRE => 'Centre',
             self::EST => 'Est',
@@ -44,8 +33,6 @@ class RegionCameroun
             self::OUEST => 'Ouest',
             self::SUD => 'Sud',
             self::SUD_OUEST => 'Sud-Ouest',
-        ];
-
-        return $labels[$value] ?? $value;
+        };
     }
 }

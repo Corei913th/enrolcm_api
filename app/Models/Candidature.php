@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Enums\StatutInscription;
+use App\Enums\StatutCandidature;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -24,7 +24,9 @@ class Candidature extends Model
         'date_candidature',
         'code_cand_temp',
         'code_cand_def',
-        'statut_inscription',
+        'statut_candidature',
+        'documents_complets',
+        'paiement_valide',
         'qr_code',
         'date_inscription',
         'date_depot_physique',
@@ -37,7 +39,9 @@ class Candidature extends Model
         'date_inscription' => 'date',
         'date_depot_physique' => 'date',
         'date_validation' => 'datetime',
-        'statut_inscription' => StatutInscription::class,
+        'statut_candidature' => StatutCandidature::class,
+        'documents_complets' => 'boolean',
+        'paiement_valide' => 'boolean',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',
@@ -71,8 +75,7 @@ class Candidature extends Model
 
     public function paiement()
     {
-        return $this->hasOne(Paiement::class, 'concours_id', 'concours_id')
-            ->where('candidat_id', $this->candidat_id);
+        return $this->hasOne(Paiement::class, 'candidature_id');
     }
 
     public function documents()
@@ -114,18 +117,36 @@ class Candidature extends Model
     // Scopes
     public function scopeValidees($query)
     {
-        return $query->whereNotNull('date_validation');
+        return $query->where('statut_candidature', StatutCandidature::VALIDE->value);
     }
 
     public function scopeEnAttente($query)
     {
-        return $query->whereNull('date_validation')
-            ->whereNull('motif_rejet');
+        return $query->whereIn('statut_candidature', [
+            StatutCandidature::SOUMISE->value,
+            StatutCandidature::DOCUMENTS_VERIFIES->value,
+            StatutCandidature::PAIEMENT_VERIFIE->value
+        ]);
     }
 
     public function scopeRejetees($query)
     {
-        return $query->whereNotNull('motif_rejet');
+        return $query->where('statut_candidature', StatutCandidature::REJETEE->value);
+    }
+
+    public function scopeActives($query)
+    {
+        return $query->whereIn('statut_candidature', [
+            StatutCandidature::SOUMISE->value,
+            StatutCandidature::DOCUMENTS_VERIFIES->value,
+            StatutCandidature::PAIEMENT_VERIFIE->value,
+            StatutCandidature::VALIDE->value
+        ]);
+    }
+
+    public function scopeBrouillons($query)
+    {
+        return $query->where('statut_candidature', StatutCandidature::BROUILLON->value);
     }
 
     public function scopeByConcours($query, $concoursId)
@@ -147,12 +168,12 @@ class Candidature extends Model
     // Helpers
     public function isValidee()
     {
-        return !is_null($this->date_validation);
+        return $this->statut_candidature === StatutCandidature::VALIDE;
     }
 
     public function isRejetee()
     {
-        return !is_null($this->motif_rejet);
+        return $this->statut_candidature === StatutCandidature::REJETEE;
     }
 
     public function hasCodeDefinitif()
@@ -210,33 +231,77 @@ class Candidature extends Model
 
     public function canDeposerDossier()
     {
-        return $this->concours 
-            && $this->concours->isOuvert() 
-            && $this->session 
+        return $this->concours
+            && $this->concours->isOuvert()
+            && $this->session
             && $this->session->est_actif
             && !$this->isValidee()
             && !$this->isRejetee();
     }
 
-    // Helpers pour statut inscription
-    public function isActif(): bool
+    // Helpers pour statut candidature
+    public function peutEtreModifiee(): bool
     {
-        return $this->statut_inscription === StatutInscription::ACTIF;
+        return $this->statut_candidature?->peutEtreModifiee() ?? false;
     }
 
-    public function isInvalide(): bool
+    public function enAttenteValidation(): bool
     {
-        return $this->statut_inscription === StatutInscription::INVALIDE;
+        return $this->statut_candidature?->enAttenteValidation() ?? false;
     }
 
-    public function activer(): void
+    public function estValidee(): bool
     {
-        $this->update(['statut_inscription' => StatutInscription::ACTIF]);
+        return $this->statut_candidature?->estValidee() ?? false;
     }
 
-    public function invalider(): void
+    public function estRejetee(): bool
     {
-        $this->update(['statut_inscription' => StatutInscription::INVALIDE]);
+        return $this->statut_candidature?->estRejetee() ?? false;
+    }
+
+    public function estActive(): bool
+    {
+        return $this->statut_candidature?->estActive() ?? false;
+    }
+
+    public function soumettre(): void
+    {
+        $this->update(['statut_candidature' => StatutCandidature::SOUMISE]);
+    }
+
+    public function validerDocuments(): void
+    {
+        $this->update([
+            'statut_candidature' => StatutCandidature::DOCUMENTS_VERIFIES,
+            'documents_complets' => true
+        ]);
+    }
+
+    public function validerPaiement(): void
+    {
+        $this->update([
+            'statut_candidature' => StatutCandidature::PAIEMENT_VERIFIE,
+            'paiement_valide' => true
+        ]);
+    }
+
+    public function validerComplete(): void
+    {
+        $this->update(['statut_candidature' => StatutCandidature::VALIDE]);
+    }
+
+    public function rejeter(string $motif): void
+    {
+        $this->update([
+            'statut_candidature' => StatutCandidature::REJETEE,
+            'motif_rejet' => $motif
+        ]);
+    }
+
+    public function annuler(): void
+    {
+        $this->update(['statut_candidature' => StatutCandidature::ANNULEE]);
     }
 
     public function hasPaiementValide(): bool
@@ -244,4 +309,3 @@ class Candidature extends Model
         return $this->paiement && $this->paiement->statut === \App\Enums\StatutPaiement::VERIFIED;
     }
 }
-
