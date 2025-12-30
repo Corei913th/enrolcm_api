@@ -532,11 +532,13 @@ class ConcoursWorkflowTest extends TestCase
     }
 
     /** @test */
-    public function it_rejects_session_year_before_2025()
+    public function it_rejects_session_year_before_current_year()
     {
-        // Given: session avec année 2024 (invalide)
+        // Given: session avec année passée (invalide)
         $this->expectException(\Exception::class);
-        $this->expectExceptionMessage('ne peut pas être inférieure à 2025');
+        $currentYear = (int) now()->format('Y');
+        $pastYear = $currentYear - 1;
+        $this->expectExceptionMessage("ne peut pas être inférieure à {$currentYear}");
 
         // Cette validation est faite lors du parsing, donc on la teste indirectement
         $service = new \ReflectionClass(\App\Services\Concours\ConcoursService::class);
@@ -545,6 +547,6 @@ class ConcoursWorkflowTest extends TestCase
         // Appel direct de la méthode privée pour test
         $method = $service->getMethod('parseSessionPeriod');
         $method->setAccessible(true);
-        $method->invoke($instance, '2024-2025');
+        $method->invoke($instance, "{$pastYear}-{$currentYear}");
     }
 }

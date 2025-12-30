@@ -536,6 +536,7 @@ class ConcoursService
     /**
      * Parse la période d'une session depuis son libellé
      * Supporte les formats: "2025-2026" ou "MAI 2026"
+     * Valide que l'année >= année actuelle
      */
     private function parseSessionPeriod(string $libelleSession): array
     {
@@ -622,12 +623,13 @@ class ConcoursService
     }
 
     /**
-     * Valide qu'une année de session n'est pas inférieure à 2025
+     * Valide qu'une année de session n'est pas inférieure à l'année actuelle
      */
     private function validateSessionYear(int $year): void
     {
-        if ($year < 2025) {
-            throw new \Exception("L'année de session ne peut pas être inférieure à 2025 (trouvé: {$year})");
+        $currentYear = (int) now()->format('Y');
+        if ($year < $currentYear) {
+            throw new \Exception("L'année de session ne peut pas être inférieure à {$currentYear} (trouvé: {$year})");
         }
     }
 

@@ -15,9 +15,9 @@ class AttachConcoursToSessionRequest extends FormRequest
     {
         return [
             'session_id' => ['required', 'string', 'uuid', 'exists:sessions,id'],
-            'date_debut' => ['sometimes', 'date', 'after:today'],
-            'date_limite_depot' => ['sometimes', 'date', 'after:date_debut'],
-            'nombre_places' => ['sometimes', 'integer', 'min:1'],
+            'date_debut' => ['sometimes', 'date', 'after:today', 'before:+2 years'],
+            'date_limite_depot' => ['sometimes', 'date', 'after:today', 'before:+2 years'],
+            'nombre_places' => ['sometimes', 'integer', 'min:1', 'max:100000'],
         ];
     }
 
@@ -28,8 +28,11 @@ class AttachConcoursToSessionRequest extends FormRequest
             'session_id.uuid' => 'L\'identifiant de session est invalide',
             'session_id.exists' => 'La session spécifiée n\'existe pas',
             'date_debut.after' => 'La date d\'examen doit être dans le futur',
-            'date_limite_depot.after' => 'La date limite doit être après la date d\'examen',
+            'date_debut.before' => 'La date d\'examen ne peut pas être dans plus de 2 ans',
+            'date_limite_depot.after' => 'La date limite de dépôt doit être dans le futur',
+            'date_limite_depot.before' => 'La date limite de dépôt ne peut pas être dans plus de 2 ans',
             'nombre_places.min' => 'Le nombre de places doit être au moins 1',
+            'nombre_places.max' => 'Le nombre de places ne peut pas dépasser 100 000',
         ];
     }
 
