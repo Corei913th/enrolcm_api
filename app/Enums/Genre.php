@@ -2,26 +2,21 @@
 
 namespace App\Enums;
 
-class Genre
+enum Genre: string
 {
-  public const M = 'M';
-  public const F = 'F';
+  case M = 'M';
+  case F = 'F';
 
   public static function values(): array
   {
-    return [
-      self::M,
-      self::F
-    ];
+    return array_column(self::cases(), 'value');
   }
 
-  public static function label(string $value): string
+  public function label(): string
   {
-    $labels = [
+    return match ($this) {
       self::M => 'Masculin',
-      self::F => 'Féminin'
-    ];
-
-    return $labels[$value] ?? $value;
+      self::F => 'Féminin',
+    };
   }
 }

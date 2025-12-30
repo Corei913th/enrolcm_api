@@ -2,26 +2,21 @@
 
 namespace App\Enums;
 
-class TypeCentre
+enum TypeCentre: string
 {
-  public const DEPOT = 'DEPOT';
-  public const EXAMEN = 'EXAMEN';
+  case DEPOT = 'DEPOT';
+  case EXAMEN = 'EXAMEN';
 
   public static function values(): array
   {
-    return [
-      self::DEPOT,
-      self::EXAMEN
-    ];
+    return array_column(self::cases(), 'value');
   }
 
-  public static function label(string $value): string
+  public function label(): string
   {
-    $labels = [
+    return match ($this) {
       self::DEPOT => 'Dépôt',
-      self::EXAMEN => 'Examen'
-    ];
-
-    return $labels[$value] ?? $value;
+      self::EXAMEN => 'Examen',
+    };
   }
 }

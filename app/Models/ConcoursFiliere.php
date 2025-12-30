@@ -11,6 +11,7 @@ class ConcoursFiliere extends Pivot
 
     protected $fillable = [
         'concours_id',
+        'session_id',
         'filiere_id',
         'nombre_places',
     ];
@@ -32,6 +33,11 @@ class ConcoursFiliere extends Pivot
         return $this->belongsTo(Filiere::class, 'filiere_id');
     }
 
+    public function session()
+    {
+        return $this->belongsTo(Session::class, 'session_id');
+    }
+
     // Helpers
     public function hasPlacesDisponibles()
     {
@@ -41,14 +47,22 @@ class ConcoursFiliere extends Pivot
     public function getNombreCandidatures()
     {
         return Candidature::where('concours_id', $this->concours_id)
+            ->where('session_id', $this->session_id)
             ->whereHas('candidat', function ($query) {
                 $query->where('filiere_id', $this->filiere_id);
             })
+            ->where('statut_candidature', 'VALIDE') // Uniquement les validées
             ->count();
     }
 
     public function getPlacesRestantes()
     {
         return max(0, $this->nombre_places - $this->getNombreCandidatures());
+    }
+
+    public function peutAccepterCandidature()
+    {
+        return $this->session?->accepteInscriptions() &&
+            $this->getPlacesRestantes() > 0;
     }
 }

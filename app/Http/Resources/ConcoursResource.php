@@ -18,7 +18,8 @@ class ConcoursResource extends JsonResource
             'est_actif' => $this->est_actif,
             'is_ouvert' => $this->isOuvert(),
             'created_at' => $this->created_at?->format('Y-m-d H:i:s'),
-
+             
+            'filieres' => FiliereResource::collection($this->whenLoaded('filieres')),
             'sessions' => SessionResource::collection($this->whenLoaded('sessions')),
             'candidatures' => CandidatureResource::collection($this->whenLoaded('candidatures')),
         ];

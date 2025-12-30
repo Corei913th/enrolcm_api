@@ -18,6 +18,7 @@ class Paiement extends Model
     protected $fillable = [
         'candidat_id',
         'concours_id',
+        'candidature_id',
         'reference',
         'montant',
         'preuve_paiement',
@@ -61,10 +62,15 @@ class Paiement extends Model
         return $this->belongsTo(Utilisateur::class, 'validated_by');
     }
 
+    public function candidature()
+    {
+        return $this->belongsTo(Candidature::class, 'candidature_id');
+    }
+
     // Scopes
     public function scopeEnAttente($query)
     {
-        return $query->where('statut', StatutPaiement::EN_ATTENTE);
+        return $query->where('statut', StatutPaiement::PENDING);
     }
 
     public function scopeOcrVerifie($query)
@@ -74,12 +80,12 @@ class Paiement extends Model
 
     public function scopeValide($query)
     {
-        return $query->where('statut', StatutPaiement::VALIDE);
+        return $query->where('statut', StatutPaiement::VERIFIED);
     }
 
     public function scopeRejete($query)
     {
-        return $query->where('statut', StatutPaiement::REJETE);
+        return $query->where('statut', StatutPaiement::REJECTED);
     }
 
     public function scopeParConcours($query, string $concoursId)
@@ -90,7 +96,7 @@ class Paiement extends Model
     // Helpers
     public function isEnAttente(): bool
     {
-        return $this->statut === StatutPaiement::EN_ATTENTE;
+        return $this->statut === StatutPaiement::PENDING;
     }
 
     public function isOcrVerifie(): bool
@@ -100,18 +106,18 @@ class Paiement extends Model
 
     public function isValide(): bool
     {
-        return $this->statut === StatutPaiement::VALIDE;
+        return $this->statut === StatutPaiement::VERIFIED;
     }
 
     public function isRejete(): bool
     {
-        return $this->statut === StatutPaiement::REJETE;
+        return $this->statut === StatutPaiement::REJECTED;
     }
 
     public function valider(string $userId): void
     {
         $this->update([
-            'statut' => StatutPaiement::VALIDE,
+            'statut' => StatutPaiement::VERIFIED,
             'validated_at' => now(),
             'validated_by' => $userId,
             'motif_rejet' => null,
@@ -121,7 +127,7 @@ class Paiement extends Model
     public function rejeter(string $motif, string $userId): void
     {
         $this->update([
-            'statut' => StatutPaiement::REJETE,
+            'statut' => StatutPaiement::REJECTED,
             'motif_rejet' => $motif,
             'validated_at' => now(),
             'validated_by' => $userId,

@@ -32,7 +32,7 @@ class Epreuve extends Model
         'updated_at' => 'datetime',
     ];
 
-    
+
     public function notes()
     {
         return $this->hasMany(Note::class, 'epreuve_id', 'id_epreuve');
@@ -57,14 +57,14 @@ class Epreuve extends Model
     // Helpers
     public function getTypeLabel()
     {
-        return TypeEpreuve::label($this->type_epreuve);
+        return $this->type_epreuve?->label();
     }
 
     public function getDureeFormatee()
     {
         $heures = floor($this->duree_en_minute / 60);
         $minutes = $this->duree_en_minute % 60;
-        
+
         if ($heures > 0 && $minutes > 0) {
             return "{$heures}h {$minutes}min";
         } elseif ($heures > 0) {
