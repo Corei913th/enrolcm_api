@@ -46,6 +46,31 @@ class ConcoursException extends Exception
         return new self("La date limite de paiement doit être antérieure à la date de fin du concours.", 400);
     }
 
+    public static function banqueNotAccepted(string $banque): self
+    {
+        return new self("La banque '{$banque}' n'est pas acceptée pour ce paiement.", 400);
+    }
+
+    public static function ocrConfidenceTooLow(float $confiance, float $minimum): self
+    {
+        return new self("La confiance OCR ({$confiance}%) est inférieure au minimum requis ({$minimum}%).", 400);
+    }
+
+    public static function invalidPaymentType(string $type): self
+    {
+        return new self("Le type de paiement '{$type}' n'est pas valide.", 400);
+    }
+
+    public static function invalidCurrency(string $devise): self
+    {
+        return new self("La devise '{$devise}' n'est pas supportée. Utilisez XAF, USD ou EUR.", 400);
+    }
+
+    public static function paymentExpired(): self
+    {
+        return new self("La période de paiement est expirée.", 400);
+    }
+
     public static function hasActiveInscriptions(string $id): self
     {
         return new self("Impossible de supprimer le concours {$id}: des inscriptions actives existent.", 400);
