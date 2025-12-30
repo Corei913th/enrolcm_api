@@ -292,7 +292,7 @@ class UserService
      * Assigner un rôle à un utilisateur.
      *
      * @param Utilisateur $user Utilisateur concerné
-     * @param string $roleName Nom du rôle à assigner
+     * @param TypeUtilisateur $roleName Nom du rôle à assigner
      *
      * @return void
      */
