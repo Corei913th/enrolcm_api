@@ -18,4 +18,3 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::middleware(['auth:sanctum', 'role:ADMIN'])
     ->prefix('users')
     ->group(base_path('routes/api/users.php'));
-
