@@ -159,6 +159,43 @@ class ConcoursPaiementService
     }
 
     /**
+     * Vérifier si une banque est acceptée pour cette configuration.
+     *
+     * @param ConcoursPaiement $config Configuration de paiement
+     * @param string $nomBanque Nom de la banque à vérifier
+     *
+     * @return bool True si la banque est acceptée
+     */
+    public function banqueEstAcceptee(ConcoursPaiement $config, string $nomBanque): bool
+    {
+        return $config->banqueEstAcceptee($nomBanque);
+    }
+
+    /**
+     * Vérifier si la validation automatique est possible pour cette configuration.
+     *
+     * @param ConcoursPaiement $config Configuration de paiement
+     *
+     * @return bool True si la validation auto est possible
+     */
+    public function peutValiderAutomatiquement(ConcoursPaiement $config): bool
+    {
+        return $config->peutValiderAutomatiquement();
+    }
+
+    /**
+     * Récupérer les informations bancaires complètes d'une configuration.
+     *
+     * @param ConcoursPaiement $config Configuration de paiement
+     *
+     * @return array Informations bancaires formatées
+     */
+    public function getInformationsBancaires(ConcoursPaiement $config): array
+    {
+        return $config->getInformationsBancaires();
+    }
+
+    /**
      * Valider les données de configuration avant sauvegarde.
      *
      * @param array $data Données de configuration
@@ -169,6 +206,7 @@ class ConcoursPaiementService
     {
         $errors = [];
 
+        // Validation des champs obligatoires de base
         if (!isset($data['banque_nom']) || empty($data['banque_nom'])) {
             $errors['banque_nom'] = 'Le nom de la banque est obligatoire';
         }
@@ -177,12 +215,41 @@ class ConcoursPaiementService
             $errors['numero_compte'] = 'Le numéro de compte est obligatoire';
         }
 
+        if (!isset($data['nom_beneficiaire']) || empty($data['nom_beneficiaire'])) {
+            $errors['nom_beneficiaire'] = 'Le nom du bénéficiaire est obligatoire';
+        }
+
         if (!isset($data['montant']) || $data['montant'] <= 0) {
             $errors['montant'] = 'Le montant doit être supérieur à 0';
         }
 
         if (!isset($data['date_limite']) || strtotime($data['date_limite']) < time()) {
             $errors['date_limite'] = 'La date limite doit être dans le futur';
+        }
+
+        // Validation des champs optionnels
+        if (isset($data['devise']) && !in_array($data['devise'], ['XAF', 'USD', 'EUR'])) {
+            $errors['devise'] = 'La devise doit être XAF, USD ou EUR';
+        }
+
+        if (isset($data['code_banque']) && strlen($data['code_banque']) > 11) {
+            $errors['code_banque'] = 'Le code de la banque ne peut pas dépasser 11 caractères';
+        }
+
+        if (isset($data['iban']) && strlen($data['iban']) > 34) {
+            $errors['iban'] = 'L\'IBAN ne peut pas dépasser 34 caractères';
+        }
+
+        if (isset($data['type_paiement']) && !in_array($data['type_paiement'], ['virement', 'cheque', 'mobile_money', 'especes', 'carte_bancaire'])) {
+            $errors['type_paiement'] = 'Le type de paiement n\'est pas valide';
+        }
+
+        if (isset($data['banques_acceptees']) && !is_array($data['banques_acceptees'])) {
+            $errors['banques_acceptees'] = 'Les banques acceptées doivent être une liste';
+        }
+
+        if (isset($data['minimum_confiance_ocr']) && ($data['minimum_confiance_ocr'] < 0 || $data['minimum_confiance_ocr'] > 100)) {
+            $errors['minimum_confiance_ocr'] = 'La confiance OCR minimale doit être entre 0 et 100';
         }
 
         return $errors;

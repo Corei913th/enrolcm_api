@@ -9,13 +9,16 @@ use App\Http\Requests\Payment\ValiderPaiementRequest;
 use App\Http\Requests\Payment\RejeterPaiementRequest;
 use App\Http\Requests\Payment\FilterPaiementsRequest;
 use App\Http\Requests\Payment\VerifyPRURequest;
+use App\Http\Requests\Payment\ConfigurerPaiementConcoursRequest;
+use App\Services\Payment\ConcoursPaiementService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class PaiementController extends Controller
 {
     public function __construct(
-        private readonly PaiementService $paiementService
+        private readonly PaiementService $paiementService,
+        private readonly ConcoursPaiementService $concoursPaiementService
     ) {}
 
     /**

@@ -4,6 +4,7 @@ namespace App\Services\Payment;
 
 use App\Models\Paiement;
 use App\Enums\StatutPaiement;
+use App\Models\ConcoursPaiement;
 use App\Services\OCR\TesseractOcrService;
 use App\Services\Payment\ConcoursPaiementService;
 use DateTime;
@@ -115,8 +116,10 @@ class PaiementService
 
         $montantValide = $this->verifyAmount($paiement, $config->montant);
         $dateValide = $this->verifyDate($paiement, $config->date_limite);
+        $banqueValide = $this->verifyBank($paiement, $config);
+        $confianceOcrValide = $this->verifyOcrConfidence($paiement, $config);
 
-        if ($montantValide && $dateValide) {
+        if ($referenceValide && $montantValide && $dateValide && $banqueValide && $confianceOcrValide) {
             $paiement->update([
                 'statut' => StatutPaiement::VERIFIED,
                 'validated_at' => now(),
@@ -248,7 +251,7 @@ class PaiementService
         return $paiement;
     }
 
-       /**
+    /**
      * Récupère la date de validation d'un paiement.
      *
      * @param string $pru Référence du paiement (PRU)
@@ -256,7 +259,7 @@ class PaiementService
      *
      * @return \DateTime|null Date de validation ou null si non validé
      */
-    public function getValidationDate(string $pru, string $concoursId):?DateTime
+    public function getValidationDate(string $pru, string $concoursId): ?DateTime
     {
         $paiement = Paiement::where('reference', $pru)
             ->where('concours_id', $concoursId)
@@ -295,6 +298,53 @@ class PaiementService
     {
         $date = $paiement->date_ocr ?? $paiement->created_at;
         return $date <= $deadline;
+    }
+
+    /**
+     * Vérifie si la banque détectée par OCR est dans la liste des banques acceptées.
+     *
+     * @param Paiement $paiement Paiement à vérifier
+     * @param ConcoursPaiement $config Configuration de paiement
+     *
+     * @return bool True si la banque est acceptée ou si aucune liste n'est définie
+     */
+    private function verifyBank(Paiement $paiement, ConcoursPaiement $config): bool
+    {
+        $banqueOcr = $paiement->banque_ocr;
+
+        // Si aucune banque détectée par OCR, on considère comme valide
+        if (!$banqueOcr) {
+            return true;
+        }
+
+        // Si aucune liste de banques acceptées, toutes les banques sont acceptées
+        if (!$config->banques_acceptees) {
+            return true;
+        }
+
+        return $this->concoursPaiementService->banqueEstAcceptee($config, $banqueOcr);
+    }
+
+    /**
+     * Vérifie si la confiance OCR est suffisante pour la validation automatique.
+     *
+     * @param Paiement $paiement Paiement à vérifier
+     * @param ConcoursPaiement $config Configuration de paiement
+     *
+     * @return bool True si la confiance OCR est suffisante
+     */
+    private function verifyOcrConfidence(Paiement $paiement, ConcoursPaiement $config): bool
+    {
+        $confianceOcr = $paiement->ocr_confidence;
+
+        // Si pas de données OCR, on ne peut pas valider automatiquement
+        if (!$confianceOcr) {
+            return false;
+        }
+
+        $seuilMinimum = $config->minimum_confiance_ocr ?? 85.00;
+
+        return $confianceOcr >= $seuilMinimum;
     }
 
     /**
