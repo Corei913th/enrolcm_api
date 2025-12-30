@@ -341,8 +341,24 @@ class ConcoursController extends Controller
             ], 201);
         } catch (ConcoursException $e) {
             return api_error($e->getMessage(), null, $e->getCode());
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Erreurs de base de données (contraintes, clés étrangères, etc.)
+            return api_error('Erreur de base de données lors de l\'attachement du concours à la session', [
+                'details' => config('app.debug') ? $e->getMessage() : null
+            ], 500);
         } catch (\Exception $e) {
-            return api_error('Erreur lors de l\'attachement du concours à la session', null, 500);
+            // Erreurs générales avec plus de contexte
+            $errorContext = [
+                'concours_id' => $id,
+                'session_id' => $request->input('session_id'),
+                'action' => 'attach_concours_to_session'
+            ];
+
+            return api_error(
+                'Échec de l\'attachement du concours à la session: ' . $e->getMessage(),
+                config('app.debug') ? $errorContext : null,
+                500
+            );
         }
     }
 }

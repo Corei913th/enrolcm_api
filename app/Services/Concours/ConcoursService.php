@@ -459,17 +459,17 @@ class ConcoursService
 
         // Vérifier que c'est bien un template (pas encore attaché à une session)
         if ($concours->sessions()->exists()) {
-            throw new \Exception('Ce concours est déjà attaché à une session');
+            throw new \Exception("Le concours '{$concours->libelle_concours}' est déjà attaché à une session et ne peut pas être rattaché");
         }
 
         try {
             $session = Session::findOrFail($sessionId);
         } catch (ModelNotFoundException $e) {
-            throw new \Exception('Session introuvable', 404);
+            throw new \Exception("Session avec l'ID {$sessionId} introuvable", 404);
         }
 
         if (!$session->est_actif) {
-            throw new \Exception('Impossible d\'attacher à une session inactive');
+            throw new \Exception("La session '{$session->libelle_session}' est inactive et ne peut pas recevoir de concours");
         }
 
         // VALIDATION DE COHÉRENCE : dates du concours vs période de session
@@ -485,7 +485,7 @@ class ConcoursService
             })->exists();
 
         if ($existing) {
-            throw new \Exception('Un concours avec ce libellé existe déjà pour cette session');
+            throw new \Exception("Un concours nommé '{$concours->libelle_concours}' existe déjà pour la session '{$session->libelle_session}'");
         }
 
         return DB::transaction(function () use ($concours, $session, $config) {
@@ -527,8 +527,12 @@ class ConcoursService
         $period = $this->parseSessionPeriod($session->libelle_session);
 
         if ($dateExamen->year < $period['start_year'] || $dateExamen->year > $period['end_year']) {
+            $periodeAttendue = $period['start_year'] === $period['end_year']
+                ? $period['start_year']
+                : "{$period['start_year']}-{$period['end_year']}";
+
             throw new \Exception(
-                "La date d'examen ({$dateExamen->format('Y-m-d')}) ne correspond pas à la période de la session '{$session->libelle_session}' ({$period['start_year']}-{$period['end_year']})"
+                "La date d'examen ({$dateExamen->format('Y-m-d')}) ne correspond pas à la période de la session '{$session->libelle_session}' (période attendue: {$periodeAttendue})"
             );
         }
     }
@@ -567,7 +571,7 @@ class ConcoursService
             }
         }
 
-        throw new \Exception("Format de session non reconnu: '{$libelleSession}'. Formats supportés: '2025-2026' ou 'MAI 2026'");
+        throw new \Exception("Format de libellé de session '{$libelleSession}' non reconnu. Utilisez le format 'AAAA-AAAA' (ex: '2025-2026') ou 'MOIS AAAA' (ex: 'MAI 2026')");
     }
 
     /**
@@ -616,7 +620,7 @@ class ConcoursService
         $normalized = strtoupper(trim($monthName));
 
         if (!isset($months[$normalized])) {
-            throw new \Exception("Mois non reconnu: '{$monthName}'");
+            throw new \Exception("Mois '{$monthName}' non reconnu. Utilisez un nom de mois valide en français ou anglais (ex: JANVIER, FEVRIER, MARCH, APRIL, etc.)");
         }
 
         return $months[$normalized];
@@ -629,7 +633,7 @@ class ConcoursService
     {
         $currentYear = (int) now()->format('Y');
         if ($year < $currentYear) {
-            throw new \Exception("L'année de session ne peut pas être inférieure à {$currentYear} (trouvé: {$year})");
+            throw new \Exception("Impossible de créer une session pour l'année {$year}. L'année minimale autorisée est {$currentYear} (année courante)");
         }
     }
 
@@ -646,7 +650,7 @@ class ConcoursService
         }
 
         if ($endYear > $startYear + 1) {
-            throw new \Exception("La période de session ne peut pas dépasser 1 an (trouvé: {$startYear}-{$endYear})");
+            throw new \Exception("La période de session '{$startYear}-{$endYear}' dépasse la durée maximale autorisée d'1 an. Utilisez une période comme '{$startYear}-" . ($startYear + 1) . "'");
         }
     }
 
