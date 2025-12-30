@@ -29,15 +29,19 @@ class ConcoursService
      */
     public function create(CreateConcoursDTO $dto): Concours
     {
-        if ($dto->date_limite_depot <= $dto->date_debut) {
-            throw ConcoursException::invalidDateRange();
-        }
-
-        if (isset($dto->nombre_places) && $dto->nombre_places <= 0) {
-            throw new \Exception('Le nombre de places doit être positif');
-        }
-
+        // VALIDATIONS CONDITIONNELLES : Seulement si session fournie
         if (isset($dto->session_id)) {
+            // Dates cohérentes
+            if ($dto->date_limite_depot <= $dto->date_debut) {
+                throw ConcoursException::invalidDateRange();
+            }
+
+            // Nombre de places positif
+            if (isset($dto->nombre_places) && $dto->nombre_places <= 0) {
+                throw new \Exception('Le nombre de places doit être positif');
+            }
+
+            // Session active
             $session = Session::findOrFail($dto->session_id);
             if (!$session->est_actif) {
                 throw new \Exception('Impossible de créer un concours pour une session inactive');
@@ -45,16 +49,24 @@ class ConcoursService
             if (!$session->accepteInscriptions()) {
                 throw new \Exception('La session n\'accepte plus les inscriptions');
             }
-        }
 
-        $existingConcours = Concours::where('libelle_concours', $dto->libelle_concours);
-        if (isset($dto->session_id)) {
-            $existingConcours->whereHas('sessions', function ($query) use ($dto) {
-                $query->where('sessions.id', $dto->session_id);
-            });
-        }
-        if ($existingConcours->exists()) {
-            throw new \Exception('Un concours avec ce libellé existe déjà pour cette session');
+            // Unicité libellé par session
+            $existingConcours = Concours::where('libelle_concours', $dto->libelle_concours)
+                ->whereHas('sessions', function ($query) use ($dto) {
+                    $query->where('sessions.id', $dto->session_id);
+                });
+
+            if ($existingConcours->exists()) {
+                throw new \Exception('Un concours avec ce libellé existe déjà pour cette session');
+            }
+        } else {
+            // Unicité libellé pour concours templates (sans session)
+            $existingConcours = Concours::where('libelle_concours', $dto->libelle_concours)
+                ->whereDoesntHave('sessions'); // Seulement les templates
+
+            if ($existingConcours->exists()) {
+                throw new \Exception('Un concours template avec ce libellé existe déjà');
+            }
         }
 
         return DB::transaction(function () use ($dto) {
@@ -400,6 +412,83 @@ class ConcoursService
                 'etat_session_id' => $etat->id,
                 'date_etat' => now(),
             ]);
+        });
+    }
+
+    /**
+     * Attacher un concours template à une session avec configuration spécifique.
+     *
+     * @param string $concoursId ID du concours template
+     * @param string $sessionId ID de la session
+     * @param array $config Configuration spécifique (dates, places)
+     *
+     * @return Concours Concours attaché à la session
+     *
+     * @throws ConcoursException Si le concours ou la session est introuvable
+     * @throws \Exception Si la session est invalide ou le concours déjà attaché
+     */
+    public function attachToSession(string $concoursId, string $sessionId, array $config = []): Concours
+    {
+        try {
+            $concours = Concours::findOrFail($concoursId);
+        } catch (ModelNotFoundException $e) {
+            throw ConcoursException::notFound($concoursId);
+        }
+
+        // Vérifier que c'est bien un template (pas encore attaché à une session)
+        if ($concours->sessions()->exists()) {
+            throw new \Exception('Ce concours est déjà attaché à une session');
+        }
+
+        try {
+            $session = Session::findOrFail($sessionId);
+        } catch (ModelNotFoundException $e) {
+            throw new \Exception('Session introuvable', 404);
+        }
+
+        if (!$session->est_actif) {
+            throw new \Exception('Impossible d\'attacher à une session inactive');
+        }
+
+        // Vérifier unicité
+        $existing = Concours::where('libelle_concours', $concours->libelle_concours)
+            ->whereHas('sessions', function ($query) use ($sessionId) {
+                $query->where('sessions.id', $sessionId);
+            })->exists();
+
+        if ($existing) {
+            throw new \Exception('Un concours avec ce libellé existe déjà pour cette session');
+        }
+
+        return DB::transaction(function () use ($concours, $session, $config) {
+            // Attacher la session
+            $concours->sessions()->attach($session->id);
+
+            // Créer l'état par défaut
+            $etatOuverte = EtatSession::getByLibelle(EtatSessionEnum::OUVERTE);
+            if ($etatOuverte) {
+                EtatConcoursSession::create([
+                    'concours_session_concours_id' => $concours->id,
+                    'concours_session_session_id' => $session->id,
+                    'etat_session_id' => $etatOuverte->id,
+                    'date_etat' => now(),
+                ]);
+            }
+
+            // Appliquer la configuration spécifique si fournie
+            if (!empty($config)) {
+                $updateData = array_intersect_key($config, array_flip([
+                    'date_examen',
+                    'date_limite_depot',
+                    'nbre_max_places',
+                    'est_actif'
+                ]));
+                if (!empty($updateData)) {
+                    $concours->update($updateData);
+                }
+            }
+
+            return $concours->fresh(['sessions']);
         });
     }
 

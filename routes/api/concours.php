@@ -9,7 +9,7 @@ Route::get('/{concours}', [ConcoursController::class, 'show']);
 Route::get('/{concours}/payment-info', [ConcoursController::class, 'paymentInfo']);
 
 // Protected routes (admin only)
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware('auth:sanctum',  'role:ADMIN')->group(function () {
     Route::get('/', [ConcoursController::class, 'index']);
     Route::post('/', [ConcoursController::class, 'store']);
     Route::put('/{concours}', [ConcoursController::class, 'update']);
@@ -18,7 +18,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/{concours}/deactivate', [ConcoursController::class, 'deactivate']);
     Route::post('/{concours}/configure-payment', [ConcoursController::class, 'configurePayment']);
     Route::get('/{concours}/stats', [ConcoursController::class, 'stats']);
-    
+
     // Session management
     Route::post('/{concours}/sessions', [ConcoursController::class, 'attachSession']);
     Route::delete('/{concours}/sessions/{session}', [ConcoursController::class, 'detachSession']);

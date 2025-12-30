@@ -7,11 +7,11 @@ class CreateConcoursDTO
     public function __construct(
         public readonly string $libelle_concours,
         public readonly ?string $description,
-        public readonly string $date_debut, // Sera mappé vers date_examen
-        public readonly string $date_limite_depot,
-        public readonly ?int $nombre_places, // Sera mappé vers nbre_max_places
-        public readonly string $spec_concours_id,
-        public readonly ?string $session_id = null,
+        public readonly ?string $date_debut, // OPTIONNEL - Sera mappé vers date_examen
+        public readonly ?string $date_limite_depot, // OPTIONNEL
+        public readonly ?int $nombre_places, // OPTIONNEL - Sera mappé vers nbre_max_places
+        public readonly ?string $spec_concours_id, // OPTIONNEL
+        public readonly ?string $session_id = null, // OPTIONNEL
         public readonly bool $est_actif = true
     ) {}
 
