@@ -9,9 +9,17 @@ use App\Models\Admin;
 use App\Models\Correcteur;
 use App\Models\ResponsableCentre;
 use App\Enums\TypeUtilisateur;
+use App\Services\Roles\RoleService;
 
 class UserSeeder extends Seeder
 {
+    protected RoleService $roleService;
+
+    public function __construct()
+    {
+        $this->roleService = new RoleService();
+    }
+
     /**
      * Exécuter le seeder.
      *
@@ -33,6 +41,7 @@ class UserSeeder extends Seeder
             'utilisateur_id' => $admin1->id,
             'matricule' => 'ADM001',
         ]);
+        $this->roleService->assignRole($admin1, TypeUtilisateur::ADMIN);
 
         $admin2 = Utilisateur::create([
             'user_name' => 'admin_user2',
@@ -47,6 +56,7 @@ class UserSeeder extends Seeder
             'utilisateur_id' => $admin2->id,
             'matricule' => 'ADM002',
         ]);
+        $this->roleService->assignRole($admin2, TypeUtilisateur::ADMIN);
 
         // === Correcteurs ===
         $correcteur1 = Utilisateur::create([
@@ -63,6 +73,7 @@ class UserSeeder extends Seeder
             'matricule_enseignant' => 'ENS001',
             'specialite' => 'Mathématiques',
         ]);
+        $this->roleService->assignRole($correcteur1, TypeUtilisateur::CORRECTEUR);
 
         $correcteur2 = Utilisateur::create([
             'user_name' => 'correcteur_user2',
@@ -78,6 +89,7 @@ class UserSeeder extends Seeder
             'matricule_enseignant' => 'ENS002',
             'specialite' => 'Physique',
         ]);
+        $this->roleService->assignRole($correcteur2, TypeUtilisateur::CORRECTEUR);
 
         // === Responsables de centre ===
         $resp1 = Utilisateur::create([
@@ -93,6 +105,7 @@ class UserSeeder extends Seeder
             'utilisateur_id' => $resp1->id,
             'code_agent' => 'RC001',
         ]);
+        $this->roleService->assignRole($resp1, TypeUtilisateur::RESPONSABLE_CENTRE);
 
         $resp2 = Utilisateur::create([
             'user_name' => 'respcentre_user2',
@@ -107,5 +120,6 @@ class UserSeeder extends Seeder
             'utilisateur_id' => $resp2->id,
             'code_agent' => 'RC002',
         ]);
+        $this->roleService->assignRole($resp2, TypeUtilisateur::RESPONSABLE_CENTRE);
     }
 }
