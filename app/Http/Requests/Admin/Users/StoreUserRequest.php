@@ -28,16 +28,16 @@ class StoreUserRequest extends FormRequest
                 Rule::unique('utilisateurs', 'telephone'),
             ],
             'type_utilisateur' => 'required|in:' . implode(',', TypeUtilisateur::values()),
-            
+
             // Champs spécifiques Admin
-            'matricule' => 'required_if:type_utilisateur,' . TypeUtilisateur::ADMIN . '|nullable|string|max:50',
-            
+            'matricule' => 'required_if:type_utilisateur,' . TypeUtilisateur::ADMIN->value . '|nullable|string|max:50',
+
             // Champs spécifiques Correcteur
-            'specialite' => 'required_if:type_utilisateur,' . TypeUtilisateur::CORRECTEUR . '|nullable|string|max:100',
-            'matricule_enseignant' => 'required_if:type_utilisateur,' . TypeUtilisateur::CORRECTEUR . '|nullable|string|max:50',
-            
+            'specialite' => 'required_if:type_utilisateur,' . TypeUtilisateur::CORRECTEUR->value . '|nullable|string|max:100',
+            'matricule_enseignant' => 'required_if:type_utilisateur,' . TypeUtilisateur::CORRECTEUR->value . '|nullable|string|max:50',
+
             // Champs spécifiques Responsable Centre
-            'code_agent' => 'required_if:type_utilisateur,' . TypeUtilisateur::RESPONSABLE_CENTRE . '|nullable|string|max:50',
+            'code_agent' => 'required_if:type_utilisateur,' . TypeUtilisateur::RESPONSABLE_CENTRE->value . '|nullable|string|max:50',
         ];
     }
 
