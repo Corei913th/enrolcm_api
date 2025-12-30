@@ -80,7 +80,7 @@ class CandidatController extends Controller
     public function me(Request $request): JsonResponse
     {
         try {
-            $candidat = $this->candidatService->getById(auth()->id());
+            $candidat = $this->candidatService->getById($request->user()->id);
             return api_success($candidat);
         } catch (\Exception $e) {
             return api_error($e->getMessage(), null, 404);
@@ -95,7 +95,7 @@ class CandidatController extends Controller
     {
         try {
             $dto = UpdateCandidatProfileDTO::fromRequest($request->validated());
-            $candidat = $this->candidatService->updateProfile(auth()->id(), $dto);
+            $candidat = $this->candidatService->updateProfile($request->user()->id, $dto);
 
             return api_success($candidat, 'Profil mis à jour avec succès');
         } catch (\Exception $e) {

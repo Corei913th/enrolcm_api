@@ -9,13 +9,13 @@ Route::post('/register', [CandidatController::class, 'register']);
 Route::post('/login', [CandidatController::class, 'login']);
 
 // Protected routes (candidat connecté)
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware('auth:sanctum', 'role:CANDIDAT')->group(function () {
     Route::get('/me', [CandidatController::class, 'me']);
     Route::put('/me', [CandidatController::class, 'updateProfile']);
 });
 
 // Admin routes
-Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
+Route::middleware(['auth:sanctum', 'role:ADMIN'])->group(function () {
     Route::get('/', [CandidatController::class, 'index']);
     Route::get('/stats', [CandidatController::class, 'stats']);
     Route::get('/pru/{pru}', [CandidatController::class, 'getByPRU']);

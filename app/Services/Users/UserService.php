@@ -296,7 +296,7 @@ class UserService
      *
      * @return void
      */
-    private function assignRole(Utilisateur $user, string $roleName): void
+    private function assignRole(Utilisateur $user, TypeUtilisateur $roleName): void
     {
         $this->roleService->assignRole($user, $roleName);
     }
