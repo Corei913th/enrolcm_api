@@ -78,7 +78,7 @@ class ConcoursService
                     EtatConcoursSession::create([
                         'concours_session_concours_id' => $concours->id,
                         'concours_session_session_id' => $dto->session_id,
-                        'etat_session_id' => $etatOuverte->id,
+                        'etat_session_id' => $etatOuverte->id
                     ]);
                 }
             }
@@ -136,7 +136,6 @@ class ConcoursService
                         ],
                         [
                             'etat_session_id' => $etatOuverte->id,
-                            'date_etat' => now(),
                         ]
                     );
                 }
@@ -370,7 +369,6 @@ class ConcoursService
                         'concours_session_concours_id' => $concours->id,
                         'concours_session_session_id' => $sessionId,
                         'etat_session_id' => $etatOuverte->id,
-                        'date_etat' => now(),
                     ]);
                 }
             });
@@ -434,8 +432,7 @@ class ConcoursService
             EtatConcoursSession::create([
                 'concours_session_concours_id' => $concours->id,
                 'concours_session_session_id' => $sessionId,
-                'etat_session_id' => $etat->id,
-                'date_etat' => now(),
+                'etat_session_id' => $etat->id
             ]);
         });
     }
@@ -475,6 +472,12 @@ class ConcoursService
             throw new \Exception('Impossible d\'attacher à une session inactive');
         }
 
+        // VALIDATION DE COHÉRENCE : dates du concours vs période de session
+        if (!empty($config['date_examen'])) {
+            $dateExamen = \Carbon\Carbon::parse($config['date_examen']);
+            $this->validateConcoursSessionCoherence($dateExamen, $session);
+        }
+
         // Vérifier unicité
         $existing = Concours::where('libelle_concours', $concours->libelle_concours)
             ->whereHas('sessions', function ($query) use ($sessionId) {
@@ -495,8 +498,7 @@ class ConcoursService
                 EtatConcoursSession::create([
                     'concours_session_concours_id' => $concours->id,
                     'concours_session_session_id' => $session->id,
-                    'etat_session_id' => $etatOuverte->id,
-                    'date_etat' => now(),
+                    'etat_session_id' => $etatOuverte->id
                 ]);
             }
 
@@ -515,6 +517,135 @@ class ConcoursService
 
             return $concours->fresh(['sessions']);
         });
+    }
+
+    /**
+     * Valide la cohérence entre date d'examen et période de session
+     */
+    private function validateConcoursSessionCoherence(\Carbon\Carbon $dateExamen, Session $session): void
+    {
+        $period = $this->parseSessionPeriod($session->libelle_session);
+
+        if ($dateExamen->year < $period['start_year'] || $dateExamen->year > $period['end_year']) {
+            throw new \Exception(
+                "La date d'examen ({$dateExamen->format('Y-m-d')}) ne correspond pas à la période de la session '{$session->libelle_session}' ({$period['start_year']}-{$period['end_year']})"
+            );
+        }
+    }
+
+    /**
+     * Parse la période d'une session depuis son libellé
+     * Supporte les formats: "2025-2026" ou "MAI 2026"
+     */
+    private function parseSessionPeriod(string $libelleSession): array
+    {
+        // Format "2025-2026"
+        if (preg_match('/(\d{4})-(\d{4})/', $libelleSession, $matches)) {
+            $startYear = (int) $matches[1];
+            $endYear = (int) $matches[2];
+
+            $this->validateSessionYears($startYear, $endYear);
+            return ['start_year' => $startYear, 'end_year' => $endYear];
+        }
+
+        // Format "MAI 2026" ou autre mois
+        if (preg_match('/([A-Z]+)\s+(\d{4})/i', $libelleSession, $matches)) {
+            $monthName = strtoupper($matches[1]);
+            $year = (int) $matches[2];
+
+            $this->validateSessionYear($year);
+
+            // Convertir le mois en numéro et déterminer la période
+            $monthNumber = $this->monthNameToNumber($monthName);
+            if ($monthNumber <= 6) {
+                // Si mois dans première moitié, période année-1 à année
+                return ['start_year' => $year - 1, 'end_year' => $year];
+            } else {
+                // Si mois dans deuxième moitié, période année à année+1
+                return ['start_year' => $year, 'end_year' => $year + 1];
+            }
+        }
+
+        throw new \Exception("Format de session non reconnu: '{$libelleSession}'. Formats supportés: '2025-2026' ou 'MAI 2026'");
+    }
+
+    /**
+     * Convertit un nom de mois en numéro
+     */
+    private function monthNameToNumber(string $monthName): int
+    {
+        $months = [
+            'JANVIER' => 1,
+            'JAN' => 1,
+            'JANUARY' => 1,
+            'FEVRIER' => 2,
+            'FEV' => 2,
+            'FEBRUARY' => 2,
+            'MARS' => 3,
+            'MAR' => 3,
+            'MARCH' => 3,
+            'AVRIL' => 4,
+            'AVR' => 4,
+            'APRIL' => 4,
+            'MAI' => 5,
+            'MAY' => 5,
+            'JUIN' => 6,
+            'JUN' => 6,
+            'JUNE' => 6,
+            'JUILLET' => 7,
+            'JUL' => 7,
+            'JULY' => 7,
+            'AOUT' => 8,
+            'AOU' => 8,
+            'AUGUST' => 8,
+            'SEPTEMBRE' => 9,
+            'SEP' => 9,
+            'SEPTEMBER' => 9,
+            'OCTOBRE' => 10,
+            'OCT' => 10,
+            'OCTOBER' => 10,
+            'NOVEMBRE' => 11,
+            'NOV' => 11,
+            'NOVEMBER' => 11,
+            'DECEMBRE' => 12,
+            'DEC' => 12,
+            'DECEMBER' => 12
+        ];
+
+        $normalized = strtoupper(trim($monthName));
+
+        if (!isset($months[$normalized])) {
+            throw new \Exception("Mois non reconnu: '{$monthName}'");
+        }
+
+        return $months[$normalized];
+    }
+
+    /**
+     * Valide qu'une année de session n'est pas inférieure à 2025
+     */
+    private function validateSessionYear(int $year): void
+    {
+        if ($year < 2025) {
+            throw new \Exception("L'année de session ne peut pas être inférieure à 2025 (trouvé: {$year})");
+        }
+    }
+
+    /**
+     * Valide les années de début et fin d'une session
+     */
+    private function validateSessionYears(int $startYear, int $endYear): void
+    {
+        $this->validateSessionYear($startYear);
+        $this->validateSessionYear($endYear);
+
+        if ($endYear <= $startYear) {
+            throw new \Exception("L'année de fin ({$endYear}) doit être supérieure à l'année de début ({$startYear})");
+        }
+
+        if ($endYear > $startYear + 1) {
+            throw new \Exception("La période de session ne peut pas dépasser 1 an (trouvé: {$startYear}-{$endYear})");
+        }
     }
 
     /**

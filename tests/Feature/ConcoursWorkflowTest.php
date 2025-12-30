@@ -340,4 +340,211 @@ class ConcoursWorkflowTest extends TestCase
             ])
         );
     }
+
+    /** @test */
+    public function it_can_attach_template_concours_to_session()
+    {
+        // Given: concours template et session active
+        $template = Concours::create([
+            'libelle_concours' => 'Template à attacher'
+        ]);
+
+        $session = Session::create([
+            'libelle_session' => 'Session d\'attachement',
+            'est_actif' => true,
+            'statut_session' => StatutSession::OUVERT
+        ]);
+
+        // When: attacher avec configuration
+        $config = [
+            'date_examen' => '2025-06-15',
+            'date_limite_depot' => '2025-05-15',
+            'nbre_max_places' => 300
+        ];
+
+        $attached = $this->concoursService->attachToSession($template->id, $session->id, $config);
+
+        // Then: concours attaché avec config
+        $this->assertEquals(1, $attached->sessions()->count());
+        $this->assertEquals($session->id, $attached->sessions()->first()->id);
+        $this->assertEquals('2025-06-15', $attached->date_examen->format('Y-m-d'));
+        $this->assertEquals('2025-05-15', $attached->date_limite_depot->format('Y-m-d'));
+        $this->assertEquals(300, $attached->nbre_max_places);
+
+        // Vérifier que l'état a été créé
+        $this->assertDatabaseHas('etat_concours_session', [
+            'concours_session_concours_id' => $template->id,
+            'concours_session_session_id' => $session->id,
+        ]);
+    }
+
+    /** @test */
+    public function it_can_attach_template_concours_to_session_minimal()
+    {
+        // Given: concours template et session (sans config supplémentaire)
+        $template = Concours::create([
+            'libelle_concours' => 'Template minimal'
+        ]);
+
+        $session = Session::create([
+            'libelle_session' => 'Session minimale',
+            'est_actif' => true,
+            'statut_session' => StatutSession::OUVERT
+        ]);
+
+        // When: attacher sans configuration
+        $attached = $this->concoursService->attachToSession($template->id, $session->id);
+
+        // Then: concours attaché, config par défaut préservée
+        $this->assertEquals(1, $attached->sessions()->count());
+        $this->assertEquals($session->id, $attached->sessions()->first()->id);
+        $this->assertNull($attached->date_examen); // Pas modifié
+        $this->assertEquals(0, $attached->nbre_max_places); // Défaut
+
+        // État créé
+        $this->assertDatabaseHas('etat_concours_session', [
+            'concours_session_concours_id' => $template->id,
+            'concours_session_session_id' => $session->id,
+        ]);
+    }
+
+    /** @test */
+    public function it_prevents_attaching_already_attached_concours()
+    {
+        // Given: concours déjà attaché à une session
+        $session1 = Session::create([
+            'libelle_session' => 'Session 1',
+            'est_actif' => true,
+            'statut_session' => StatutSession::OUVERT
+        ]);
+
+        $concours = $this->concoursService->create(
+            CreateConcoursDTO::fromRequest([
+                'libelle_concours' => 'Concours déjà attaché',
+                'session_id' => $session1->id,
+                'spec_concours_id' => null
+            ])
+        );
+
+        $session2 = Session::create([
+            'libelle_session' => 'Session 2',
+            'est_actif' => true,
+            'statut_session' => StatutSession::OUVERT
+        ]);
+
+        // When/Then: essayer d'attacher à une autre session = erreur
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage('Ce concours est déjà attaché à une session');
+
+        $this->concoursService->attachToSession($concours->id, $session2->id);
+    }
+
+    /** @test */
+    public function it_prevents_attaching_to_inactive_session()
+    {
+        // Given: concours template et session inactive
+        $template = Concours::create([
+            'libelle_concours' => 'Template test'
+        ]);
+
+        $inactiveSession = Session::create([
+            'libelle_session' => 'Session inactive',
+            'est_actif' => false,
+            'statut_session' => StatutSession::FERME
+        ]);
+
+        // When/Then: attachement à session inactive = erreur
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage('Impossible d\'attacher à une session inactive');
+
+        $this->concoursService->attachToSession($template->id, $inactiveSession->id);
+    }
+
+    /** @test */
+    public function it_validates_date_examen_matches_session_period_annuelle()
+    {
+        // Given: session annuelle et concours template
+        $session = Session::create([
+            'libelle_session' => '2026-2027',
+            'est_actif' => true,
+            'statut_session' => StatutSession::OUVERT
+        ]);
+
+        $template = Concours::create([
+            'libelle_concours' => 'Test Cohérence Annuelle'
+        ]);
+
+        // When/Then: date dans la période = OK
+        $result = $this->concoursService->attachToSession($template->id, $session->id, [
+            'date_examen' => '2026-06-15', // Dans 2026-2027
+            'nbre_max_places' => 100
+        ]);
+
+        $this->assertEquals(1, $result->sessions()->count());
+        $this->assertEquals('2026-06-15', $result->date_examen->format('Y-m-d'));
+    }
+
+    /** @test */
+    public function it_validates_date_examen_matches_session_period_mensuelle()
+    {
+        // Given: session mensuelle et concours template
+        $session = Session::create([
+            'libelle_session' => 'MAI 2026',
+            'est_actif' => true,
+            'statut_session' => StatutSession::OUVERT
+        ]);
+
+        $template = Concours::create([
+            'libelle_concours' => 'Test Cohérence Mensuelle'
+        ]);
+
+        // When/Then: date dans la période déduite = OK
+        $result = $this->concoursService->attachToSession($template->id, $session->id, [
+            'date_examen' => '2026-05-15', // En mai 2026
+            'nbre_max_places' => 100
+        ]);
+
+        $this->assertEquals(1, $result->sessions()->count());
+    }
+
+    /** @test */
+    public function it_rejects_date_examen_outside_session_period()
+    {
+        // Given: session 2026-2027 et date en 2028
+        $session = Session::create([
+            'libelle_session' => '2026-2027',
+            'est_actif' => true,
+            'statut_session' => StatutSession::OUVERT
+        ]);
+
+        $template = Concours::create([
+            'libelle_concours' => 'Test Hors Période'
+        ]);
+
+        // When/Then: date hors période = erreur
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage('ne correspond pas à la période de la session');
+
+        $this->concoursService->attachToSession($template->id, $session->id, [
+            'date_examen' => '2028-06-15', // Hors 2026-2027
+            'nbre_max_places' => 100
+        ]);
+    }
+
+    /** @test */
+    public function it_rejects_session_year_before_2025()
+    {
+        // Given: session avec année 2024 (invalide)
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage('ne peut pas être inférieure à 2025');
+
+        // Cette validation est faite lors du parsing, donc on la teste indirectement
+        $service = new \ReflectionClass(\App\Services\Concours\ConcoursService::class);
+        $instance = $service->newInstanceWithoutConstructor();
+
+        // Appel direct de la méthode privée pour test
+        $method = $service->getMethod('parseSessionPeriod');
+        $method->setAccessible(true);
+        $method->invoke($instance, '2024-2025');
+    }
 }
