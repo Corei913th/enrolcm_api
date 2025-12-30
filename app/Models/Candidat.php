@@ -82,19 +82,9 @@ class Candidat extends Model
         return $this->belongsTo(Filiere::class, 'filiere_id');
     }
 
-    public function paymentReceipts()
-    {
-        return $this->hasMany(PaymentReceipt::class, 'candidat_id', 'utilisateur_id');
-    }
-
     public function paiements()
     {
         return $this->hasManyThrough(Paiement::class, Candidature::class, 'candidat_id', 'candidature_id', 'utilisateur_id', 'id');
-    }
-
-    public function paymentReferences()
-    {
-        return $this->hasMany(PaymentReference::class, 'candidat_id', 'utilisateur_id');
     }
 
     public function getFullName()

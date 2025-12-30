@@ -86,11 +86,6 @@ class Concours extends Model
         return $this->hasMany(Paiement::class, 'concours_id');
     }
 
-    public function paymentReferences()
-    {
-        return $this->hasMany(PaymentReference::class, 'concours_id');
-    }
-
     public function isOuvert(): bool
     {
         return $this->est_actif && now()->lte($this->date_limite_depot);
