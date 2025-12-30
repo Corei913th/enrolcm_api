@@ -17,13 +17,20 @@ class Ecole extends Model
         'libelle_ecole_en',
         'region',
         'localisation',
+        'adresse_complete',
+        'ville',
         'logo_url',
+        'logo_institution_tutelle_url',
         'bp_ecole',
         'email_ecole',
         'siteweb_ecole',
-        'devise',
         'telephone_ecole',
+        'fax',
+        'telephone_2',
+        'devise',
+        'slogan',
         'embleme_ecole',
+        'mentions_legales',
         'est_actif',
         // Champs pour les fichiers
         'logo_path',
@@ -35,7 +42,9 @@ class Ecole extends Model
     ];
 
     protected $casts = [
+        'date_creation' => 'date',
         'est_actif' => 'boolean',
+        'region' => RegionCameroun::class,
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
@@ -45,9 +54,49 @@ class Ecole extends Model
         return $this->hasMany(Departement::class, 'ecole_id');
     }
 
-    public function getRegionLabelAttribute()
+    public function getRegionLabel()
     {
-        return $this->region ? RegionCameroun::label($this->region) : null;
+        return $this->region?->label();
+    }
+
+    // Helpers pour génération de documents
+    public function getAdresseComplete()
+    {
+        $parts = array_filter([
+            $this->adresse_complete,
+            $this->bp_ecole ? "BP: {$this->bp_ecole}" : null,
+            $this->ville,
+            $this->region?->label(),
+        ]);
+
+        return implode(', ', $parts);
+    }
+
+    public function getContactsComplets()
+    {
+        $contacts = [];
+
+        if ($this->telephone_ecole) {
+            $contacts[] = "Tél: {$this->telephone_ecole}";
+        }
+
+        if ($this->telephone_2) {
+            $contacts[] = $this->telephone_2;
+        }
+
+        if ($this->fax) {
+            $contacts[] = "Fax: {$this->fax}";
+        }
+
+        if ($this->email_ecole) {
+            $contacts[] = "Email: {$this->email_ecole}";
+        }
+
+        if ($this->siteweb_ecole) {
+            $contacts[] = "Web: {$this->siteweb_ecole}";
+        }
+
+        return implode(' | ', $contacts);
     }
 
     /**

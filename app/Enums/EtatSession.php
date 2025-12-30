@@ -2,26 +2,21 @@
 
 namespace App\Enums;
 
-class EtatSession
+enum EtatSession: string
 {
-    public const OUVERTE = 'OUVERTE';
-    public const FERMEE = 'FERMEE';
+    case OUVERTE = 'OUVERTE';
+    case FERMEE = 'FERMEE';
 
     public static function values(): array
     {
-        return [
-            self::OUVERTE,
-            self::FERMEE,
-        ];
+        return array_column(self::cases(), 'value');
     }
 
-    public static function label(string $value): string
+    public function label(): string
     {
-        $labels = [
+        return match ($this) {
             self::OUVERTE => 'Ouverte',
             self::FERMEE => 'Fermée',
-        ];
-
-        return $labels[$value] ?? $value;
+        };
     }
 }

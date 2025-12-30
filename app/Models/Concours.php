@@ -13,6 +13,7 @@ class Concours extends Model
     protected $table = 'concours';
 
     protected $fillable = [
+        'spec_concours_id',
         'libelle_concours',
         'date_limite_depot',
         'date_examen',
@@ -38,6 +39,28 @@ class Concours extends Model
             ->withTimestamps();
     }
 
+    public function specConcours()
+    {
+        return $this->belongsTo(SpecConcours::class, 'spec_concours_id');
+    }
+
+    public function filieres()
+    {
+        return $this->belongsToMany(Filiere::class, 'concours_filiere')
+            ->using(ConcoursFiliere::class)
+            ->withPivot(['session_id', 'nombre_places'])
+            ->withTimestamps();
+    }
+
+    // RELATION AVANCÉE : Filières par session
+    public function filieresParSession($sessionId)
+    {
+        return $this->belongsToMany(Filiere::class, 'concours_filiere')
+            ->wherePivot('session_id', $sessionId)
+            ->withPivot(['session_id', 'nombre_places'])
+            ->withTimestamps();
+    }
+
     public function concoursSessions()
     {
         return $this->hasMany(ConcoursSession::class, 'concours_id');
@@ -53,8 +76,59 @@ class Concours extends Model
         return $this->hasMany(EtatConcoursSession::class, 'concours_session_concours_id');
     }
 
+    public function configurationPaiement()
+    {
+        return $this->hasOne(ConcoursPaiement::class, 'concours_id');
+    }
+
+    public function paiements()
+    {
+        return $this->hasMany(Paiement::class, 'concours_id');
+    }
+
     public function isOuvert(): bool
     {
         return $this->est_actif && now()->lte($this->date_limite_depot);
+    }
+
+    // GESTION DES PLACES PAR SESSION
+    public function getPlacesDisponiblesPourSession($sessionId, $filiereId = null): int
+    {
+        $query = $this->filieresParSession($sessionId);
+
+        if ($filiereId) {
+            $query->where('filieres.id', $filiereId);
+        }
+
+        return $query->sum('pivot.nombre_places');
+    }
+
+    public function getPlacesOccupeesPourSession($sessionId, $filiereId = null): int
+    {
+        $query = $this->candidatures()
+            ->where('session_id', $sessionId)
+            ->where('statut_candidature', 'VALIDE'); // Uniquement les candidatures validées
+
+        if ($filiereId) {
+            $query->whereHas('candidat', function ($q) use ($filiereId) {
+                $q->where('filiere_id', $filiereId);
+            });
+        }
+
+        return $query->count();
+    }
+
+    public function placesRestantesPourSession($sessionId, $filiereId = null): int
+    {
+        $disponibles = $this->getPlacesDisponiblesPourSession($sessionId, $filiereId);
+        $occupees = $this->getPlacesOccupeesPourSession($sessionId, $filiereId);
+
+        return max(0, $disponibles - $occupees);
+    }
+
+    public function peutAccepterCandidaturePourSession($sessionId, $filiereId = null): bool
+    {
+        return $this->isOuvert() &&
+            $this->placesRestantesPourSession($sessionId, $filiereId) > 0;
     }
 }

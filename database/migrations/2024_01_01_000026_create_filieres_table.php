@@ -15,8 +15,7 @@ return new class extends Migration
             $table->uuid('departement_id')->nullable();
             $table->text('desc_filiere')->nullable();
             $table->boolean('est_actif')->default(true);
-            $table->timestamp('created_at')->useCurrent();
-            $table->timestamp('updated_at')->useCurrent();
+            $table->timestamps();
             
             $table->foreign('departement_id')->references('id')->on('departements')->onDelete('restrict');
             $table->index('departement_id');

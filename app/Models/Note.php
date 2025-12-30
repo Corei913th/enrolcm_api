@@ -36,7 +36,7 @@ class Note extends Model
         'deleted_at' => 'datetime',
     ];
 
-    
+
     public function candidature()
     {
         return $this->belongsTo(Candidature::class, 'candidature_id');
@@ -71,7 +71,7 @@ class Note extends Model
     // Helpers
     public function getStatutLabel()
     {
-        return StatutNote::label($this->statut);
+        return $this->statut?->label();
     }
 
     public function isValide()

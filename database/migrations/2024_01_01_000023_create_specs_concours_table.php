@@ -18,7 +18,8 @@ return new class extends Migration
             $table->boolean('acte_naissance')->default(true);
             $table->boolean('photo')->default(true);
             $table->decimal('montant_frais_depot', 10, 2)->default(0);
-            $table->timestamp('created_at')->useCurrent();
+            $table->timestamps();
+
         });
     }
 

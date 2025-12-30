@@ -2,29 +2,23 @@
 
 namespace App\Enums;
 
-class DecisionAdmission
+enum DecisionAdmission: string
 {
-    public const ADMIS = 'ADMIS';
-    public const LISTE_ATTENTE = 'LISTE_ATTENTE';
-    public const REFUSEE = 'REFUSEE';
+    case ADMIS = 'ADMIS';
+    case LISTE_ATTENTE = 'LISTE_ATTENTE';
+    case REFUSEE = 'REFUSEE';
 
     public static function values(): array
     {
-        return [
-            self::ADMIS,
-            self::LISTE_ATTENTE,
-            self::REFUSEE,
-        ];
+        return array_column(self::cases(), 'value');
     }
 
-    public static function label(string $value): string
+    public function label(): string
     {
-        $labels = [
+        return match ($this) {
             self::ADMIS => 'Admis',
             self::LISTE_ATTENTE => 'Liste d\'attente',
             self::REFUSEE => 'Refusée',
-        ];
-
-        return $labels[$value] ?? $value;
+        };
     }
 }

@@ -18,8 +18,7 @@ return new class extends Migration
             $table->boolean('est_actif')->default(true);
             $table->boolean('email_verifie')->default(false);
             $table->enum('type_utilisateur', TypeUtilisateur::values());
-            $table->timestamp('created_at')->useCurrent();
-            $table->timestamp('updated_at')->useCurrent();
+            $table->timestamps();
 
             $table->index('email');
             $table->index('user_name');
