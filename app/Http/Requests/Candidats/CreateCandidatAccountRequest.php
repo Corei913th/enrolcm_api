@@ -1,21 +1,22 @@
 <?php
 
-namespace App\Http\Requests\Auth;
+namespace App\Http\Requests\Candidats;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class LoginRequest extends FormRequest
+class CreateCandidatAccountRequest extends FormRequest
 {
     public function authorize()
     {
         return true;
     }
 
-    public function rules()
+     public function rules()
     {
         return [
-            'user_name' => 'required|string',
-            'mot_de_passe' => 'required|string|min:6',
+            'user_name' => 'required|string|unique:utilisateurs,user_name',
+            'mot_de_passe' => 'required|string|min:6|confirmed',
+            'nationalite_cand' => 'nullable|string|max:50',
         ];
     }
 
