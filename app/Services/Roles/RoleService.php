@@ -6,13 +6,14 @@ use App\Models\Role;
 use App\Models\Permission;
 use App\Models\Utilisateur;
 use Illuminate\Support\Collection;
+use App\Enums\TypeUtilisateur;
 
 class RoleService
 {
     /**
      * Assigner un rôle par défaut à un utilisateur
      */
-    public function assignDefault(Utilisateur $user, string $roleName): void
+    public function assignDefault(Utilisateur $user, TypeUtilisateur $roleName): void
     {
         $role = Role::where('libelle_role', $roleName)->first();
 
@@ -24,7 +25,7 @@ class RoleService
     /**
      * Assigner un rôle à un utilisateur
      */
-    public function assignRole(Utilisateur $user, string $roleName): bool
+    public function assignRole(Utilisateur $user, TypeUtilisateur $roleName): bool
     {
         $role = Role::where('libelle_role', $roleName)->first();
 
@@ -39,7 +40,7 @@ class RoleService
     /**
      * Retirer un rôle à un utilisateur
      */
-    public function removeRole(Utilisateur $user, string $roleName): bool
+    public function removeRole(Utilisateur $user, TypeUtilisateur $roleName): bool
     {
         $role = Role::where('libelle_role', $roleName)->first();
 
@@ -63,7 +64,7 @@ class RoleService
     /**
      * Vérifier si un utilisateur a un rôle spécifique
      */
-    public function hasRole(Utilisateur $user, string $roleName): bool
+    public function hasRole(Utilisateur $user, TypeUtilisateur $roleName): bool
     {
         return $user->roles()->where('libelle_role', $roleName)->exists();
     }
@@ -79,7 +80,7 @@ class RoleService
     /**
      * Vérifier si un utilisateur a tous les rôles
      */
-    public function hasAllRoles(Utilisateur $user, array $roleNames): bool
+    public function hasAllRoles(Utilisateur $user, array  $roleNames): bool
     {
         $userRoles = $user->roles()->pluck('libelle_role')->toArray();
         return empty(array_diff($roleNames, $userRoles));
@@ -104,7 +105,7 @@ class RoleService
     /**
      * Obtenir un rôle par son nom
      */
-    public function getRoleByName(string $roleName): ?Role
+    public function getRoleByName(TypeUtilisateur $roleName): ?Role
     {
         return Role::where('libelle_role', $roleName)->first();
     }
