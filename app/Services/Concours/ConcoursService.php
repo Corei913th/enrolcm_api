@@ -29,42 +29,39 @@ class ConcoursService
      */
     public function create(CreateConcoursDTO $dto): Concours
     {
-        // VALIDATIONS CONDITIONNELLES : Seulement si session fournie
+
         if (isset($dto->session_id)) {
-            // Dates cohérentes
-            if ($dto->date_limite_depot <= $dto->date_debut) {
-                throw ConcoursException::invalidDateRange();
-            }
-
-            // Nombre de places positif
-            if (isset($dto->nombre_places) && $dto->nombre_places <= 0) {
-                throw new \Exception('Le nombre de places doit être positif');
-            }
-
-            // Session active
+            // Session active si fournie
             $session = Session::findOrFail($dto->session_id);
             if (!$session->est_actif) {
                 throw new \Exception('Impossible de créer un concours pour une session inactive');
             }
-            if (!$session->accepteInscriptions()) {
-                throw new \Exception('La session n\'accepte plus les inscriptions');
+
+
+            if ($dto->date_limite_depot && $dto->date_debut && $dto->date_limite_depot <= $dto->date_debut) {
+                throw ConcoursException::invalidDateRange();
             }
 
-            // Unicité libellé par session
-            $existingConcours = Concours::where('libelle_concours', $dto->libelle_concours)
-                ->whereHas('sessions', function ($query) use ($dto) {
-                    $query->where('sessions.id', $dto->session_id);
-                });
 
-            if ($existingConcours->exists()) {
+            if ($dto->nombre_places && $dto->nombre_places <= 0) {
+                throw new \Exception('Le nombre de places doit être positif');
+            }
+
+            // Unicité par session
+            $existing = Concours::where('libelle_concours', $dto->libelle_concours)
+                ->whereHas('sessions', fn($q) => $q->where('sessions.id', $dto->session_id))
+                ->exists();
+
+            if ($existing) {
                 throw new \Exception('Un concours avec ce libellé existe déjà pour cette session');
             }
         } else {
-            // Unicité libellé pour concours templates (sans session)
-            $existingConcours = Concours::where('libelle_concours', $dto->libelle_concours)
-                ->whereDoesntHave('sessions'); // Seulement les templates
+            // Unicité globale pour templates
+            $existing = Concours::where('libelle_concours', $dto->libelle_concours)
+                ->whereDoesntHave('sessions')
+                ->exists();
 
-            if ($existingConcours->exists()) {
+            if ($existing) {
                 throw new \Exception('Un concours template avec ce libellé existe déjà');
             }
         }
@@ -115,9 +112,38 @@ class ConcoursService
             throw ConcoursException::invalidDateRange();
         }
 
-        return DB::transaction(function () use ($concours, $data) {
+        return DB::transaction(function () use ($concours, $data, $dto) {
             $concours->update($data);
-            return $concours->fresh();
+
+
+            if (isset($dto->session_id)) {
+
+                $session = Session::findOrFail($dto->session_id);
+                if (!$session->est_actif) {
+                    throw new \Exception('Impossible d\'attacher à une session inactive');
+                }
+
+                // Détacher de toutes les sessions actuelles et attacher à la nouvelle
+                $concours->sessions()->detach();
+                $concours->sessions()->attach($dto->session_id);
+
+                // Créer l'état par défaut
+                $etatOuverte = EtatSession::getByLibelle(EtatSessionEnum::OUVERTE);
+                if ($etatOuverte) {
+                    EtatConcoursSession::updateOrCreate(
+                        [
+                            'concours_session_concours_id' => $concours->id,
+                            'concours_session_session_id' => $dto->session_id,
+                        ],
+                        [
+                            'etat_session_id' => $etatOuverte->id,
+                            'date_etat' => now(),
+                        ]
+                    );
+                }
+            }
+
+            return $concours->fresh(['sessions']);
         });
     }
 

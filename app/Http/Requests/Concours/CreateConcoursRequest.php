@@ -14,13 +14,13 @@ class CreateConcoursRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'spec_concours_id' => ['nullable', 'uuid', 'exists:specs_concours,id'], // OPTIONNEL
+            'spec_concours_id' => ['sometimes', 'uuid', 'exists:specs_concours,id'],
             'libelle_concours' => ['required', 'string', 'max:255'],
-            'date_debut' => ['nullable', 'date', 'after:today'], // OPTIONNEL si pas de session
-            'date_limite_depot' => ['nullable', 'date', 'after:date_debut'], // OPTIONNEL si pas de session
-            'nombre_places' => ['nullable', 'integer', 'min:1'], // OPTIONNEL si pas de session
+            'date_debut' => ['nullable', 'date', 'after:today'],
+            'date_limite_depot' => ['nullable', 'date', 'after:date_debut'],
+            'nombre_places' => ['nullable', 'integer', 'min:1'],
             'description' => ['nullable', 'string'],
-            'session_id' => ['nullable', 'uuid', 'exists:sessions,id'], // OPTIONNEL
+            'session_id' => ['sometimes', 'uuid', 'exists:sessions,id'],
             'est_actif' => ['sometimes', 'boolean'],
         ];
     }
@@ -48,19 +48,19 @@ class CreateConcoursRequest extends FormRequest
         $validator->after(function ($validator) {
             $data = $this->all();
 
-            // Si session_id est fourni, tous les champs liés doivent l'être
-            if (!empty($data['session_id'])) {
-                $requiredWithSession = ['date_debut', 'date_limite_depot', 'nombre_places'];
+            // WORKFLOW SIMPLIFIÉ :
+            // - spec_concours_id seul : concours template
+            // - session_id seul : concours avec session (dates/places optionnelles)
+            // - spec + session : concours complet
 
-                foreach ($requiredWithSession as $field) {
-                    if (empty($data[$field])) {
-                        $validator->errors()->add($field, "Le champ {$field} est obligatoire quand une session est spécifiée");
+            // Si session_id est fourni, valider cohérence dates
+            if (!empty($data['session_id'])) {
+                if (!empty($data['date_limite_depot']) && !empty($data['date_debut'])) {
+                    if ($data['date_limite_depot'] <= $data['date_debut']) {
+                        $validator->errors()->add('date_limite_depot', 'La date limite doit être après la date d\'examen');
                     }
                 }
             }
-
-            // Si aucun champ de session n'est fourni, c'est un concours "template"
-            // Tous les champs peuvent être null
         });
     }
 }

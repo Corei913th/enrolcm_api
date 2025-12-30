@@ -16,10 +16,11 @@ class UpdateConcoursRequest extends FormRequest
         return [
             'spec_concours_id' => ['sometimes', 'uuid', 'exists:specs_concours,id'],
             'libelle_concours' => ['sometimes', 'string', 'max:255'],
+            'description' => ['sometimes', 'string'],
+            'date_debut' => ['sometimes', 'date'], // Harmonisé avec Create
             'date_limite_depot' => ['sometimes', 'date'],
-            'date_examen' => ['sometimes', 'date'],
-            'nbre_max_places' => ['sometimes', 'integer', 'min:1'],
-            'frais_inscription' => ['sometimes', 'numeric', 'min:0'],
+            'nombre_places' => ['sometimes', 'integer', 'min:1'], // Harmonisé avec Create
+            'session_id' => ['sometimes', 'uuid', 'exists:sessions,id'], // Ajouté pour flexibilité
             'est_actif' => ['sometimes', 'boolean'],
         ];
     }
@@ -30,8 +31,29 @@ class UpdateConcoursRequest extends FormRequest
             'spec_concours_id.uuid' => 'L\'identifiant de la spécification est invalide',
             'spec_concours_id.exists' => 'La spécification spécifiée n\'existe pas',
             'libelle_concours.max' => 'Le libellé ne peut pas dépasser 255 caractères',
-            'nbre_max_places.min' => 'Le nombre de places doit être au moins 1',
-            'frais_inscription.min' => 'Les frais doivent être positifs',
+            'date_debut.after' => 'La date d\'examen doit être dans le futur',
+            'date_limite_depot.after' => 'La date limite doit être après la date d\'examen',
+            'nombre_places.min' => 'Le nombre de places doit être au moins 1',
+            'session_id.uuid' => 'L\'identifiant de session est invalide',
+            'session_id.exists' => 'La session spécifiée n\'existe pas',
         ];
+    }
+
+    /**
+     * Validation métier personnalisée pour les updates
+     */
+    public function withValidator($validator)
+    {
+        $validator->after(function ($validator) {
+            $data = $this->all();
+
+            // Si les deux dates sont fournies, vérifier cohérence
+            if (!empty($data['date_limite_depot']) && !empty($data['date_debut'])) {
+                if ($data['date_limite_depot'] <= $data['date_debut']) {
+                    $validator->errors()->add('date_limite_depot', 'La date limite doit être après la date d\'examen');
+                }
+            }
+
+        });
     }
 }
