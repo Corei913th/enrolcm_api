@@ -70,13 +70,10 @@ class CandidatService
                 'utilisateur_id' => $utilisateur->id,
                 'nom_cand' => $dto->nom,
                 'prenom_cand' => $dto->prenom,
-                'pru' => $dto->pru,
-                'telephone_candidat' => $dto->telephone,
                 'nationalite_cand' => 'Camerounaise',
             ]);
 
-            $this->paiementService->linkToCandidat($dto->pru, $dto->concoursId, $$candidat->utilisateur_id);
-
+            $this->paiementService->linkToCandidat($dto->pru, $dto->concoursId, $candidat->utilisateur_id);
             $dateInscription = $this->paiementService->getValidationDate($dto->pru, $dto->concoursId);
 
             $candidature = Candidature::create([
@@ -186,9 +183,7 @@ class CandidatService
             $search = $filters['search'];
             $query->where(function ($q) use ($search) {
                 $q->where('nom_cand', 'like', "%{$search}%")
-                  ->orWhere('prenom_cand', 'like', "%{$search}%")
-                  ->orWhere('pru', 'like', "%{$search}%")
-                  ->orWhere('telephone_candidat', 'like', "%{$search}%");
+                  ->orWhere('prenom_cand', 'like', "%{$search}%");
             });
         }
 

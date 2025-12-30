@@ -11,6 +11,7 @@ use App\Models\Utilisateur;
 use App\Services\Roles\RoleService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Laravel\Sanctum\PersonalAccessToken;
 
 class UserService
 {
@@ -90,7 +91,7 @@ class UserService
         $utilisateur->tokens()->where('name', $tokenName)->delete();
 
         $expiresAt = now()->addMinutes($expiresInMinutes);
-        
+
         $token = $utilisateur->createToken($tokenName, ['*'], $expiresAt);
 
         return [
@@ -115,7 +116,7 @@ class UserService
         $utilisateur->tokens()->where('name', 'refresh_token')->delete();
 
         $expiresAt = now()->addDays($expiresInDays);
-        
+
         $token = $utilisateur->createToken('refresh_token', ['refresh'], $expiresAt);
 
         return [
@@ -160,7 +161,7 @@ class UserService
 
         // Générer un nouveau access token
         $accessToken = $this->generateToken($utilisateur);
-        
+
         // Générer un nouveau refresh token
         $newRefreshToken = $this->generateRefreshToken($utilisateur);
 
@@ -297,11 +298,8 @@ class UserService
      *
      * @return void
      */
-    private function assignRole(Utilisateur $user, string $roleName): void
+    private function assignRole(Utilisateur $user, TypeUtilisateur $roleName): void
     {
         $this->roleService->assignRole($user, $roleName);
     }
-
-
 }
-    
