@@ -20,10 +20,10 @@ class CreateConcoursDTO
         return new self(
             libelle_concours: $data['libelle_concours'],
             description: $data['description'] ?? null,
-            date_debut: $data['date_debut'],
-            date_limite_depot: $data['date_limite_depot'],
+            date_debut: $data['date_debut'] ?? null,
+            date_limite_depot: $data['date_limite_depot'] ?? null,
             nombre_places: $data['nombre_places'] ?? null,
-            spec_concours_id: $data['spec_concours_id'],
+            spec_concours_id: $data['spec_concours_id'] ?? null,
             session_id: $data['session_id'] ?? null,
             est_actif: $data['est_actif'] ?? true
         );

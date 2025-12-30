@@ -15,6 +15,7 @@ class Concours extends Model
     protected $fillable = [
         'spec_concours_id',
         'libelle_concours',
+        'description',
         'date_limite_depot',
         'date_examen',
         'nbre_max_places',

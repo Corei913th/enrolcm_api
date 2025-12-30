@@ -4,7 +4,7 @@ namespace App\Http\Requests\Concours;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class UpdateConcoursRequest extends FormRequest
+class AttachConcoursToSessionRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -14,33 +14,27 @@ class UpdateConcoursRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'spec_concours_id' => ['sometimes', 'uuid', 'exists:specs_concours,id'],
-            'libelle_concours' => ['sometimes', 'string', 'max:255'],
-            'description' => ['sometimes', 'string'],
-            'date_debut' => ['sometimes', 'date'], // Harmonisé avec Create
-            'date_limite_depot' => ['sometimes', 'date'],
-            'nombre_places' => ['sometimes', 'integer', 'min:1'], // Harmonisé avec Create
-            'session_id' => ['sometimes', 'uuid', 'exists:sessions,id'], // Ajouté pour flexibilité
-            'est_actif' => ['sometimes', 'boolean'],
+            'session_id' => ['required', 'string', 'uuid', 'exists:sessions,id'],
+            'date_debut' => ['sometimes', 'date', 'after:today'],
+            'date_limite_depot' => ['sometimes', 'date', 'after:date_debut'],
+            'nombre_places' => ['sometimes', 'integer', 'min:1'],
         ];
     }
 
     public function messages(): array
     {
         return [
-            'spec_concours_id.uuid' => 'L\'identifiant de la spécification est invalide',
-            'spec_concours_id.exists' => 'La spécification spécifiée n\'existe pas',
-            'libelle_concours.max' => 'Le libellé ne peut pas dépasser 255 caractères',
+            'session_id.required' => 'L\'identifiant de session est obligatoire',
+            'session_id.uuid' => 'L\'identifiant de session est invalide',
+            'session_id.exists' => 'La session spécifiée n\'existe pas',
             'date_debut.after' => 'La date d\'examen doit être dans le futur',
             'date_limite_depot.after' => 'La date limite doit être après la date d\'examen',
             'nombre_places.min' => 'Le nombre de places doit être au moins 1',
-            'session_id.uuid' => 'L\'identifiant de session est invalide',
-            'session_id.exists' => 'La session spécifiée n\'existe pas',
         ];
     }
 
     /**
-     * Validation métier personnalisée pour les updates
+     * Validation métier personnalisée
      */
     public function withValidator($validator)
     {

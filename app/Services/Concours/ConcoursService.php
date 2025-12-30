@@ -38,7 +38,7 @@ class ConcoursService
             }
 
 
-            if ($dto->date_limite_depot && $dto->date_debut && $dto->date_limite_depot <= $dto->date_debut) {
+            if ($dto->date_limite_depot && $dto->date_debut && $dto->date_limite_depot >= $dto->date_debut) {
                 throw ConcoursException::invalidDateRange();
             }
 
@@ -79,7 +79,6 @@ class ConcoursService
                         'concours_session_concours_id' => $concours->id,
                         'concours_session_session_id' => $dto->session_id,
                         'etat_session_id' => $etatOuverte->id,
-                        'date_etat' => now(),
                     ]);
                 }
             }

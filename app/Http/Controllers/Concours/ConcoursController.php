@@ -8,9 +8,11 @@ use App\Services\Concours\ConcoursPaiementService;
 use App\Http\Requests\Concours\CreateConcoursRequest;
 use App\Http\Requests\Concours\UpdateConcoursRequest;
 use App\Http\Requests\Concours\ConfigurerPaiementRequest;
+use App\Http\Requests\Concours\AttachConcoursToSessionRequest;
 use App\DTOs\Concours\CreateConcoursDTO;
 use App\DTOs\Concours\UpdateConcoursDTO;
 use App\DTOs\Concours\ConfigurePaymentDTO;
+use App\DTOs\Concours\AttachConcoursToSessionDTO;
 use App\Exceptions\ConcoursException;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -314,6 +316,33 @@ class ConcoursController extends Controller
             return api_success(['etat' => $etat]);
         } catch (ConcoursException $e) {
             return api_error($e->getMessage(), null, $e->getCode());
+        }
+    }
+
+    /**
+     * Attacher un concours template à une session.
+     *
+     * Endpoint : POST /api/concours/{id}/attach-session
+     *
+     * @param AttachConcoursToSessionRequest $request Requête validée
+     * @param string $id ID du concours template
+     *
+     * @return JsonResponse Réponse JSON avec le concours attaché
+     */
+    public function attachToSession(AttachConcoursToSessionRequest $request, string $id): JsonResponse
+    {
+        try {
+            $dto = AttachConcoursToSessionDTO::fromRequest($request->validated());
+            $concours = $this->concoursService->attachToSession($id, $dto->session_id, $dto->toArray());
+
+            return api_success([
+                'concours' => $concours->load('sessions'),
+                'message' => 'Concours attaché à la session avec succès'
+            ], 201);
+        } catch (ConcoursException $e) {
+            return api_error($e->getMessage(), null, $e->getCode());
+        } catch (\Exception $e) {
+            return api_error('Erreur lors de l\'attachement du concours à la session', null, 500);
         }
     }
 }

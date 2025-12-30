@@ -20,6 +20,7 @@ Route::middleware('auth:sanctum',  'role:ADMIN')->group(function () {
     Route::get('/{concours}/stats', [ConcoursController::class, 'stats']);
 
     // Session management
+    Route::post('/{concours}/attach-session', [ConcoursController::class, 'attachToSession']);
     Route::post('/{concours}/sessions', [ConcoursController::class, 'attachSession']);
     Route::delete('/{concours}/sessions/{session}', [ConcoursController::class, 'detachSession']);
     Route::put('/{concours}/sessions/{session}/state', [ConcoursController::class, 'changeSessionState']);
