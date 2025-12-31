@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Concours\ConcoursController;
+use App\Http\Controllers\Concours\NoteController;
 
 
 Route::get('/ouverts', [ConcoursController::class, 'availables']);
@@ -32,4 +33,12 @@ Route::middleware('auth:sanctum',  'role:ADMIN')->group(function () {
     Route::delete('/{concours}/sessions/{session}/filieres/{filiere}', [ConcoursController::class, 'detachFiliere']);
     Route::get('/{concours}/sessions/{session}/filieres/{filiere}/stats', [ConcoursController::class, 'getFiliereStats']);
     Route::put('/{concours}/sessions/{session}/filieres/{filiere}/places', [ConcoursController::class, 'updateFilierePlaces']);
+
+    // Gestion des notes d'examen
+    Route::post('/{concours}/sessions/{session}/notes', [NoteController::class, 'saisirNote']);
+    Route::put('/{concours}/sessions/{session}/notes/{note}/validate', [NoteController::class, 'validerNote']);
+    Route::put('/{concours}/sessions/{session}/notes/{note}', [NoteController::class, 'modifierNote']);
+    Route::delete('/{concours}/sessions/{session}/notes/{note}', [NoteController::class, 'annulerNote']);
+    Route::get('/{concours}/sessions/{session}/candidatures/{candidature}/notes', [NoteController::class, 'getNotesCandidat']);
+    Route::get('/{concours}/sessions/{session}/candidatures/{candidature}/moyenne', [NoteController::class, 'calculerMoyenne']);
 });
