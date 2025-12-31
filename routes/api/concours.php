@@ -3,6 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Concours\ConcoursController;
 use App\Http\Controllers\Concours\NoteController;
+use App\Http\Controllers\Concours\ResultatController;
+use App\Http\Controllers\Concours\SalleAffectationController;
 
 
 Route::get('/ouverts', [ConcoursController::class, 'availables']);
@@ -41,4 +43,20 @@ Route::middleware('auth:sanctum',  'role:ADMIN')->group(function () {
     Route::delete('/{concours}/sessions/{session}/notes/{note}', [NoteController::class, 'annulerNote']);
     Route::get('/{concours}/sessions/{session}/candidatures/{candidature}/notes', [NoteController::class, 'getNotesCandidat']);
     Route::get('/{concours}/sessions/{session}/candidatures/{candidature}/moyenne', [NoteController::class, 'calculerMoyenne']);
+
+    // Gestion des résultats et classements
+    Route::get('/{concours}/sessions/{session}/resultats', [ResultatController::class, 'index']);
+    Route::post('/{concours}/sessions/{session}/resultats/calculer', [ResultatController::class, 'calculerResultats']);
+    Route::post('/{concours}/sessions/{session}/resultats/admissions', [ResultatController::class, 'determinerAdmissions']);
+    Route::post('/{concours}/sessions/{session}/resultats/publier', [ResultatController::class, 'publierResultats']);
+    Route::get('/{concours}/sessions/{session}/candidatures/{candidature}/resultat', [ResultatController::class, 'getResultatCandidat']);
+    Route::get('/{concours}/sessions/{session}/filieres/{filiere}/classement', [ResultatController::class, 'getClassementFiliere']);
+
+    // Gestion de l'affectation aux salles d'examen
+    Route::get('/{concours}/sessions/{session}/planning/{planning}/affectations', [SalleAffectationController::class, 'index']);
+    Route::post('/{concours}/sessions/{session}/planning/{planning}/affecter-salles', [SalleAffectationController::class, 'affecterSalles']);
+    Route::put('/{concours}/sessions/{session}/affectations/{affectation}/reaffecter', [SalleAffectationController::class, 'reaffecterCandidat']);
+    Route::put('/{concours}/sessions/{session}/affectations/{affectation}/present', [SalleAffectationController::class, 'marquerPresent']);
+    Route::get('/{concours}/sessions/{session}/planning/{planning}/plan-salle', [SalleAffectationController::class, 'getPlanSalle']);
+    Route::get('/{concours}/sessions/{session}/planning/{planning}/stats-affectation', [SalleAffectationController::class, 'getStatistiquesAffectation']);
 });
