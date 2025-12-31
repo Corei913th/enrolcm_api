@@ -10,16 +10,17 @@ return new class extends Migration
     {
         Schema::create('departements', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->string('code_departement', 10)->unique();
+            $table->string('code_departement', 10);
             $table->string('libelle_departement', 200);
             $table->uuid('ecole_id')->nullable();
             $table->text('desc_departement')->nullable();
             $table->boolean('est_actif')->default(true);
             $table->timestamps();
-            
+
             $table->foreign('ecole_id')->references('id')->on('ecoles')->onDelete('restrict');
             $table->index('ecole_id');
             $table->index('est_actif');
+            $table->unique(['ecole_id', 'code_departement']); // Unicité par école
         });
     }
 
