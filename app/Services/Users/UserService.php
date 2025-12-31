@@ -235,11 +235,13 @@ class UserService
     public function createStaff(CreateUserDTO $dto): Utilisateur
     {
         return DB::transaction(function () use ($dto) {
+            $typeUtilisateur = TypeUtilisateur::from($dto->type_utilisateur);
+
             $user = Utilisateur::create([
                 'email' => $dto->email,
                 'user_name' => $dto->user_name,
                 'mot_de_passe' => Hash::make($dto->mot_de_passe),
-                'type_utilisateur' => $dto->type_utilisateur,
+                'type_utilisateur' => $typeUtilisateur,
                 'email_verifie' => false,
                 'telephone' => $dto->telephone,
             ]);
@@ -260,7 +262,9 @@ class UserService
      */
     public function completeStaffWithRole(CreateUserDTO $dto, Utilisateur $user): void
     {
-        switch ($dto->type_utilisateur) {
+        $typeUtilisateur = TypeUtilisateur::from($dto->type_utilisateur);
+
+        switch ($typeUtilisateur) {
             case TypeUtilisateur::ADMIN:
                 Admin::create([
                     'utilisateur_id' => $user->id,
