@@ -75,4 +75,38 @@ class ConcoursException extends Exception
     {
         return new self("Impossible de supprimer le concours {$id}: des inscriptions actives existent.", 400);
     }
+
+    public static function filiereNotFound(string $id): self
+    {
+        return new self("Filière avec l'ID {$id} introuvable.", 404);
+    }
+
+    public static function filiereNotAttached(string $filiereId, string $concoursId, string $sessionId = null): self
+    {
+        $message = "La filière {$filiereId} n'est pas attachée au concours {$concoursId}";
+        if ($sessionId) {
+            $message .= " pour la session {$sessionId}";
+        }
+        return new self($message . ".", 400);
+    }
+
+    public static function invalidNombrePlaces(): self
+    {
+        return new self("Le nombre de places doit être supérieur à 0.", 400);
+    }
+
+    public static function concoursNotAttachedToSession(string $concoursId, string $sessionId): self
+    {
+        return new self("Le concours {$concoursId} n'est pas attaché à la session {$sessionId}.", 400);
+    }
+
+    public static function hasActiveCandidaturesForFiliere(string $filiereId): self
+    {
+        return new self("Impossible de détacher la filière {$filiereId}: des candidatures actives existent pour cette filière.", 400);
+    }
+
+    public static function placesInferiorToCandidatures(int $candidatures): self
+    {
+        return new self("Le nombre de places ne peut pas être inférieur au nombre de candidatures validées ({$candidatures}).", 400);
+    }
 }
