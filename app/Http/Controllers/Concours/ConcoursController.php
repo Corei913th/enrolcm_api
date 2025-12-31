@@ -5,14 +5,18 @@ namespace App\Http\Controllers\Concours;
 use App\Http\Controllers\Controller;
 use App\Services\Concours\ConcoursService;
 use App\Services\Concours\ConcoursPaiementService;
+use App\Services\Concours\ConcoursFiliereService;
 use App\Http\Requests\Concours\CreateConcoursRequest;
 use App\Http\Requests\Concours\UpdateConcoursRequest;
 use App\Http\Requests\Concours\ConfigurerPaiementRequest;
 use App\Http\Requests\Concours\AttachConcoursToSessionRequest;
+use App\Http\Requests\Concours\AttachFiliereRequest;
+use App\Http\Requests\Concours\UpdateFilierePlacesRequest;
 use App\DTOs\Concours\CreateConcoursDTO;
 use App\DTOs\Concours\UpdateConcoursDTO;
 use App\DTOs\Concours\ConfigurePaymentDTO;
 use App\DTOs\Concours\AttachConcoursToSessionDTO;
+use App\DTOs\Concours\AttachFiliereDTO;
 use App\Exceptions\ConcoursException;
 use App\Http\Resources\ConcoursResource;
 use Illuminate\Http\Request;
@@ -22,7 +26,8 @@ class ConcoursController extends Controller
 {
     public function __construct(
         private readonly ConcoursService $concoursService,
-        private readonly ConcoursPaiementService $paymentService
+        private readonly ConcoursPaiementService $paymentService,
+        private readonly ConcoursFiliereService $filiereService
     ) {}
 
     /**
@@ -360,6 +365,125 @@ class ConcoursController extends Controller
                 config('app.debug') ? $errorContext : null,
                 500
             );
+        }
+    }
+
+    /**
+     * Attacher une filière à un concours pour une session.
+     *
+     * Endpoint : POST /api/concours/{id}/sessions/{sessionId}/filieres
+     *
+     * @param string $id ID du concours
+     * @param string $sessionId ID de la session
+     * @param AttachFiliereRequest $request Requête validée
+     *
+     * @return JsonResponse Réponse JSON avec la filière attachée
+     */
+    public function attachFiliere(string $id, string $sessionId, AttachFiliereRequest $request): JsonResponse
+    {
+        try {
+            $dto = AttachFiliereDTO::fromRequest($request->validated());
+            $relation = $this->filiereService->attachFiliere($id, $sessionId, $dto->filiere_id, $dto->nombre_places);
+
+            return api_created([
+                'filiere_id' => $relation->filiere_id,
+                'nombre_places' => $relation->nombre_places,
+            ], 'Filière attachée au concours avec succès');
+        } catch (ConcoursException $e) {
+            return api_error($e->getMessage(), null, $e->getCode());
+        }
+    }
+
+    /**
+     * Détacher une filière d'un concours pour une session.
+     *
+     * Endpoint : DELETE /api/concours/{id}/sessions/{sessionId}/filieres/{filiereId}
+     *
+     * @param string $id ID du concours
+     * @param string $sessionId ID de la session
+     * @param string $filiereId ID de la filière
+     *
+     * @return JsonResponse Réponse JSON succès
+     */
+    public function detachFiliere(string $id, string $sessionId, string $filiereId): JsonResponse
+    {
+        try {
+            $this->filiereService->detachFiliere($id, $sessionId, $filiereId);
+            return api_success(null, 'Filière détachée du concours avec succès');
+        } catch (ConcoursException $e) {
+            return api_error($e->getMessage(), null, $e->getCode());
+        }
+    }
+
+    /**
+     * Lister toutes les filières d'un concours pour une session.
+     *
+     * Endpoint : GET /api/concours/{id}/sessions/{sessionId}/filieres
+     *
+     * @param string $id ID du concours
+     * @param string $sessionId ID de la session
+     *
+     * @return JsonResponse Réponse JSON avec la liste des filières
+     */
+    public function listFilieres(string $id, string $sessionId): JsonResponse
+    {
+        try {
+            $filieres = $this->filiereService->listFilieres($id, $sessionId);
+            return api_success($filieres, 'Liste des filières récupérée avec succès');
+        } catch (ConcoursException $e) {
+            return api_error($e->getMessage(), null, $e->getCode());
+        }
+    }
+
+    /**
+     * Obtenir les statistiques d'une filière pour un concours et une session.
+     *
+     * Endpoint : GET /api/concours/{id}/sessions/{sessionId}/filieres/{filiereId}/stats
+     *
+     * @param string $id ID du concours
+     * @param string $sessionId ID de la session
+     * @param string $filiereId ID de la filière
+     *
+     * @return JsonResponse Réponse JSON avec les statistiques
+     */
+    public function getFiliereStats(string $id, string $sessionId, string $filiereId): JsonResponse
+    {
+        try {
+            $stats = $this->filiereService->getStats($id, $sessionId, $filiereId);
+            return api_success($stats, 'Statistiques de la filière récupérées avec succès');
+        } catch (ConcoursException $e) {
+            return api_error($e->getMessage(), null, $e->getCode());
+        }
+    }
+
+    /**
+     * Mettre à jour le nombre de places d'une filière.
+     *
+     * Endpoint : PUT /api/concours/{id}/sessions/{sessionId}/filieres/{filiereId}/places
+     *
+     * @param string $id ID du concours
+     * @param string $sessionId ID de la session
+     * @param string $filiereId ID de la filière
+     * @param UpdateFilierePlacesRequest $request Requête validée
+     *
+     * @return JsonResponse Réponse JSON avec la filière mise à jour
+     */
+    public function updateFilierePlaces(string $id, string $sessionId, string $filiereId, UpdateFilierePlacesRequest $request): JsonResponse
+    {
+        try {
+            $relation = $this->filiereService->updateNombrePlaces(
+                $id,
+                $sessionId,
+                $filiereId,
+                $request->validated()['nombre_places']
+            );
+
+            return api_success([
+                'filiere_id' => $relation->filiere_id,
+                'nombre_places' => $relation->nombre_places,
+            ], 'Nombre de places mis à jour avec succès');
+        } catch (ConcoursException $e) {
+            return api_error($e->getMessage(), null, $e->getCode());
         }
     }
 }
