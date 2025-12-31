@@ -110,6 +110,11 @@ class ConcoursException extends Exception
         return new self("Le nombre de places ne peut pas être inférieur au nombre de candidatures validées ({$candidatures}).", 400);
     }
 
+    public static function reaffectationImpossible(string $raison): self
+    {
+        return new self("Réaffectation impossible: {$raison}.", 400);
+    }
+
     public static function noteInvalide(float $valeur): self
     {
         return new self("La note {$valeur} est invalide. Elle doit être comprise entre 0 et 20.", 400);
