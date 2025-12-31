@@ -84,6 +84,9 @@ class EcoleController extends Controller
             $ecole = null;
             
             DB::transaction(function () use ($request, &$ecole) {
+                // DEBUG: Voir ce qui est reçu
+                \Log::info('Données reçues:', $request->except(['logo', 'embleme', 'header_frame']));
+                
                 // Créer l'école
                 $ecoleData = CreateEcoleDTO::from($request->except(['logo', 'embleme', 'header_frame']));
                 $ecole = $this->ecoleService->create($ecoleData);
