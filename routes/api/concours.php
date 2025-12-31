@@ -25,4 +25,11 @@ Route::middleware('auth:sanctum',  'role:ADMIN')->group(function () {
     Route::delete('/{concours}/sessions/{session}', [ConcoursController::class, 'detachSession']);
     Route::put('/{concours}/sessions/{session}/state', [ConcoursController::class, 'changeSessionState']);
     Route::get('/{concours}/sessions/{session}/state', [ConcoursController::class, 'getSessionState']);
+
+    // Gestion des filières par concours et session
+    Route::get('/{concours}/sessions/{session}/filieres', [ConcoursController::class, 'listFilieres']);
+    Route::post('/{concours}/sessions/{session}/filieres', [ConcoursController::class, 'attachFiliere']);
+    Route::delete('/{concours}/sessions/{session}/filieres/{filiere}', [ConcoursController::class, 'detachFiliere']);
+    Route::get('/{concours}/sessions/{session}/filieres/{filiere}/stats', [ConcoursController::class, 'getFiliereStats']);
+    Route::put('/{concours}/sessions/{session}/filieres/{filiere}/places', [ConcoursController::class, 'updateFilierePlaces']);
 });
