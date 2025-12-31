@@ -66,8 +66,8 @@ if (!function_exists('api_validation_error')) {
 }
 
 if (!function_exists('api_paginated')) {
-    function api_paginated($paginatedData, string $message = null)
+    function api_paginated($paginatedData, string $message = null, ?string $resourceClass = null)
     {
-        return ResponseHelper::paginated($paginatedData, $message);
+        return ResponseHelper::paginated($paginatedData, $message, $resourceClass);
     }
 }
