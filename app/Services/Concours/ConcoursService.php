@@ -38,8 +38,9 @@ class ConcoursService
             }
 
 
+            // Validation : date_limite_depot doit être AVANT date_debut (date d'examen)
             if ($dto->date_limite_depot && $dto->date_debut && $dto->date_limite_depot >= $dto->date_debut) {
-                throw ConcoursException::invalidDateRange();
+                throw new \Exception('La date limite de dépôt doit être antérieure à la date d\'examen');
             }
 
 
@@ -107,8 +108,9 @@ class ConcoursService
 
         $data = $dto->toArray();
 
-        if (isset($data['date_limite_depot'], $data['date_debut']) && $data['date_limite_depot'] <= $data['date_debut']) {
-            throw ConcoursException::invalidDateRange();
+        // Validation : date_limite_depot doit être AVANT date_debut (date d'examen)
+        if (isset($data['date_limite_depot'], $data['date_debut']) && $data['date_limite_depot'] >= $data['date_debut']) {
+            throw new \Exception('La date limite de dépôt doit être antérieure à la date d\'examen');
         }
 
         return DB::transaction(function () use ($concours, $data, $dto) {

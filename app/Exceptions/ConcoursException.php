@@ -28,7 +28,7 @@ class ConcoursException extends Exception
 
     public static function invalidDateRange(): self
     {
-        return new self("La date de fin doit être postérieure à la date de début.", 400);
+        return new self("La date limite de dépôt doit être antérieure à la date d'examen.", 400);
     }
 
     public static function paiementNotConfigured(string $concoursId): self

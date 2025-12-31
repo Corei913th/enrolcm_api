@@ -14,6 +14,7 @@ use App\DTOs\Concours\UpdateConcoursDTO;
 use App\DTOs\Concours\ConfigurePaymentDTO;
 use App\DTOs\Concours\AttachConcoursToSessionDTO;
 use App\Exceptions\ConcoursException;
+use App\Http\Resources\ConcoursResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 
@@ -40,7 +41,7 @@ class ConcoursController extends Controller
 
         $concours = $this->concoursService->getAll($filters, $perPage);
 
-        return api_paginated($concours, 'Liste des concours');
+        return api_paginated($concours, 'Liste des concours', ConcoursResource::class);
     }
 
     /**
@@ -57,7 +58,7 @@ class ConcoursController extends Controller
         $perPage = $request->input('per_page', 20);
         $concours = $this->concoursService->getAvailableConcours($perPage);
 
-        return api_paginated($concours, 'Concours ouverts');
+        return api_paginated($concours, 'Concours ouverts', ConcoursResource::class);
     }
 
     /**
@@ -73,7 +74,7 @@ class ConcoursController extends Controller
     {
         try {
             $concours = $this->concoursService->getById($id);
-            return api_success($concours);
+            return api_success(new ConcoursResource($concours));
         } catch (ConcoursException $e) {
             return api_error($e->getMessage(), null, $e->getCode());
         }
@@ -93,7 +94,7 @@ class ConcoursController extends Controller
         try {
             $dto = CreateConcoursDTO::fromRequest($request->validated());
             $concours = $this->concoursService->create($dto);
-            return api_created($concours, 'Concours créé avec succès');
+            return api_created(new ConcoursResource($concours), 'Concours créé avec succès');
         } catch (ConcoursException $e) {
             return api_error($e->getMessage(), null, $e->getCode());
         }
@@ -114,7 +115,7 @@ class ConcoursController extends Controller
         try {
             $dto = UpdateConcoursDTO::fromRequest($request->validated());
             $concours = $this->concoursService->update($id, $dto);
-            return api_success($concours, 'Concours mis à jour avec succès');
+            return api_success(new ConcoursResource($concours), 'Concours mis à jour avec succès');
         } catch (ConcoursException $e) {
             return api_error($e->getMessage(), null, $e->getCode());
         }
@@ -152,7 +153,7 @@ class ConcoursController extends Controller
     {
         try {
             $concours = $this->concoursService->activate($id);
-            return api_success($concours, 'Concours activé avec succès');
+            return api_success(new ConcoursResource($concours), 'Concours activé avec succès');
         } catch (ConcoursException $e) {
             return api_error($e->getMessage(), null, $e->getCode());
         }
@@ -171,7 +172,7 @@ class ConcoursController extends Controller
     {
         try {
             $concours = $this->concoursService->deactivate($id);
-            return api_success($concours, 'Concours désactivé avec succès');
+            return api_success(new ConcoursResource($concours), 'Concours désactivé avec succès');
         } catch (ConcoursException $e) {
             return api_error($e->getMessage(), null, $e->getCode());
         }

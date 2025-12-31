@@ -54,7 +54,7 @@ class CreateConcoursRequest extends FormRequest
                 'regex:/^[\p{L}\p{N}\s\-\'&,()]+$/u' // Lettres, chiffres, espaces, caractères spéciaux sûrs
             ],
             'date_debut' => ['nullable', 'date', 'after:today', 'before:+2 years'],
-            'date_limite_depot' => ['nullable', 'date', 'after:today', 'before:+2 years'],
+            'date_limite_depot' => ['nullable', 'date', 'after:today', 'before:+2 years', 'before:date_debut'],
             'nombre_places' => ['nullable', 'integer', 'min:1', 'max:100000'],
             'description' => ['nullable', 'string', 'max:1000'],
             'session_id' => ['sometimes', 'uuid', 'exists:sessions,id'],
@@ -74,7 +74,7 @@ class CreateConcoursRequest extends FormRequest
             'date_debut.after' => 'La date d\'examen doit être dans le futur',
             'date_debut.before' => 'La date d\'examen ne peut pas être dans plus de 2 ans',
             'date_limite_depot.after' => 'La date limite de dépôt doit être dans le futur',
-            'date_limite_depot.before' => 'La date limite de dépôt ne peut pas être dans plus de 2 ans',
+            'date_limite_depot.before' => 'La date limite de dépôt doit être antérieure à la date d\'examen et ne peut pas être dans plus de 2 ans',
             'nombre_places.min' => 'Le nombre de places doit être au moins 1',
             'nombre_places.max' => 'Le nombre de places ne peut pas dépasser 100 000',
             'description.max' => 'La description ne peut pas dépasser 1000 caractères',
@@ -96,12 +96,10 @@ class CreateConcoursRequest extends FormRequest
             // - session_id seul : concours avec session (dates/places optionnelles)
             // - spec + session : concours complet
 
-            // Si session_id est fourni, valider cohérence dates
-            if (!empty($data['session_id'])) {
-                if (!empty($data['date_limite_depot']) && !empty($data['date_debut'])) {
-                    if ($data['date_limite_depot'] <= $data['date_debut']) {
-                        $validator->errors()->add('date_limite_depot', 'La date limite doit être après la date d\'examen');
-                    }
+            // Valider cohérence dates : date_limite_depot doit être AVANT date_debut (date d'examen)
+            if (!empty($data['date_limite_depot']) && !empty($data['date_debut'])) {
+                if ($data['date_limite_depot'] >= $data['date_debut']) {
+                    $validator->errors()->add('date_limite_depot', 'La date limite de dépôt doit être antérieure à la date d\'examen');
                 }
             }
         });
