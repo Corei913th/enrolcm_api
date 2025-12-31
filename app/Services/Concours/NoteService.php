@@ -73,7 +73,7 @@ class NoteService
    *
    * @return Note Note validée
    *
-   * @throws ConcoursException Si la note n'existe pas ou n'est pas en statut SAISIE
+   * @throws ConcoursException Si la note n'existe pas ou n'est pas en statut SAISIE_TERMINEE
    */
   public function validerNote(string $noteId): Note
   {
@@ -84,7 +84,7 @@ class NoteService
     }
 
     $note->update([
-      'statut' => StatutNote::SAISIE_TERMINEE,
+      'statut' => StatutNote::VALIDEE,
       'est_definitive' => true,
     ]);
 
@@ -92,7 +92,7 @@ class NoteService
   }
 
   /**
-   * Modifier une note (avant validation).
+   * Modifier une note (avant validation définitive).
    *
    * @param string $noteId ID de la note
    * @param float $valeur Nouvelle valeur
@@ -100,7 +100,7 @@ class NoteService
    *
    * @return Note Note modifiée
    *
-   * @throws ConcoursException Si la note est déjà validée
+   * @throws ConcoursException Si la note est déjà validée définitivement
    */
   public function modifierNote(string $noteId, float $valeur, bool $estEliminatoire = false): Note
   {
@@ -110,7 +110,7 @@ class NoteService
 
     $note = Note::findOrFail($noteId);
 
-    if ($note->statut !== StatutNote::SAISIE_TERMINEE) {
+    if ($note->statut === StatutNote::VALIDEE) {
       throw ConcoursException::noteNonModifiable($noteId);
     }
 
@@ -130,13 +130,13 @@ class NoteService
    *
    * @return bool True si annulée
    *
-   * @throws ConcoursException Si la note est déjà validée
+   * @throws ConcoursException Si la note est déjà validée définitivement
    */
   public function annulerNote(string $noteId): bool
   {
     $note = Note::findOrFail($noteId);
 
-    if ($note->statut !== StatutNote::SAISIE_TERMINEE) {
+    if ($note->statut === StatutNote::VALIDEE) {
       throw ConcoursException::noteNonModifiable($noteId);
     }
 
@@ -168,7 +168,7 @@ class NoteService
   public function calculerMoyenneGenerale(string $candidatureId): array
   {
     $notes = Note::where('candidature_id', $candidatureId)
-      ->where('statut', StatutNote::SAISIE_TERMINEE)
+      ->where('statut', StatutNote::VALIDEE)
       ->with('epreuve')
       ->get();
 
