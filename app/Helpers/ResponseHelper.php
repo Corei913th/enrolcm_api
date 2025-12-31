@@ -102,7 +102,7 @@ class ResponseHelper
     /**
      * Réponse avec pagination
      */
-    public static function paginated($paginatedData, string $message = null): JsonResponse
+    public static function paginated($paginatedData, string $message = null, ?string $resourceClass = null): JsonResponse
     {
         $response = [
             'success' => true,
@@ -112,7 +112,14 @@ class ResponseHelper
             $response['message'] = $message;
         }
 
-        $response['data'] = $paginatedData->items();
+        $items = $paginatedData->items();
+
+        // Si une classe de ressource est fournie, transformer les items
+        if ($resourceClass && class_exists($resourceClass)) {
+            $items = $resourceClass::collection($items);
+        }
+
+        $response['data'] = $items;
         $response['meta'] = [
             'current_page' => $paginatedData->currentPage(),
             'last_page' => $paginatedData->lastPage(),
