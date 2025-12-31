@@ -20,11 +20,11 @@ class EcoleApiTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         // Créer un utilisateur et générer un token
         $this->user = User::factory()->create();
         $this->token = $this->user->createToken('test-token')->plainTextToken;
-        
+
         // Configurer le storage pour les tests
         Storage::fake('public');
     }
@@ -76,7 +76,7 @@ class EcoleApiTest extends TestCase
             ->post('/api/ecoles', $data);
 
         $response->assertStatus(201);
-        
+
         $ecole = Ecole::where('code_ecole', 'TEST002')->first();
         $this->assertNotNull($ecole->logo_path);
         $this->assertNotNull($ecole->embleme_path);
@@ -146,7 +146,7 @@ class EcoleApiTest extends TestCase
             ->putJson("/api/ecoles/{$ecole->id}", $data);
 
         $response->assertStatus(200);
-        
+
         $this->assertDatabaseHas('ecoles', [
             'id' => $ecole->id,
             'libelle_ecole' => 'École Modifiée',
@@ -162,7 +162,7 @@ class EcoleApiTest extends TestCase
             ->deleteJson("/api/ecoles/{$ecole->id}");
 
         $response->assertStatus(200);
-        
+
         $this->assertDatabaseMissing('ecoles', [
             'id' => $ecole->id,
         ]);
@@ -177,7 +177,7 @@ class EcoleApiTest extends TestCase
             ->patchJson("/api/ecoles/{$ecole->id}/toggle-status");
 
         $response->assertStatus(200);
-        
+
         $this->assertDatabaseHas('ecoles', [
             'id' => $ecole->id,
             'est_actif' => false,
