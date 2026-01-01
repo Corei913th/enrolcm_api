@@ -6,10 +6,14 @@ use App\Models\Ecole;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\View;
 
+
 class EcolePdfService
 {
     /**
-     * Générer une entête officielle d'école
+     * Generate an official school header
+     *
+     * @param Ecole $ecole School model
+     * @return string Rendered HTML for the header
      */
     public function generateOfficialHeader(Ecole $ecole): string
     {
@@ -22,12 +26,17 @@ class EcolePdfService
     }
 
     /**
-     * Générer un document PDF avec entête officielle
+     * Generate a PDF document with official header
+     *
+     * @param Ecole $ecole School model
+     * @param string $title Document title
+     * @param string $content Document content
+     * @return \Barryvdh\DomPDF\PDF PDF document
      */
     public function generateDocument(Ecole $ecole, string $title, string $content): \Barryvdh\DomPDF\PDF
     {
         $header = $this->generateOfficialHeader($ecole);
-        
+
         $pdf = Pdf::loadView('pdf.document-template', [
             'ecole' => $ecole,
             'header' => $header,
@@ -36,12 +45,16 @@ class EcolePdfService
         ]);
 
         $pdf->setPaper('A4', 'portrait');
-        
+
         return $pdf;
     }
 
     /**
-     * Générer une attestation
+     * Generate an attestation PDF document
+     *
+     * @param Ecole $ecole School model
+     * @param array $data Data for the attestation
+     * @return \Barryvdh\DomPDF\PDF PDF document
      */
     public function generateAttestation(Ecole $ecole, array $data): \Barryvdh\DomPDF\PDF
     {
@@ -53,7 +66,11 @@ class EcolePdfService
     }
 
     /**
-     * Générer un relevé de notes
+     * Generate a notes PDF document
+     *
+     * @param Ecole $ecole School model
+     * @param array $data Data for the notes
+     * @return \Barryvdh\DomPDF\PDF PDF document
      */
     public function generateReleveNotes(Ecole $ecole, array $data): \Barryvdh\DomPDF\PDF
     {
@@ -65,7 +82,12 @@ class EcolePdfService
     }
 
     /**
-     * Générer un document administratif générique
+     * Generate a generic administrative document
+     *
+     * @param Ecole $ecole School model
+     * @param string $title Document title
+     * @param array $data Data for the document
+     * @return \Barryvdh\DomPDF\PDF PDF document
      */
     public function generateAdministrativeDocument(Ecole $ecole, string $title, array $data): \Barryvdh\DomPDF\PDF
     {
@@ -78,7 +100,7 @@ class EcolePdfService
         ]);
 
         $pdf->setPaper('A4', 'portrait');
-        
+
         return $pdf;
     }
 }
