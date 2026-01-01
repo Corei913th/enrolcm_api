@@ -29,15 +29,6 @@ class Filiere extends Model
         return $this->belongsTo(Departement::class);
     }
 
-    public function niveaux()
-    {
-        return $this->hasMany(Niveau::class, 'filiere_id');
-    }
-
-    public function niveauxPivot()
-    {
-        return $this->belongsToMany(Niveau::class, 'filiere_niveau');
-    }
 
     public function concours()
     {
