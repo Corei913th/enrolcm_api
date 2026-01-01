@@ -32,7 +32,7 @@ class DepartementController extends Controller
       $filters = $request->only(['est_actif', 'ecole_id', 'search']);
       $departements = $this->departementService->getAll($filters);
 
-      return api_success(DepartementResource::collection($departements), 'Départements récupérés avec succès');
+      return api_success(new DepartementResource($departements), 'Départements récupérés avec succès');
     } catch (\Exception $e) {
       return api_error('Erreur lors de la récupération des départements: ' . $e->getMessage(), null, 500);
     }

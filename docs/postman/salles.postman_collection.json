@@ -1,0 +1,181 @@
+{
+  "info": {
+    "name": "API Concours - Affectation aux Salles",
+    "description": "Collection Postman pour les routes d'affectation automatique aux salles d'examen",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Affecter Candidats aux Salles",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"ordre_affectation\": \"alphabetique\"\n}"
+        },
+        "url": {
+          "raw": "{{baseURL}}/concours/planning/:planning_id/affecter-salles",
+          "host": ["{{baseURL}}"],
+          "path": ["concours", "planning", ":planning_id", "affecter-salles"]
+        }
+      }
+    },
+    {
+      "name": "Lister les Affectations",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseURL}}/concours/planning/:planning_id/affectations",
+          "host": ["{{baseURL}}"],
+          "path": ["concours", "planning", ":planning_id", "affectations"]
+        }
+      }
+    },
+    {
+      "name": "Plan de Salle",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseURL}}/concours/planning/:planning_id/plan-salle",
+          "host": ["{{baseURL}}"],
+          "path": ["concours", "planning", ":planning_id", "plan-salle"]
+        }
+      }
+    },
+    {
+      "name": "Statistiques d'Affectation",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseURL}}/concours/planning/:planning_id/stats-affectation",
+          "host": ["{{baseURL}}"],
+          "path": ["concours", "planning", ":planning_id", "stats-affectation"]
+        }
+      }
+    },
+    {
+      "name": "Réaffecter un Candidat",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nouvelle_salle_id\": \"01HQXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX\",\n  \"nouveau_numero_place\": 5\n}"
+        },
+        "url": {
+          "raw": "{{baseURL}}/concours/affectations/:affectation_id/reaffecter",
+          "host": ["{{baseURL}}"],
+          "path": ["concours", "affectations", ":affectation_id", "reaffecter"]
+        }
+      }
+    },
+    {
+      "name": "Marquer Présent",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"heure_arrivee\": \"08:30\",\n  \"observations\": \"Arrivé à l'heure\"\n}"
+        },
+        "url": {
+          "raw": "{{baseURL}}/concours/affectations/:affectation_id/present",
+          "host": ["{{baseURL}}"],
+          "path": ["concours", "affectations", ":affectation_id", "present"]
+        }
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseURL",
+      "value": "http://localhost:8000/api"
+    },
+    {
+      "key": "auth_token",
+      "value": ""
+    },
+    {
+      "key": "refresh_token",
+      "value": ""
+    },
+    {
+      "key": "planning_id",
+      "value": "01HQXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
+    },
+    {
+      "key": "affectation_id",
+      "value": "01HQXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
+    }
+  ]
+}

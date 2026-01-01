@@ -1,0 +1,148 @@
+{
+  "info": {
+    "name": "API Concours - Gestion des Filières",
+    "description": "Collection Postman pour les routes de gestion des filières par concours",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Lister les Filières",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseURL}}/concours/filieres",
+          "host": ["{{baseURL}}"],
+          "path": ["concours", "filieres"]
+        }
+      }
+    },
+    {
+      "name": "Attacher une Filière",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"filiere_id\": \"01HQXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX\",\n  \"nombre_places\": 50\n}"
+        },
+        "url": {
+          "raw": "{{baseURL}}/concours/filieres",
+          "host": ["{{baseURL}}"],
+          "path": ["concours", "filieres"]
+        }
+      }
+    },
+    {
+      "name": "Détacher une Filière",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseURL}}/concours/filieres/:filiere_id",
+          "host": ["{{baseURL}}"],
+          "path": ["concours", "filieres", ":filiere_id"]
+        }
+      }
+    },
+    {
+      "name": "Statistiques d'une Filière",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseURL}}/concours/filieres/:filiere_id/stats",
+          "host": ["{{baseURL}}"],
+          "path": ["concours", "filieres", ":filiere_id", "stats"]
+        }
+      }
+    },
+    {
+      "name": "Modifier Places d'une Filière",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre_places\": 60\n}"
+        },
+        "url": {
+          "raw": "{{baseURL}}/concours/filieres/:filiere_id/places",
+          "host": ["{{baseURL}}"],
+          "path": ["concours", "filieres", ":filiere_id", "places"]
+        }
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseURL",
+      "value": "http://localhost:8000/api"
+    },
+    {
+      "key": "auth_token",
+      "value": ""
+    },
+    {
+      "key": "refresh_token",
+      "value": ""
+    },
+    {
+      "key": "filiere_id",
+      "value": "01HQXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
+    }
+  ]
+}

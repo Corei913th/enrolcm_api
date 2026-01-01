@@ -1,0 +1,163 @@
+{
+  "info": {
+    "name": "API Concours - Gestion des Résultats",
+    "description": "Collection Postman pour les routes de calcul et publication des résultats",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Lister les Résultats",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseURL}}/concours/resultats?per_page=20",
+          "host": ["{{baseURL}}"],
+          "path": ["concours", "resultats"],
+          "query": [
+            {
+              "key": "per_page",
+              "value": "20"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Calculer tous les Résultats",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseURL}}/concours/resultats/calculer",
+          "host": ["{{baseURL}}"],
+          "path": ["concours", "resultats", "calculer"]
+        }
+      }
+    },
+    {
+      "name": "Déterminer les Admissions",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseURL}}/concours/resultats/admissions",
+          "host": ["{{baseURL}}"],
+          "path": ["concours", "resultats", "admissions"]
+        }
+      }
+    },
+    {
+      "name": "Publier les Résultats",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseURL}}/concours/resultats/publier",
+          "host": ["{{baseURL}}"],
+          "path": ["concours", "resultats", "publier"]
+        }
+      }
+    },
+    {
+      "name": "Résultat d'un Candidat",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseURL}}/concours/candidatures/:candidature_id/resultat",
+          "host": ["{{baseURL}}"],
+          "path": ["concours", "candidatures", ":candidature_id", "resultat"]
+        }
+      }
+    },
+    {
+      "name": "Classement d'une Filière",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseURL}}/concours/filieres/:filiere_id/classement",
+          "host": ["{{baseURL}}"],
+          "path": ["concours", "filieres", ":filiere_id", "classement"]
+        }
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseURL",
+      "value": "http://localhost:8000/api"
+    },
+    {
+      "key": "auth_token",
+      "value": ""
+    },
+    {
+      "key": "refresh_token",
+      "value": ""
+    },
+    {
+      "key": "candidature_id",
+      "value": "01HQXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
+    },
+    {
+      "key": "filiere_id",
+      "value": "01HQXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
+    }
+  ]
+}

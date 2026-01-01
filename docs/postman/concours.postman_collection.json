@@ -1,0 +1,190 @@
+{
+  "info": {
+    "name": "API Concours - Gestion des Concours",
+    "description": "Collection Postman pour les routes de gestion des concours",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Concours Disponibles",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseURL}}/concours/ouverts",
+          "host": ["{{baseURL}}"],
+          "path": ["concours", "ouverts"]
+        }
+      }
+    },
+    {
+      "name": "Lister Concours (Admin)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseURL}}/concours",
+          "host": ["{{baseURL}}"],
+          "path": ["concours"]
+        }
+      }
+    },
+    {
+      "name": "Détails Concours",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseURL}}/concours/:concours_id",
+          "host": ["{{baseURL}}"],
+          "path": ["concours", ":concours_id"]
+        }
+      }
+    },
+    {
+      "name": "Créer Concours",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"libelle_concours\": \"Concours Polytechnique 2025\",\n  \"date_limite_depot\": \"2025-12-31\",\n  \"date_examen\": \"2026-01-15\",\n  \"nbre_max_places\": 500,\n  \"frais_inscription\": 5000.00,\n  \"session_id\": \"01HQXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX\"\n}"
+        },
+        "url": {
+          "raw": "{{baseURL}}/concours",
+          "host": ["{{baseURL}}"],
+          "path": ["concours"]
+        }
+      }
+    },
+    {
+      "name": "Modifier Concours",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"libelle_concours\": \"Concours Polytechnique 2025 - Modifié\"\n}"
+        },
+        "url": {
+          "raw": "{{baseURL}}/concours/:concours_id",
+          "host": ["{{baseURL}}"],
+          "path": ["concours", ":concours_id"]
+        }
+      }
+    },
+    {
+      "name": "Activer Concours",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseURL}}/concours/:concours_id/activate",
+          "host": ["{{baseURL}}"],
+          "path": ["concours", ":concours_id", "activate"]
+        }
+      }
+    },
+    {
+      "name": "Désactiver Concours",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseURL}}/concours/:concours_id/deactivate",
+          "host": ["{{baseURL}}"],
+          "path": ["concours", ":concours_id", "deactivate"]
+        }
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseURL",
+      "value": "http://localhost:8000/api"
+    },
+    {
+      "key": "auth_token",
+      "value": ""
+    },
+    {
+      "key": "refresh_token",
+      "value": ""
+    },
+    {
+      "key": "concours_id",
+      "value": "01HQXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
+    }
+  ]
+}

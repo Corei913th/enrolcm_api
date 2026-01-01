@@ -1,0 +1,173 @@
+{
+  "info": {
+    "name": "API Concours - Gestion des Notes",
+    "description": "Collection Postman pour les routes de gestion des notes d'examen",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Saisir une Note",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"candidature_id\": \"01HQXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX\",\n  \"epreuve_id\": \"01HQXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX\",\n  \"valeur\": 15.5,\n  \"est_eliminatoire\": false\n}"
+        },
+        "url": {
+          "raw": "{{baseURL}}/concours/notes",
+          "host": ["{{baseURL}}"],
+          "path": ["concours", "notes"]
+        }
+      }
+    },
+    {
+      "name": "Valider une Note",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseURL}}/concours/notes/:note_id/validate",
+          "host": ["{{baseURL}}"],
+          "path": ["concours", "notes", ":note_id", "validate"]
+        }
+      }
+    },
+    {
+      "name": "Modifier une Note",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"valeur\": 16.0,\n  \"est_eliminatoire\": false\n}"
+        },
+        "url": {
+          "raw": "{{baseURL}}/concours/notes/:note_id",
+          "host": ["{{baseURL}}"],
+          "path": ["concours", "notes", ":note_id"]
+        }
+      }
+    },
+    {
+      "name": "Annuler une Note",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseURL}}/concours/notes/:note_id",
+          "host": ["{{baseURL}}"],
+          "path": ["concours", "notes", ":note_id"]
+        }
+      }
+    },
+    {
+      "name": "Notes d'un Candidat",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseURL}}/concours/candidatures/:candidature_id/notes",
+          "host": ["{{baseURL}}"],
+          "path": ["concours", "candidatures", ":candidature_id", "notes"]
+        }
+      }
+    },
+    {
+      "name": "Moyenne d'un Candidat",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseURL}}/concours/candidatures/:candidature_id/moyenne",
+          "host": ["{{baseURL}}"],
+          "path": ["concours", "candidatures", ":candidature_id", "moyenne"]
+        }
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseURL",
+      "value": "http://localhost:8000/api"
+    },
+    {
+      "key": "auth_token",
+      "value": ""
+    },
+    {
+      "key": "refresh_token",
+      "value": ""
+    },
+    {
+      "key": "note_id",
+      "value": "01HQXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
+    },
+    {
+      "key": "candidature_id",
+      "value": "01HQXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
+    }
+  ]
+}

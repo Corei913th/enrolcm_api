@@ -6,7 +6,6 @@ use App\Models\Departement;
 use App\DTOs\Departements\CreateDepartementDTO;
 use App\DTOs\Departements\UpdateDepartementDTO;
 use App\Exceptions\Business\DepartementException;
-use App\Models\Ecole;
 use Illuminate\Support\Collection;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
@@ -24,26 +23,26 @@ class DepartementService
    */
   public function create(CreateDepartementDTO $dto): Departement
   {
-    // Vérifier si le département existe déjà dans cette école
-    if ($this->existsByEcoleAndCode($dto->ecole_id, $dto->code_departement)) {
-      throw DepartementException::alreadyExistsInEcole($dto->code_departement, $dto->ecole_id);
-    }
-
-    // Générer le code composite unique (école + département)
-    $codeComposite = $this->genererCodeComposite($dto->ecole_id, $dto->code_departement);
-
     try {
       return Departement::create([
-        'code_departement' => $codeComposite,
-        'libelle_departement' => $dto->libelle_departement,
         'ecole_id' => $dto->ecole_id,
+        'code' => strtoupper($dto->code_departement),
+        'libelle_departement' => $dto->libelle_departement,
         'desc_departement' => $dto->desc_departement,
         'est_actif' => $dto->est_actif ?? true,
       ]);
-    } catch (\Exception $e) {
+    } catch (\Illuminate\Database\QueryException $e) {
+      if ($e->getCode() === '23505') { // PostgreSQL unique violation
+        throw DepartementException::alreadyExistsInEcole(
+          $dto->code_departement,
+          $dto->ecole_id
+        );
+      }
+
       throw DepartementException::creationFailed($e->getMessage());
     }
   }
+
 
   /**
    * Mettre à jour un département.
@@ -59,34 +58,30 @@ class DepartementService
   {
     $departement = $this->findById($id);
 
-
-    if ($dto->code_departement && $dto->code_departement !== $this->extraireCodeDepartement($departement->code_departement)) {
-      $ecoleId = $dto->ecole_id ?? $departement->ecole_id;
-      if ($this->existsByEcoleAndCode($ecoleId, $dto->code_departement)) {
-        throw DepartementException::alreadyExistsInEcole($dto->code_departement, $ecoleId);
-      }
-    }
-
-    $nouveauCodeDepartement = $dto->code_departement ?? $this->extraireCodeDepartement($departement->code_departement);
-    $nouvelEcoleId = $dto->ecole_id ?? $departement->ecole_id;
-
-
-    $nouveauCodeComposite = $this->genererCodeComposite($nouvelEcoleId, $nouveauCodeDepartement);
-
     try {
       $departement->update([
-        'code_departement' => $nouveauCodeComposite,
+        'ecole_id' => $dto->ecole_id ?? $departement->ecole_id,
+        'code' => $dto->code_departement
+          ? strtoupper($dto->code_departement)
+          : $departement->code,
         'libelle_departement' => $dto->libelle_departement ?? $departement->libelle_departement,
-        'ecole_id' => $nouvelEcoleId,
         'desc_departement' => $dto->desc_departement ?? $departement->desc_departement,
         'est_actif' => $dto->est_actif ?? $departement->est_actif,
       ]);
 
       return $departement->fresh();
-    } catch (\Exception $e) {
+    } catch (\Illuminate\Database\QueryException $e) {
+      if ($e->getCode() === '23505') {
+        throw DepartementException::alreadyExistsInEcole(
+          $dto->code_departement,
+          $dto->ecole_id ?? $departement->ecole_id
+        );
+      }
+
       throw DepartementException::updateFailed($id, $e->getMessage());
     }
   }
+
 
   /**
    * Supprimer un département.
@@ -205,49 +200,8 @@ class DepartementService
       ->exists();
   }
 
-  /**
-   * Générer le code composite unique (code école - code département).
-   *
-   * @param string $ecoleId ID de l'école
-   * @param string $codeDepartement Code du département
-   *
-   * @return string Code composite unique
-   */
-  private function genererCodeComposite(string $ecoleId, string $codeDepartement): string
-  {
-    // Récupérer le vrai code de l'école depuis la base
-    $ecole = Ecole::find($ecoleId);
-    $codeEcole = $ecole ? $ecole->code_ecole : $ecoleId;
 
-    return $codeEcole . '-' . $codeDepartement;
-  }
 
-  /**
-   * Extraire le code département depuis le code composite.
-   * Format: CODEECOLE-CODEDEPARTEMENT
-   *
-   * @param string $codeComposite Code composite stocké
-   *
-   * @return string Code du département seul
-   */
-  private function extraireCodeDepartement(string $codeComposite): string
-  {
-    $parts = explode('-', $codeComposite, 2);
-    return $parts[1] ?? $codeComposite;
-  }
-
-  /**
-   * Extraire le code de l'école depuis le code composite.
-   *
-   * @param string $codeComposite Code composite stocké
-   *
-   * @return string Code de l'école
-   */
-  private function extraireCodeEcole(string $codeComposite): string
-  {
-    $parts = explode('-', $codeComposite, 2);
-    return $parts[0] ?? $codeComposite;
-  }
 
   /**
    * Vérifier si un département existe par code globalement (pour compatibilité).
