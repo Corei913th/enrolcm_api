@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Controllers\Admin\Users;
+namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\DTOs\Users\CreateUserDTO;
-use App\Http\Requests\Admin\Users\StoreUserRequest as UsersStoreUserRequest;
+use App\Http\Requests\Admin\Users\StoreUserRequest;
 use App\Http\Resources\UtilisateurResource;
 use App\Services\Users\UserService;
 
@@ -16,16 +16,13 @@ class UserController extends Controller
 
     /**
      * Créer un membre du staff (ADMIN, CORRECTEUR, RESPONSABLE_CENTRE).
-     *
-     * Endpoint : POST /api/admin/staff
-     *
-     * @param UsersStoreUserRequest $request Requête validée contenant les informations du staff
+     * @param StoreUserRequest $request Requête validée contenant les informations du staff
      *
      * @return \Illuminate\Http\JsonResponse Réponse JSON avec le staff créé ou une erreur
      *
      * @throws \Exception Si la création échoue
      */
-    public function store(UsersStoreUserRequest $request)
+    public function store(StoreUserRequest $request)
     {
         try {
             // Vérification des droits d'accès (commentée ici, à activer si nécessaire)

@@ -91,7 +91,6 @@ class UserService
         $utilisateur->tokens()->where('name', $tokenName)->delete();
 
         $expiresAt = now()->addMinutes($expiresInMinutes);
-        
         $token = $utilisateur->createToken($tokenName, ['*'], $expiresAt);
 
         return [
@@ -116,7 +115,6 @@ class UserService
         $utilisateur->tokens()->where('name', 'refresh_token')->delete();
 
         $expiresAt = now()->addDays($expiresInDays);
-        
         $token = $utilisateur->createToken('refresh_token', ['refresh'], $expiresAt);
 
         return [
@@ -161,7 +159,6 @@ class UserService
 
         // Générer un nouveau access token
         $accessToken = $this->generateToken($utilisateur);
-        
         // Générer un nouveau refresh token
         $newRefreshToken = $this->generateRefreshToken($utilisateur);
 
@@ -250,6 +247,8 @@ class UserService
         });
     }
 
+
+
     /**
      * Compléter la création d'un staff avec son rôle spécifique.
      *
@@ -260,7 +259,9 @@ class UserService
      */
     public function completeStaffWithRole(CreateUserDTO $dto, Utilisateur $user): void
     {
-        switch ($dto->type_utilisateur) {
+        $typeUtilisateur = TypeUtilisateur::from($dto->type_utilisateur);
+
+        switch ($typeUtilisateur) {
             case TypeUtilisateur::ADMIN:
                 Admin::create([
                     'utilisateur_id' => $user->id,
@@ -288,11 +289,13 @@ class UserService
         }
     }
 
+
+
     /**
      * Assigner un rôle à un utilisateur.
      *
      * @param Utilisateur $user Utilisateur concerné
-     * @param string $roleName Nom du rôle à assigner
+     * @param TypeUtilisateur $roleName Nom du rôle à assigner
      *
      * @return void
      */

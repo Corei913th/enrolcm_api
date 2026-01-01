@@ -3,115 +3,89 @@
 namespace App\Services\Candidats;
 
 use App\Models\Candidat;
-use App\Models\Utilisateur;
-use App\Models\Paiement;
 use App\Models\Candidature;
 use App\DTOs\Candidats\VerifyPRUDTO;
 use App\DTOs\Candidats\RegisterCandidatDTO;
 use App\DTOs\Candidats\LoginCandidatDTO;
 use App\DTOs\Candidats\UpdateCandidatProfileDTO;
-use App\Enums\TypeUtilisateur;
-use App\Enums\StatutPaiement;
+use App\Services\Users\UserService;
+use App\Services\Payment\PaiementService;
 use App\Enums\StatutInscription;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 
 class CandidatService
 {
+    public function __construct(
+        private readonly UserService $userService,
+        private readonly PaiementService $paiementService
+    ) {}
+
     /**
-     * Vérifier si un PRU est valide et disponible pour création de compte
+     * Vérifier si un PRU est valide et disponible pour création de compte.
+     *
+     * @param VerifyPRUDTO $dto DTO contenant le PRU et l'ID du concours
+     *
+     * @return array Résultat de la validation (valid, message, concours, montant)
      */
     public function verifyPRU(VerifyPRUDTO $dto): array
     {
-        $paiement = Paiement::where('reference', $dto->pru)
-            ->where('concours_id', $dto->concoursId)
-            ->where('statut', StatutPaiement::VERIFIED)
-            ->whereNull('candidat_id')
-            ->first();
-
-        if (!$paiement) {
-            return [
-                'valid' => false,
-                'message' => 'PRU invalide ou déjà utilisé'
-            ];
-        }
-
-        // Vérifier date limite
-        $config = $paiement->concours->configurationPaiement;
-        if ($config && $config->date_limite < now()) {
-            return [
-                'valid' => false,
-                'message' => 'La date limite d\'inscription est dépassée'
-            ];
-        }
-
-        return [
-            'valid' => true,
-            'concours' => $paiement->concours,
-            'montant' => $paiement->montant
-        ];
+        return $this->paiementService->isPRUValid($dto->pru, $dto->concoursId);
     }
 
     /**
-     * Créer un compte candidat après validation du paiement
-     * WORKFLOW: PRU validé → Création Utilisateur → Création Candidat → Liaison Paiement → Création Candidature
+     * Créer un compte candidat après validation du paiement.
+     *
+     * Workflow : PRU validé → Création Utilisateur → Création Candidat → Liaison Paiement → Création Candidature.
+     *
+     * @param RegisterCandidatDTO $dto DTO contenant les informations du candidat
+     *
+     * @return array Tableau contenant :
+     *   - user : Utilisateur avec relation candidat
+     *   - candidature : Candidature créée
+     *   - token : Token d'authentification
+     *
+     * @throws \Exception Si PRU invalide ou email déjà utilisé
      */
     public function register(RegisterCandidatDTO $dto): array
     {
         return DB::transaction(function () use ($dto) {
-            // 1. Vérifier PRU
-            $verifyDTO = new VerifyPRUDTO($dto->pru, $dto->concoursId);
-            $verification = $this->verifyPRU($verifyDTO);
-            
+            $verification = $this->verifyPRU(new VerifyPRUDTO($dto->pru, $dto->concoursId));
+
             if (!$verification['valid']) {
                 throw new \Exception($verification['message']);
             }
 
-            // 2. Vérifier que l'email n'existe pas
-            if (Utilisateur::where('email', $dto->email)->exists()) {
+            if ($this->userService->emailExists($dto->email)) {
                 throw new \Exception('Cet email est déjà utilisé');
             }
 
-            // 3. Créer Utilisateur (username = PRU)
-            $utilisateur = Utilisateur::create([
-                'user_name' => $dto->pru,
-                'email' => $dto->email,
-                'mot_de_passe' => Hash::make($dto->password),
-                'telephone' => $dto->telephone,
-                'type_utilisateur' => TypeUtilisateur::CANDIDAT,
-                'est_actif' => true,
-                'email_verifie' => false,
-            ]);
+            $utilisateur = $this->userService->createCandidatUser(
+                pru: $dto->pru,
+                email: $dto->email,
+                password: $dto->password,
+                telephone: $dto->telephone
+            );
 
-            // 4. Créer Candidat
             $candidat = Candidat::create([
                 'utilisateur_id' => $utilisateur->id,
                 'nom_cand' => $dto->nom,
                 'prenom_cand' => $dto->prenom,
-                'pru' => $dto->pru,
-                'telephone_candidat' => $dto->telephone,
                 'nationalite_cand' => 'Camerounaise',
             ]);
 
-            // 5. Lier Paiement au Candidat
-            $paiement = Paiement::where('reference', $dto->pru)
-                ->where('concours_id', $dto->concoursId)
-                ->firstOrFail();
-            
-            $paiement->update(['candidat_id' => $utilisateur->id]);
+            $this->paiementService->linkToCandidat($dto->pru, $dto->concoursId, $candidat->utilisateur_id);
+            $dateInscription = $this->paiementService->getValidationDate($dto->pru, $dto->concoursId);
 
-            // 6. Créer Candidature automatiquement avec statut ACTIF
             $candidature = Candidature::create([
-                'candidat_id' => $utilisateur->id,
+                'candidat_id' => $candidat->utilisateur_id,
                 'concours_id' => $dto->concoursId,
                 'session_id' => $dto->sessionId,
                 'statut_inscription' => StatutInscription::ACTIF,
                 'date_candidature' => now(),
-                'date_inscription' => $paiement->validated_at ?? now(),
+                'date_inscription' => $dateInscription ?? now(),
             ]);
 
-            // 7. Générer token
-            $token = $utilisateur->createToken('auth_token')->plainTextToken;
+            $token = $this->userService->generateToken($utilisateur);
 
             return [
                 'user' => $utilisateur->load('candidat'),
@@ -122,20 +96,25 @@ class CandidatService
     }
 
     /**
-     * Login avec PRU + password
+     * Authentifier un candidat avec PRU + mot de passe.
+     *
+     * @param LoginCandidatDTO $dto DTO contenant PRU et mot de passe
+     *
+     * @return array Tableau contenant :
+     *   - user : Utilisateur avec relations candidat et candidatures
+     *   - token : Token d'authentification
+     *
+     * @throws \Exception Si les identifiants sont incorrects
      */
     public function login(LoginCandidatDTO $dto): array
     {
-        $utilisateur = Utilisateur::where('user_name', $dto->pru)
-            ->where('type_utilisateur', TypeUtilisateur::CANDIDAT)
-            ->where('est_actif', true)
-            ->first();
+        $utilisateur = $this->userService->authenticateCandidat($dto->pru, $dto->password);
 
-        if (!$utilisateur || !Hash::check($dto->password, $utilisateur->mot_de_passe)) {
+        if (!$utilisateur) {
             throw new \Exception('PRU ou mot de passe incorrect');
         }
 
-        $token = $utilisateur->createToken('auth_token')->plainTextToken;
+        $token = $this->userService->generateToken($utilisateur);
 
         return [
             'user' => $utilisateur->load(['candidat', 'candidat.candidatures']),
@@ -144,7 +123,12 @@ class CandidatService
     }
 
     /**
-     * Mettre à jour le profil candidat
+     * Mettre à jour le profil candidat.
+     *
+     * @param string $utilisateurId ID de l'utilisateur lié au candidat
+     * @param UpdateCandidatProfileDTO $dto DTO contenant les nouvelles données du profil
+     *
+     * @return Candidat Candidat mis à jour
      */
     public function updateProfile(string $utilisateurId, UpdateCandidatProfileDTO $dto): Candidat
     {
@@ -156,31 +140,40 @@ class CandidatService
     }
 
     /**
-     * Récupérer un candidat par ID
+     * Récupérer un candidat par ID utilisateur.
+     *
+     * @param string $utilisateurId ID de l'utilisateur
+     *
+     * @return Candidat Candidat avec relations utilisateur, concours et session
      */
     public function getById(string $utilisateurId): Candidat
     {
-        $candidat = Candidat::with(['utilisateur', 'candidatures.concours', 'candidatures.session'])
+        return Candidat::with(['utilisateur', 'candidatures.concours', 'candidatures.session'])
             ->where('utilisateur_id', $utilisateurId)
             ->firstOrFail();
-
-        return $candidat;
     }
 
     /**
-     * Récupérer un candidat par PRU
+     * Récupérer un candidat par PRU.
+     *
+     * @param string $pru PRU du candidat
+     *
+     * @return Candidat Candidat avec relations utilisateur et candidatures
      */
     public function getByPRU(string $pru): Candidat
     {
-        $candidat = Candidat::with(['utilisateur', 'candidatures'])
+        return Candidat::with(['utilisateur', 'candidatures'])
             ->where('pru', $pru)
             ->firstOrFail();
-
-        return $candidat;
     }
 
     /**
-     * Liste des candidats (Admin)
+     * Liste des candidats avec filtres (Admin).
+     *
+     * @param array $filters Filtres disponibles : search, region, est_actif
+     * @param int $perPage Nombre d'éléments par page
+     *
+     * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator Liste paginée des candidats
      */
     public function getAll(array $filters = [], int $perPage = 20)
     {
@@ -190,9 +183,7 @@ class CandidatService
             $search = $filters['search'];
             $query->where(function ($q) use ($search) {
                 $q->where('nom_cand', 'like', "%{$search}%")
-                  ->orWhere('prenom_cand', 'like', "%{$search}%")
-                  ->orWhere('pru', 'like', "%{$search}%")
-                  ->orWhere('telephone_candidat', 'like', "%{$search}%");
+                  ->orWhere('prenom_cand', 'like', "%{$search}%");
             });
         }
 
@@ -209,8 +200,16 @@ class CandidatService
         return $query->orderBy('created_at', 'desc')->paginate($perPage);
     }
 
-    /**
-     * Statistiques candidats
+       /**
+     * Statistiques sur les candidats.
+     *
+     * @return array Tableau contenant :
+     *   - total : nombre total de candidats
+     *   - actifs : nombre de candidats actifs
+     *   - inactifs : nombre de candidats inactifs
+     *   - inscrits_aujourdhui : nombre de candidats inscrits aujourd'hui
+     *   - inscrits_ce_mois : nombre de candidats inscrits ce mois
+     *   - par_region : répartition des candidats par région
      */
     public function getStats(): array
     {
@@ -235,25 +234,26 @@ class CandidatService
     }
 
     /**
-     * Désactiver un candidat
+     * Désactiver un candidat.
+     *
+     * @param string $utilisateurId ID de l'utilisateur lié au candidat
+     *
+     * @return bool True si désactivation réussie
      */
     public function deactivate(string $utilisateurId): bool
     {
-        return DB::transaction(function () use ($utilisateurId) {
-            $utilisateur = Utilisateur::findOrFail($utilisateurId);
-            $utilisateur->update(['est_actif' => false]);
-            $utilisateur->tokens()->delete();
-            return true;
-        });
+        return $this->userService->deactivate($utilisateurId);
     }
 
     /**
-     * Activer un candidat
+     * Activer un candidat.
+     *
+     * @param string $utilisateurId ID de l'utilisateur lié au candidat
+     *
+     * @return bool True si activation réussie
      */
     public function activate(string $utilisateurId): bool
     {
-        $utilisateur = Utilisateur::findOrFail($utilisateurId);
-        $utilisateur->update(['est_actif' => true]);
-        return true;
+        return $this->userService->activate($utilisateurId);
     }
 }

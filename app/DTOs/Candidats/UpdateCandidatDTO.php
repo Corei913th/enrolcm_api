@@ -2,7 +2,7 @@
 
 namespace App\DTOs\Candidats;
 
-use App\Http\Requests\Candidats\UpdateCandidatRequest;
+use App\Http\Requests\Candidats\UpdateCandidatProfileRequest;
 use Spatie\LaravelData\Data;
 
 class UpdateCandidatDTO extends Data
@@ -45,7 +45,7 @@ class UpdateCandidatDTO extends Data
         public ?string $arrondissement = null,
     ) {}
 
-    public static function fromRequest(UpdateCandidatRequest $request): self
+    public static function fromRequest(UpdateCandidatProfileRequest $request): self
     {
         $validated = $request->validated();
         
