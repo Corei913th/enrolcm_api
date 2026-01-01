@@ -99,30 +99,34 @@ class FiliereService
     {
         try {
             return DB::transaction(function () use ($data) {
-                // Vérifier l'unicité du code
-                if (Filiere::where('code_filiere', $data->code_filiere)->exists()) {
-                    throw new FiliereException('Cette filière existe déjà', 422);
+
+                if (
+                    Filiere::where('departement_id', $data->departement_id)
+                        ->where('code_filiere', $data->code_filiere)
+                        ->exists()
+                ) {
+                    throw new FiliereException(
+                        'Cette filière existe déjà dans ce département',
+                        422
+                    );
                 }
 
                 $filiere = Filiere::create($data->toArray());
 
-                Log::info('Filière créée avec succès', [
-                    'filiere_id' => $filiere->id,
-                    'code_filiere' => $filiere->code_filiere
-                ]);
-
                 return $filiere->load(['departement', 'niveaux']);
             });
-        } catch (FiliereException $e) {
+        } catch (\Illuminate\Database\QueryException $e) {
+            // sécurité concurrence
+            if ($e->getCode() === '23000') {
+                throw new FiliereException(
+                    'Cette filière existe déjà dans ce département',
+                    422
+                );
+            }
             throw $e;
-        } catch (\Exception $e) {
-            Log::error('Erreur lors de la création de la filière', [
-                'error' => $e->getMessage(),
-                'data' => $data->toArray()
-            ]);
-            throw new FiliereException('Impossible de créer la filière');
         }
     }
+
 
     /**
      * Mettre à jour une filière
@@ -133,33 +137,36 @@ class FiliereService
             return DB::transaction(function () use ($id, $data) {
                 $filiere = $this->getById($id);
 
-                // Vérifier l'unicité du code si modifié
-                if ($data->code_filiere !== $filiere->code_filiere) {
-                    if (Filiere::where('code_filiere', $data->code_filiere)->where('id', '!=', $id)->exists()) {
-                        throw new FiliereException('Cette filière existe déjà', 422);
-                    }
+                $departementId = $data->departement_id ?? $filiere->departement_id;
+                $code = $data->code_filiere ?? $filiere->code_filiere;
+
+                if (
+                    Filiere::where('departement_id', $departementId)
+                        ->where('code_filiere', $code)
+                        ->where('id', '!=', $id)
+                        ->exists()
+                ) {
+                    throw new FiliereException(
+                        'Cette filière existe déjà dans ce département',
+                        422
+                    );
                 }
 
                 $filiere->update($data->toArray());
 
-                Log::info('Filière mise à jour avec succès', [
-                    'filiere_id' => $filiere->id,
-                    'code_filiere' => $filiere->code_filiere
-                ]);
-
                 return $filiere->fresh(['departement', 'niveaux']);
             });
-        } catch (FiliereException $e) {
+        } catch (\Illuminate\Database\QueryException $e) {
+            if ($e->getCode() === '23000') {
+                throw new FiliereException(
+                    'Cette filière existe déjà dans ce département',
+                    422
+                );
+            }
             throw $e;
-        } catch (\Exception $e) {
-            Log::error('Erreur lors de la mise à jour de la filière', [
-                'error' => $e->getMessage(),
-                'id' => $id,
-                'data' => $data->toArray()
-            ]);
-            throw new FiliereException('Impossible de mettre à jour la filière');
         }
     }
+
 
     /**
      * Supprimer une filière

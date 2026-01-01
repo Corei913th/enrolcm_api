@@ -5,6 +5,7 @@ namespace App\Http\Requests\Filieres;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Validation\Rule;
 
 class UpdateFiliereRequest extends FormRequest
 {
@@ -18,9 +19,18 @@ class UpdateFiliereRequest extends FormRequest
         $filiereId = $this->route('filiere');
         
         return [
-            'code_filiere' => 'required|string|max:10|unique:filieres,code_filiere,' . $filiereId,
+            'code_filiere' => [
+                'required',
+                'string',
+                'max:10',
+                Rule::unique('filieres', 'code_filiere')
+                    ->where(fn ($q) =>
+                        $q->where('departement_id', $this->input('departement_id'))
+                    )
+                    ->ignore($filiereId),
+            ],
             'libelle_filiere' => 'required|string|max:200',
-            'departement_id' => 'nullable|uuid|exists:departements,id',
+            'departement_id' => 'required|uuid|exists:departements,id',
             'desc_filiere' => 'nullable|string',
             'est_actif' => 'nullable|boolean',
         ];
