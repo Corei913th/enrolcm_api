@@ -1,44 +1,118 @@
-# Guide de Tests - Fonctionnalité OCR Paiement
+# 🧪 Guide des Tests
 
-## Installation des dépendances de test
+Documentation complète pour les tests du projet.
 
-```bash
-composer install --dev
+## 📋 Vue d'ensemble
+
+Le projet utilise **PHPUnit** pour les tests avec une couverture complète des fonctionnalités.
+
+## 🏗️ Structure des Tests
+
+```
+tests/
+├── Feature/              # Tests fonctionnels (API, intégration)
+│   ├── Auth/
+│   ├── EcoleTest.php
+│   └── ...
+├── Unit/                 # Tests unitaires (logique métier)
+│   └── ...
+└── TestCase.php         # Classe de base pour les tests
 ```
 
-## Exécuter tous les tests
+## 🎯 Types de Tests
+
+### 1. Tests Fonctionnels (Feature)
+
+Tests end-to-end qui vérifient le comportement complet de l'application.
+
+**Exemple : EcoleTest.php**
+
+```php
+<?php
+
+namespace Tests\Feature;
+
+use App\Models\Ecole;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
+class EcoleTest extends TestCase
+{
+    use RefreshDatabase;
+
+    protected User $user;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->user = User::factory()->create();
+    }
+
+    /** @test */
+    public function it_can_list_ecoles()
+    {
+        Ecole::factory()->count(5)->create();
+
+        $response = $this->actingAs($this->user)
+            ->getJson('/api/ecoles');
+
+        $response->assertStatus(200)
+            ->assertJsonStructure([
+                'success',
+                'message',
+                'data',
+                'meta'
+            ]);
+    }
+
+    /** @test */
+    public function it_can_create_ecole()
+    {
+        $data = [
+            'code_ecole' => 'TEST',
+            'libelle_ecole' => 'École de Test',
+            'region' => 'CENTRE',
+        ];
+
+        $response = $this->actingAs($this->user)
+            ->postJson('/api/ecoles', $data);
+
+        $response->assertStatus(201);
+        $this->assertDatabaseHas('ecoles', ['code_ecole' => 'TEST']);
+    }
+}
+```
+
+### 2. Tests Unitaires (Unit)
+
+Tests isolés de la logique métier.
+
+```php
+<?php
+
+namespace Tests\Unit;
+
+use App\Services\Ecoles\EcoleService;
+use Tests\TestCase;
+
+class EcoleServiceTest extends TestCase
+{
+    /** @test */
+    public function it_validates_unique_code()
+    {
+        // Test de la logique métier
+    }
+}
+```
+
+## 🚀 Commandes de Test
+
+### Lancer tous les tests
 
 ```bash
 php artisan test
 ```
-
-<<<<<<< HEAD
-
-## Exécuter les tests par catégorie
-
-### Tests unitaires uniquement
-
-```bash
-php artisan test --testsuite=Unit
-```
-
-### Tests de fonctionnalité uniquement
-
-```bash
-php artisan test --testsuite=Feature
-```
-
-### Tests spécifiques à l'OCR
-
-```bash
-php artisan test --filter=PaymentReceipt
-php artisan test --filter=TesseractOcr
-php artisan test --filter=PaymentVerification
-```
-
-## Exécuter les tests avec couverture
-
-=======
 
 ### Lancer un fichier de test spécifique
 
@@ -59,214 +133,10 @@ php artisan test --filter EcoleTest
 ```
 
 ### Tests avec coverage
->>>>>>>
->>>>>>> feature/filieres
 
 ```bash
 php artisan test --coverage
 ```
-
-<<<<<<< HEAD
-
-## Structure des tests
-
-### Tests Unitaires (`tests/Unit/`)
-
-**TesseractOcrServiceTest.php**
-
-- ✓ Parsing des montants avec espaces
-- ✓ Parsing des dates dans différents formats
-- ✓ Gestion des valeurs invalides
-- ✓ Calcul du score de confiance
-- ✓ Extraction de patterns
-
-**PaymentVerificationServiceTest.php**
-
-- ✓ Validation du type de fichier
-- ✓ Validation de la taille du fichier
-- ✓ Vérification du statut de paiement
-- ✓ Récupération du reçu vérifié
-
-### Tests de Fonctionnalité (`tests/Feature/`)
-
-**PaymentReceiptTest.php**
-
-- ✓ Upload de reçu par candidat
-- ✓ Validation du format de fichier
-- ✓ Consultation du reçu par candidat
-- ✓ Liste des reçus en attente (admin)
-- ✓ Vérification de reçu (admin)
-- ✓ Rejet de reçu avec motif (admin)
-- ✓ Protection des endpoints (authentification)
-
-## Seeders de test
-
-### Peupler la base avec des données de test
-
-```bash
-php artisan db:seed --class=PaymentReceiptSeeder
-```
-
-Cela créera :
-
-- 1 reçu vérifié
-- 2 reçus en attente
-- 1 reçu rejeté
-- 1 reçu avec données variées
-
-### Réinitialiser et peupler
-
-```bash
-php artisan migrate:fresh --seed
-```
-
-## Factories disponibles
-
-### PaymentReceiptFactory
-
-```php
-// Créer un reçu en attente
-PaymentReceipt::factory()->create();
-
-// Créer un reçu vérifié
-PaymentReceipt::factory()->verifie()->create();
-
-// Créer un reçu rejeté
-PaymentReceipt::factory()->rejete()->create();
-
-// Créer plusieurs reçus
-PaymentReceipt::factory()->count(10)->create();
-```
-
-### CandidatFactory
-
-```php
-// Créer un candidat
-Candidat::factory()->create();
-
-// Créer un candidat avec reçu vérifié
-$candidat = Candidat::factory()->create();
-PaymentReceipt::factory()->verifie()->create([
-    'candidat_id' => $candidat->utilisateur_id
-]);
-```
-
-## Tests manuels avec Postman/Insomnia
-
-### 1. Upload de reçu (Candidat)
-
-```http
-POST /api/payment/receipts/upload
-Authorization: Bearer {token}
-Content-Type: multipart/form-data
-
-receipt_image: [fichier image]
-```
-
-### 2. Consulter son reçu (Candidat)
-
-```http
-GET /api/payment/receipts/my-receipt
-Authorization: Bearer {token}
-```
-
-### 3. Liste des reçus en attente (Admin)
-
-```http
-GET /api/payment/admin/receipts/pending
-Authorization: Bearer {admin_token}
-```
-
-### 4. Vérifier un reçu (Admin)
-
-```http
-POST /api/payment/admin/receipts/{id}/verify
-Authorization: Bearer {admin_token}
-Content-Type: application/json
-
-{
-  "statut": "verifie"
-}
-```
-
-### 5. Rejeter un reçu (Admin)
-
-```http
-POST /api/payment/admin/receipts/{id}/verify
-Authorization: Bearer {admin_token}
-Content-Type: application/json
-
-{
-  "statut": "rejete",
-  "motif_rejet": "Montant incorrect"
-}
-```
-
-## Debugging
-
-### Activer les logs détaillés
-
-Dans `.env` :
-
-```env
-LOG_LEVEL=debug
-APP_DEBUG=true
-```
-
-### Voir les requêtes SQL
-
-```php
-DB::enableQueryLog();
-// ... votre code
-dd(DB::getQueryLog());
-```
-
-## Bonnes pratiques
-
-1. **Toujours exécuter les tests avant de commit**
-
-   ```bash
-   php artisan test
-   ```
-
-2. **Utiliser les factories pour les données de test**
-   - Ne pas créer manuellement les données
-   - Utiliser les factories pour la cohérence
-
-3. **Nettoyer après les tests**
-   - Les tests utilisent `RefreshDatabase`
-   - La base de test est réinitialisée automatiquement
-
-4. **Tester les cas limites**
-   - Fichiers invalides
-   - Montants incorrects
-   - Dates invalides
-   - Authentification manquante
-
-## Résolution de problèmes
-
-### Erreur "Class not found"
-
-```bash
-composer dump-autoload
-```
-
-### Erreur de base de données
-
-```bash
-php artisan migrate:fresh --env=testing
-```
-
-### Tesseract non trouvé
-
-Vérifier l'installation :
-
-```bash
-tesseract --version
-```
-
-Voir `docs/TESSERACT_INSTALLATION.md` pour l'installation
-=======
 
 ### Tests avec coverage minimum
 
@@ -660,4 +530,3 @@ jobs:
 ---
 
 **Dernière mise à jour :** Décembre 2024
->>>>>>> feature/filieres

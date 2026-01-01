@@ -15,8 +15,8 @@ class FiliereResource extends JsonResource
             'departement_id' => $this->departement_id,
             'desc_filiere' => $this->desc_filiere,
             'est_actif' => $this->est_actif,
-            'created_at' => $this->created_at?->format('Y-m-d H:i:s'),
-            
+            'created_at' => $this->created_at ? $this->created_at->format('Y-m-d H:i:s') : null,
+            'updated_at' => $this->updated_at ? $this->updated_at->format('Y-m-d H:i:s') : null,
             'departement' => new DepartementResource($this->whenLoaded('departement')),
             'niveaux' => NiveauResource::collection($this->whenLoaded('niveaux')),
         ];

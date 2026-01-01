@@ -8,7 +8,7 @@ Route::get('me', [CandidatController::class, 'me']);
 Route::put('me', [CandidatController::class, 'update']);
 
 
-Route::middleware('role:admin')->group(function () {
+Route::middleware('role:ADMIN')->group(function () {
     Route::get('/', [CandidatController::class, 'index']);
     Route::get('stats', [CandidatController::class, 'stats']);
     Route::post('search', [CandidatController::class, 'search']);

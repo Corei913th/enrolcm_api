@@ -31,5 +31,9 @@ class DatabaseSeeder extends Seeder
 
         $this->call(UserSeeder::class);
 
+        // Seed écoles pour les tests
+        $this->call([
+            EcoleSeeder::class,
+        ]);
     }
 }
