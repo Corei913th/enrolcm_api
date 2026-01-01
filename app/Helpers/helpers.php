@@ -1,219 +1,187 @@
 <?php
 
 use App\Helpers\ResponseHelper;
+use Illuminate\Http\JsonResponse;
 
-
-
-/**
- * Create a standardized API success response
- *
- * @param mixed $data The data to include in the response (optional) - often an API Resource
- * @param string|null $message Success message (optional)
- * @param int $code HTTP status code (default: 200)
- *
- * @return \Illuminate\Http\JsonResponse
- *
- * @example
- * // In controller method
- * $ecole = Ecole::find($id);
- * return api_success(new \App\Http\Resources\EcoleResource($ecole), 'Ecole retrieved successfully');
- *
- * @see ResponseHelper::success()
- */
 if (!function_exists('api_success')) {
-function api_success(?string $message = null, $data = null, int $code = 200)
+    /**
+     * Crée une réponse API standardisée pour un succès.
+     *
+     * @param mixed $data Les données à retourner (optionnel, peut être un Resource, collection ou tableau)
+     * @param string|null $message Message de succès (optionnel)
+     * @param int $code Code HTTP (par défaut 200)
+     *
+     * @return JsonResponse
+     *
+     * @example
+     * // Retourner un département
+     * $departement = Departement::find($id);
+     * return api_success(new \App\Http\Resources\DepartementResource($departement), 'Département récupéré avec succès');
+     */
+    function api_success(mixed $data = null, ?string $message = null, int $code = 200): JsonResponse
     {
         return ResponseHelper::success($data, $message, $code);
     }
 }
 
-/**
- * Create a standardized API error response
- *
- * @param string $message Error message
- * @param mixed $errors Additional error details (optional)
- * @param int $code HTTP status code (default: 400)
- *
- * @return \Illuminate\Http\JsonResponse
- *
- * @example
- * return api_error('Invalid input', $validationErrors, 422);
- *
- * @see ResponseHelper::error()
- */
 if (!function_exists('api_error')) {
-    function api_error(string $message, $errors = null, int $code = 400)
+    /**
+     * Crée une réponse API standardisée pour une erreur.
+     *
+     * @param string $message Message d'erreur
+     * @param mixed $errors Détails additionnels ou erreurs de validation (optionnel)
+     * @param int $code Code HTTP (par défaut 400)
+     *
+     * @return JsonResponse
+     *
+     * @example
+     * return api_error('Entrée invalide', ['email' => 'Email requis'], 422);
+     */
+    function api_error(string $message, mixed $errors = null, int $code = 400): JsonResponse
     {
         return ResponseHelper::error($message, $errors, $code);
     }
 }
 
-/**
- * Create a standardized API resource creation response
- *
- * @param mixed $data The created resource data (optional) - typically an API Resource
- * @param string $message Success message (default: 'Ressource créée avec succès')
- *
- * @return \Illuminate\Http\JsonResponse
- *
- * @example
- * // In controller store method
- * $filiere = Filiere::create($validatedData);
- * return api_created(new \App\Http\Resources\FiliereResource($filiere));
- *
- * @see ResponseHelper::created()
- */
 if (!function_exists('api_created')) {
-    function api_created($data = null, string $message = 'Ressource créée avec succès')
+    /**
+     * Crée une réponse standardisée après la création d'une ressource.
+     *
+     * @param mixed $data La ressource créée (optionnel)
+     * @param string $message Message de succès (par défaut "Ressource créée avec succès")
+     *
+     * @return JsonResponse
+     *
+     * @example
+     * $filiere = Filiere::create($validatedData);
+     * return api_created(new \App\Http\Resources\FiliereResource($filiere));
+     */
+    function api_created(mixed $data = null, string $message = 'Ressource créée avec succès'): JsonResponse
     {
         return ResponseHelper::created($data, $message);
     }
 }
 
-/**
- * Create a standardized API resource update response
- *
- * @param mixed $data The updated resource data (optional) - typically an API Resource
- * @param string $message Success message (default: 'Ressource mise à jour avec succès')
- *
- * @return \Illuminate\Http\JsonResponse
- *
- * @example
- * // In controller update method
- * $candidat->update($validatedData);
- * return api_updated(new \App\Http\Resources\CandidatResource($candidat));
- *
- * @see ResponseHelper::updated()
- */
 if (!function_exists('api_updated')) {
-    function api_updated($data = null, string $message = 'Ressource mise à jour avec succès')
+    /**
+     * Crée une réponse standardisée après la mise à jour d'une ressource.
+     *
+     * @param mixed $data La ressource mise à jour (optionnel)
+     * @param string $message Message de succès (par défaut "Ressource mise à jour avec succès")
+     *
+     * @return JsonResponse
+     *
+     * @example
+     * $departement->update($validatedData);
+     * return api_updated(new \App\Http\Resources\DepartementResource($departement));
+     */
+    function api_updated(mixed $data = null, string $message = 'Ressource mise à jour avec succès'): JsonResponse
     {
         return ResponseHelper::updated($data, $message);
     }
 }
 
-/**
- * Create a standardized API resource deletion response
- *
- * @param string $message Success message (default: 'Ressource supprimée avec succès')
- *
- * @return \Illuminate\Http\JsonResponse
- *
- * @example
- * return api_deleted();
- *
- * @see ResponseHelper::deleted()
- */
 if (!function_exists('api_deleted')) {
-    function api_deleted(string $message = 'Ressource supprimée avec succès')
+    /**
+     * Crée une réponse standardisée après la suppression d'une ressource.
+     *
+     * @param string $message Message de succès (par défaut "Ressource supprimée avec succès")
+     *
+     * @return JsonResponse
+     *
+     * @example
+     * return api_deleted();
+     */
+    function api_deleted(string $message = 'Ressource supprimée avec succès'): JsonResponse
     {
         return ResponseHelper::deleted($message);
     }
 }
 
-/**
- * Create a standardized API 404 Not Found response
- *
- * @param string $message Error message (default: 'Ressource non trouvée')
- *
- * @return \Illuminate\Http\JsonResponse
- *
- * @example
- * return api_not_found('User not found');
- *
- * @see ResponseHelper::notFound()
- */
 if (!function_exists('api_not_found')) {
-    function api_not_found(string $message = 'Ressource non trouvée')
+    /**
+     * Crée une réponse standardisée 404 Not Found.
+     *
+     * @param string $message Message d'erreur (par défaut "Ressource non trouvée")
+     *
+     * @return JsonResponse
+     *
+     * @example
+     * return api_not_found('Département introuvable');
+     */
+    function api_not_found(string $message = 'Ressource non trouvée'): JsonResponse
     {
         return ResponseHelper::notFound($message);
     }
 }
 
-/**
- * Create a standardized API 401 Unauthorized response
- *
- * @param string $message Error message (default: 'Non autorisé')
- *
- * @return \Illuminate\Http\JsonResponse
- *
- * @example
- * return api_unauthorized('Authentication required');
- *
- * @see ResponseHelper::unauthorized()
- */
 if (!function_exists('api_unauthorized')) {
-    function api_unauthorized(string $message = 'Non autorisé')
+    /**
+     * Crée une réponse standardisée 401 Unauthorized.
+     *
+     * @param string $message Message d'erreur (par défaut "Non autorisé")
+     *
+     * @return JsonResponse
+     *
+     * @example
+     * return api_unauthorized('Authentification requise');
+     */
+    function api_unauthorized(string $message = 'Non autorisé'): JsonResponse
     {
         return ResponseHelper::unauthorized($message);
     }
 }
 
-/**
- * Create a standardized API 403 Forbidden response
- *
- * @param string $message Error message (default: 'Accès interdit')
- *
- * @return \Illuminate\Http\JsonResponse
- *
- * @example
- * return api_forbidden('Insufficient permissions');
- *
- * @see ResponseHelper::forbidden()
- */
 if (!function_exists('api_forbidden')) {
-    function api_forbidden(string $message = 'Accès interdit')
+    /**
+     * Crée une réponse standardisée 403 Forbidden.
+     *
+     * @param string $message Message d'erreur (par défaut "Accès interdit")
+     *
+     * @return JsonResponse
+     *
+     * @example
+     * return api_forbidden('Permissions insuffisantes');
+     */
+    function api_forbidden(string $message = 'Accès interdit'): JsonResponse
     {
         return ResponseHelper::forbidden($message);
     }
 }
 
-/**
- * Create a standardized API validation error response
- *
- * @param mixed $errors Validation errors
- * @param string $message Error message (default: 'Erreur de validation')
- *
- * @return \Illuminate\Http\JsonResponse
- *
- * @example
- * return api_validation_error($validator->errors());
- *
- * @see ResponseHelper::validationError()
- */
 if (!function_exists('api_validation_error')) {
-    function api_validation_error($errors, string $message = 'Erreur de validation')
+    /**
+     * Crée une réponse standardisée pour les erreurs de validation.
+     *
+     * @param mixed $errors Erreurs de validation (tableau ou objet)
+     * @param string $message Message d'erreur (par défaut "Erreur de validation")
+     *
+     * @return JsonResponse
+     *
+     * @example
+     * return api_validation_error($validator->errors());
+     */
+    function api_validation_error(mixed $errors, string $message = 'Erreur de validation'): JsonResponse
     {
         return ResponseHelper::validationError($errors, $message);
     }
 }
 
-/**
- * Create a standardized API paginated response
- *
- * Automatically transforms paginated data using the specified resource class.
- * Essential for controller methods that return lists of resources.
- *
- * @param \Illuminate\Contracts\Pagination\LengthAwarePaginator $paginatedData Laravel paginated data
- * @param string|null $message Optional success message
- * @param string|null $resourceClass Optional API resource class for data transformation (e.g., 'App\Http\Resources\EcoleResource')
- *
- * @return \Illuminate\Http\JsonResponse
- *
- * @example
- * // In controller index method
- * $ecoles = Ecole::paginate(10);
- * return api_paginated($ecoles, 'Ecoles retrieved', \App\Http\Resources\EcoleResource::class);
- *
- * @example
- * // With eager loading and custom resource
- * $concours = Concours::with('filieres')->paginate(15);
- * return api_paginated($concours, 'Concours retrieved', \App\Http\Resources\ConcoursResource::class);
- *
- * @see ResponseHelper::paginated()
- */
 if (!function_exists('api_paginated')) {
-    function api_paginated($paginatedData, string $message = null, ?string $resourceClass = null)
+    /**
+     * Crée une réponse standardisée pour les listes paginées.
+     *
+     * @param \Illuminate\Contracts\Pagination\LengthAwarePaginator $paginatedData Données paginées
+     * @param string|null $message Message de succès (optionnel)
+     * @param string|null $resourceClass Classe de ressource API pour transformer les items (optionnel)
+     *
+     * @return JsonResponse
+     *
+     * @example
+     * $users = User::paginate(10);
+     * return api_paginated($users, 'Liste des utilisateurs', UserResource::class);
+     */
+    function api_paginated($paginatedData, ?string $message = null, ?string $resourceClass = null): JsonResponse
     {
         return ResponseHelper::paginated($paginatedData, $message, $resourceClass);
     }
