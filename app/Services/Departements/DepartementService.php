@@ -54,33 +54,33 @@ class DepartementService
    *
    * @throws DepartementException Si le département n'existe pas
    */
-    public function update(string $id, UpdateDepartementDTO $dto): Departement
-    {
-      $departement = $this->findById($id);
+  public function update(string $id, UpdateDepartementDTO $dto): Departement
+  {
+    $departement = $this->findById($id);
 
-      try {
-        $departement->update([
-          'ecole_id' => $dto->ecole_id ?? $departement->ecole_id,
-          'code' => $dto->code_departement
-            ? strtoupper($dto->code_departement)
-            : $departement->code,
-          'libelle_departement' => $dto->libelle_departement ?? $departement->libelle_departement,
-          'desc_departement' => $dto->desc_departement ?? $departement->desc_departement,
-          'est_actif' => $dto->est_actif ?? $departement->est_actif,
-        ]);
+    try {
+      $departement->update([
+        'ecole_id' => $dto->ecole_id ?? $departement->ecole_id,
+        'code' => $dto->code_departement
+          ? strtoupper($dto->code_departement)
+          : $departement->code,
+        'libelle_departement' => $dto->libelle_departement ?? $departement->libelle_departement,
+        'desc_departement' => $dto->desc_departement ?? $departement->desc_departement,
+        'est_actif' => $dto->est_actif ?? $departement->est_actif,
+      ]);
 
-        return $departement->fresh();
-      } catch (\Illuminate\Database\QueryException $e) {
-        if ($e->getCode() === '23505') {
-          throw DepartementException::alreadyExistsInEcole(
-            $dto->code_departement,
-            $dto->ecole_id ?? $departement->ecole_id
-          );
-        }
-
-        throw DepartementException::updateFailed($id, $e->getMessage());
+      return $departement->fresh();
+    } catch (\Illuminate\Database\QueryException $e) {
+      if ($e->getCode() === '23505') {
+        throw DepartementException::alreadyExistsInEcole(
+          $dto->code_departement,
+          $dto->ecole_id ?? $departement->ecole_id
+        );
       }
+
+      throw DepartementException::updateFailed($id, $e->getMessage());
     }
+  }
 
 
   /**
