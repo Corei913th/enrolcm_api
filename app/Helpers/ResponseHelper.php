@@ -102,7 +102,7 @@ class ResponseHelper
      * @example
      * // Controller usage after updating a resource
      * $departement->update($validatedData);
-     * return ResponseHelper::updated(new \App\Http\Resources\DepartementResource($departement), 'Departement updated successfully');
+     * return ResponseHelper::updated($departement, 'Departement updated successfully');
      * // Returns: {"success": true, "message": "Departement updated successfully", "data": {...}}
      */
     public static function updated($data = null, string $message = 'Ressource mise à jour avec succès'): JsonResponse
