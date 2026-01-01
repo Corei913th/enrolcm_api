@@ -14,7 +14,9 @@ use App\Helpers\ResponseHelper;
  * @return \Illuminate\Http\JsonResponse
  *
  * @example
- * return api_success(new EcoleResource($ecole), 'Ecole retrieved successfully');
+ * // In controller method
+ * $ecole = Ecole::find($id);
+ * return api_success(new \App\Http\Resources\EcoleResource($ecole), 'Ecole retrieved successfully');
  *
  * @see ResponseHelper::success()
  */
@@ -55,7 +57,9 @@ if (!function_exists('api_error')) {
  * @return \Illuminate\Http\JsonResponse
  *
  * @example
- * return api_created(new FiliereResource($filiere));
+ * // In controller store method
+ * $filiere = Filiere::create($validatedData);
+ * return api_created(new \App\Http\Resources\FiliereResource($filiere));
  *
  * @see ResponseHelper::created()
  */
@@ -75,7 +79,9 @@ if (!function_exists('api_created')) {
  * @return \Illuminate\Http\JsonResponse
  *
  * @example
- * return api_updated(new CandidatResource($candidat));
+ * // In controller update method
+ * $candidat->update($validatedData);
+ * return api_updated(new \App\Http\Resources\CandidatResource($candidat));
  *
  * @see ResponseHelper::updated()
  */
@@ -195,12 +201,14 @@ if (!function_exists('api_validation_error')) {
  * @return \Illuminate\Http\JsonResponse
  *
  * @example
+ * // In controller index method
  * $ecoles = Ecole::paginate(10);
- * return api_paginated($ecoles, 'Ecoles retrieved', EcoleResource::class);
+ * return api_paginated($ecoles, 'Ecoles retrieved', \App\Http\Resources\EcoleResource::class);
  *
  * @example
+ * // With eager loading and custom resource
  * $concours = Concours::with('filieres')->paginate(15);
- * return api_paginated($concours, null, ConcoursResource::class);
+ * return api_paginated($concours, 'Concours retrieved', \App\Http\Resources\ConcoursResource::class);
  *
  * @see ResponseHelper::paginated()
  */

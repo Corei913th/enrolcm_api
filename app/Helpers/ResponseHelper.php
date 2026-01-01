@@ -17,12 +17,16 @@ class ResponseHelper
      * @return JsonResponse JSON response with success structure
      *
      * @example
-     * ResponseHelper::success(new UserResource($user), 'User retrieved successfully');
+     * // Controller usage with API Resources
+     * $user = User::find(1);
+     * return ResponseHelper::success(new \App\Http\Resources\UserResource($user), 'User retrieved successfully');
      * // Returns: {"success": true, "message": "User retrieved successfully", "data": {...}}
      *
      * @example
-     * ResponseHelper::success(['concours' => ConcoursResource::collection($concours)], 'Concours list retrieved');
-     * // Returns: {"success": true, "message": "Concours list retrieved", "data": {"concours": [...]}}
+     * // Controller usage with collections
+     * $concours = Concours::all();
+     * return ResponseHelper::success(\App\Http\Resources\ConcoursResource::collection($concours), 'Concours list retrieved');
+     * // Returns: {"success": true, "message": "Concours list retrieved", "data": [...]}
      */
     public static function success($data = null, string $message = null, int $code = 200): JsonResponse
     {
@@ -77,7 +81,9 @@ class ResponseHelper
      * @return JsonResponse JSON response with 201 status code
      *
      * @example
-     * ResponseHelper::created(new ConcoursResource($concours), 'Concours created successfully');
+     * // Controller usage after creating a resource
+     * $concours = Concours::create($validatedData);
+     * return ResponseHelper::created(new \App\Http\Resources\ConcoursResource($concours), 'Concours created successfully');
      * // Returns: {"success": true, "message": "Concours created successfully", "data": {...}} with HTTP 201
      */
     public static function created($data = null, string $message = 'Ressource créée avec succès'): JsonResponse
@@ -94,7 +100,9 @@ class ResponseHelper
      * @return JsonResponse JSON response with success structure
      *
      * @example
-     * ResponseHelper::updated(new DepartementResource($departement), 'Departement updated successfully');
+     * // Controller usage after updating a resource
+     * $departement->update($validatedData);
+     * return ResponseHelper::updated(new \App\Http\Resources\DepartementResource($departement), 'Departement updated successfully');
      * // Returns: {"success": true, "message": "Departement updated successfully", "data": {...}}
      */
     public static function updated($data = null, string $message = 'Ressource mise à jour avec succès'): JsonResponse
