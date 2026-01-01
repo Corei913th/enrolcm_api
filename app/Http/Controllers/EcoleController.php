@@ -48,10 +48,10 @@ class EcoleController extends Controller
     {
         try {
             $ecole = $this->ecoleService->getById($id);
-            
+
             return api_success(
-                'École récupérée avec succès',
-                new EcoleResource($ecole)
+                new EcoleResource($ecole),
+                'École récupérée avec succès'
             );
         } catch (EcoleException $e) {
             return api_error($e->getMessage(), null, $e->getCode());
@@ -65,10 +65,10 @@ class EcoleController extends Controller
     {
         try {
             $ecole = $this->ecoleService->getByCode($code);
-            
+
             return api_success(
-                'École récupérée avec succès',
-                new EcoleResource($ecole)
+                new EcoleResource($ecole),
+                'École récupérée avec succès'
             );
         } catch (EcoleException $e) {
             return api_error($e->getMessage(), null, $e->getCode());
@@ -82,7 +82,7 @@ class EcoleController extends Controller
     {
         try {
             $ecole = null;
-            
+
             DB::transaction(function () use ($request, &$ecole) {
                 // Créer l'école
                 $ecoleData = CreateEcoleDTO::from($request->except(['logo', 'embleme', 'header_frame']));
@@ -90,7 +90,7 @@ class EcoleController extends Controller
 
                 // Uploader les fichiers si présents
                 $fileService = new EcoleFileService();
-                
+
                 if ($request->hasFile('logo')) {
                     $logoInfo = $fileService->uploadFile($ecole, $request->file('logo'), 'logo');
                     $ecole->update([
@@ -134,7 +134,7 @@ class EcoleController extends Controller
     {
         try {
             $ecole = null;
-            
+
             DB::transaction(function () use ($request, $id, &$ecole) {
                 // Mettre à jour les données de base
                 $ecoleData = CreateEcoleDTO::from($request->except(['logo', 'embleme', 'header_frame']));
@@ -142,7 +142,7 @@ class EcoleController extends Controller
 
                 // Uploader les nouveaux fichiers si présents
                 $fileService = new EcoleFileService();
-                
+
                 if ($request->hasFile('logo')) {
                     $logoInfo = $fileService->uploadFile($ecole, $request->file('logo'), 'logo');
                     $ecole->update([
@@ -187,15 +187,15 @@ class EcoleController extends Controller
         try {
             DB::transaction(function () use ($id) {
                 $ecole = $this->ecoleService->getById($id);
-                
+
                 // Supprimer tous les fichiers
                 $fileService = new EcoleFileService();
                 $fileService->deleteAllFiles($ecole);
-                
+
                 // Supprimer l'école
                 $this->ecoleService->delete($id);
             });
-            
+
             return api_deleted('École et fichiers supprimés avec succès');
         } catch (EcoleException $e) {
             return api_error($e->getMessage(), null, $e->getCode());
@@ -209,7 +209,7 @@ class EcoleController extends Controller
     {
         try {
             $ecole = $this->ecoleService->toggleStatus($id);
-            
+
             return api_updated(
                 new EcoleResource($ecole),
                 'Statut de l\'école modifié avec succès'
@@ -226,10 +226,10 @@ class EcoleController extends Controller
     {
         try {
             $ecoles = $this->ecoleService->getActive();
-            
+
             return api_success(
-                'Écoles actives récupérées avec succès',
-                EcoleResource::collection($ecoles)
+                new EcoleResource($ecoles),
+                'Écoles actives récupérées avec succès'
             );
         } catch (EcoleException $e) {
             return api_error($e->getMessage(), null, $e->getCode());
@@ -249,7 +249,7 @@ class EcoleController extends Controller
         try {
             $ecole = $this->ecoleService->getById($id);
             $fileService = new EcoleFileService();
-            
+
             $fileInfo = $fileService->uploadFile(
                 $ecole,
                 $request->file('file'),
@@ -259,15 +259,15 @@ class EcoleController extends Controller
             // Mettre à jour l'école avec les infos du fichier
             $pathField = $request->input('type') . '_path';
             $nameField = $request->input('type') . '_original_name';
-            
+
             $ecole->update([
                 $pathField => $fileInfo['path'],
                 $nameField => $fileInfo['original_name'],
             ]);
 
             return api_success(
-                'Fichier uploadé avec succès',
-                new EcoleResource($ecole->fresh())
+                new EcoleResource($ecole->fresh()),
+                'Fichier uploadé avec succès'
             );
         } catch (\Exception $e) {
             return api_error($e->getMessage());
@@ -286,21 +286,21 @@ class EcoleController extends Controller
         try {
             $ecole = $this->ecoleService->getById($id);
             $fileService = new EcoleFileService();
-            
+
             $fileService->deleteFile($ecole, $request->input('type'));
 
             // Mettre à jour l'école
             $pathField = $request->input('type') . '_path';
             $nameField = $request->input('type') . '_original_name';
-            
+
             $ecole->update([
                 $pathField => null,
                 $nameField => null,
             ]);
 
             return api_success(
-                'Fichier supprimé avec succès',
-                new EcoleResource($ecole->fresh())
+                new EcoleResource($ecole->fresh())  ,
+                'Fichier supprimé avec succès'
             );
         } catch (\Exception $e) {
             return api_error($e->getMessage());
@@ -322,9 +322,9 @@ class EcoleController extends Controller
         try {
             $ecole = $this->ecoleService->getById($id);
             $pdfService = new EcolePdfService();
-            
+
             $pdf = $pdfService->generateAttestation($ecole, $request->all());
-            
+
             return $pdf->download('attestation_' . $request->input('numero', 'ATT') . '.pdf');
         } catch (\Exception $e) {
             return api_error($e->getMessage());
@@ -339,13 +339,13 @@ class EcoleController extends Controller
         try {
             $ecole = $this->ecoleService->getById($id);
             $pdfService = new EcolePdfService();
-            
+
             $pdf = $pdfService->generateDocument(
                 $ecole,
                 'APERÇU DE L\'ENTÊTE',
                 '<p style="text-align: center; margin-top: 50px;">Ceci est un aperçu de l\'entête officielle de l\'école.</p>'
             );
-            
+
             return $pdf->stream('preview_header.pdf');
         } catch (\Exception $e) {
             return api_error($e->getMessage());
