@@ -24,10 +24,8 @@ use Illuminate\Support\Facades\Route;
         Route::prefix('departements')->group(function () {
             require __DIR__ . '/api/departements.php';
         });
+        require __DIR__.'/api/matieres.php';
     });
 
     
-// Middleware désactivé temporairement pour les tests
-Route::prefix('v1')->group(function () {
-    require __DIR__.'/api/filieres.php';
-});
+

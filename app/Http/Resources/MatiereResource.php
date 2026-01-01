@@ -14,7 +14,8 @@ class MatiereResource extends JsonResource
             'libelle_matiere' => $this->libelle_matiere,
             'coefficient' => $this->coefficient,
             'est_actif' => $this->est_actif,
-            'created_at' => $this->created_at?->format('Y-m-d H:i:s'),     
+            'created_at' => $this->created_at ? $this->created_at->format('Y-m-d H:i:s') : null,
+            'updated_at' => $this->updated_at ? $this->updated_at->format('Y-m-d H:i:s') : null,
             'niveaux' => NiveauResource::collection($this->whenLoaded('niveaux')),
         ];
     }

@@ -1,0 +1,195 @@
+{
+  "info": {
+    "name": "API Matières - EnrolCM",
+    "description": "Collection complète pour tester l'API des matières",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Créer une matière",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"code_matiere\": \"MATH\",\n  \"libelle_matiere\": \"Mathématiques\",\n  \"coefficient\": 4,\n  \"est_actif\": true\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/matieres",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "matieres"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "2. Liste des matières (paginée)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/matieres?per_page=15",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "matieres"],
+          "query": [
+            {
+              "key": "per_page",
+              "value": "15"
+            },
+            {
+              "key": "est_actif",
+              "value": "1",
+              "disabled": true
+            },
+            {
+              "key": "search",
+              "value": "Math",
+              "disabled": true
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "3. Afficher une matière par ID",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/matieres/{{matiere_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "matieres", "{{matiere_id}}"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "4. Afficher une matière par code",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/matieres/code/MATH",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "matieres", "code", "MATH"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "5. Mettre à jour une matière",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"code_matiere\": \"MATH\",\n  \"libelle_matiere\": \"Mathématiques Générales\",\n  \"coefficient\": 5,\n  \"est_actif\": true\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/matieres/{{matiere_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "matieres", "{{matiere_id}}"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "6. Toggle statut matière",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/matieres/{{matiere_id}}/toggle-status",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "matieres", "{{matiere_id}}", "toggle-status"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "7. Liste des matières actives",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/matieres/actives",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "matieres", "actives"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "8. Supprimer une matière",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/matieres/{{matiere_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "matieres", "{{matiere_id}}"]
+        }
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000"
+    },
+    {
+      "key": "matiere_id",
+      "value": ""
+    }
+  ]
+}
