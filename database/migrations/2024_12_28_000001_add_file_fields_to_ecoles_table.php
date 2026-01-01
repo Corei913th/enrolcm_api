@@ -16,14 +16,13 @@ return new class extends Migration
             $table->string('logo_path', 500)->nullable()->after('logo_url');
             $table->string('embleme_path', 500)->nullable()->after('embleme_ecole');
             $table->string('header_frame_path', 500)->nullable()->after('embleme_path');
-            
+
             // Métadonnées des fichiers
             $table->string('logo_original_name', 255)->nullable()->after('logo_path');
             $table->string('embleme_original_name', 255)->nullable()->after('embleme_path');
             $table->string('header_frame_original_name', 255)->nullable()->after('header_frame_path');
-            
-            // Nom de l'école en anglais (pour documents bilingues)
-            $table->string('libelle_ecole_en', 200)->nullable()->after('libelle_ecole');
+
+            // Nom de l'école en anglais (déjà ajouté dans migration 100035)
         });
     }
 
@@ -40,7 +39,7 @@ return new class extends Migration
                 'logo_original_name',
                 'embleme_original_name',
                 'header_frame_original_name',
-                'libelle_ecole_en',
+                // 'libelle_ecole_en', // ajouté dans migration 100035
             ]);
         });
     }
