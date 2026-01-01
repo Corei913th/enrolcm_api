@@ -25,7 +25,9 @@ use Illuminate\Support\Facades\Route;
             require __DIR__ . '/api/departements.php';
         });
         require __DIR__.'/api/matieres.php';
+        require __DIR__.'/api/niveaux.php';
     });
 
     
+
 
