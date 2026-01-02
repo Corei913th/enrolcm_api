@@ -9,6 +9,7 @@ use App\Services\OCR\TesseractOcrService;
 use App\Services\Payment\ConcoursPaiementService;
 use App\Services\Payment\Validators\PaymentOcrValidator;
 use App\Services\Payment\Processors\OcrDataProcessor;
+use App\Services\Payment\Processors\AccountNormalizer;
 use DateTime;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -58,6 +59,7 @@ class PaiementService
             }
 
             // Traiter les données OCR avec le processeur modulaire
+            $processor = new OcrDataProcessor();
             [$paiement, $errors, $warnings] = $processor->processOcrData($concoursId, $path, $ocrData, $config);
 
             if (!empty($errors)) {
