@@ -31,8 +31,7 @@ class PaymentOcrValidator
       'ocr_confiance' => $this->validateOcrConfidence($paiement, $config),
     ];
 
-    // Debug temporaire
-    error_log("Validation results: " . json_encode($validations));
+    // Validation logging removed after debugging
 
     $allValid = !in_array(false, $validations, true);
 
