@@ -32,7 +32,6 @@ class Candidat extends Model
         'nom_parent',
         'telephone_parent',
         'code_cand',
-        'filiere_id',
         'niveau_scolaire',
         'filiere_origine',
         'etablissement_origine',
@@ -77,10 +76,7 @@ class Candidat extends Model
         return $this->hasMany(Candidature::class, 'candidat_id', 'utilisateur_id');
     }
 
-    public function filiere()
-    {
-        return $this->belongsTo(Filiere::class, 'filiere_id');
-    }
+    
 
     public function paiements()
     {
