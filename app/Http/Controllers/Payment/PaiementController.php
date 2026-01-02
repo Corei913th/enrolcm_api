@@ -9,8 +9,6 @@ use App\Http\Requests\Payment\ValiderPaiementRequest;
 use App\Http\Requests\Payment\RejeterPaiementRequest;
 use App\Http\Requests\Payment\FilterPaiementsRequest;
 use App\Http\Requests\Payment\VerifyPRURequest;
-use App\Http\Requests\Payment\ConfigurerPaiementConcoursRequest;
-use App\Services\Payment\ConcoursPaiementService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -18,29 +16,29 @@ class PaiementController extends Controller
 {
     public function __construct(
         private readonly PaiementService $paiementService,
-        private readonly ConcoursPaiementService $concoursPaiementService
     ) {}
 
     /**
      * Upload preuve de paiement (AVANT création compte).
-     *
-     * Endpoint : POST /api/payments
-     *
      * @param CreatePaiementRequest $request Requête validée contenant concours_id, reference, montant et preuve
-     *
      * @return JsonResponse Réponse JSON avec paiement créé ou erreur
      */
     public function store(CreatePaiementRequest $request): JsonResponse
     {
         try {
-            $paiement = $this->paiementService->createPayment(
+            $result = $this->paiementService->createPaymentWithOcr(
                 concoursId: $request->concours_id,
-                reference: $request->reference,
-                montant: $request->montant,
                 preuve: $request->file('preuve')
             );
 
-            return api_created($paiement, 'Preuve de paiement uploadée avec succès');
+            $statusCode = $result['validation_info']['code'] >= 200 && $result['validation_info']['code'] < 300 ? 201 : 202;
+
+            return api_success([
+                'success' => true,
+                'message' => $result['validation_info']['message'],
+                'data' => $result,
+                'alert_type' => $this->getAlertType($result['validation_info']['code'])
+            ], $statusCode);
         } catch (\Exception $e) {
             return api_error($e->getMessage(), null, 400);
         }
@@ -48,11 +46,7 @@ class PaiementController extends Controller
 
     /**
      * Vérifier si un PRU est valide (AVANT création compte).
-     *
-     * Endpoint : POST /api/payments/verify-pru
-     *
      * @param VerifyPRURequest $request Requête validée contenant pru et concours_id
-     *
      * @return JsonResponse Réponse JSON indiquant validité du PRU
      */
     public function verifyPRU(VerifyPRURequest $request): JsonResponse
@@ -75,9 +69,7 @@ class PaiementController extends Controller
 
     /**
      * Liste des paiements (Admin).
-     *
-     * Endpoint : GET /api/payments
-     *
+
      * @param FilterPaiementsRequest $request Requête validée avec filtres et pagination
      *
      * @return JsonResponse Réponse JSON paginée des paiements
@@ -94,9 +86,6 @@ class PaiementController extends Controller
 
     /**
      * Paiements en attente (Admin).
-     *
-     * Endpoint : GET /api/payments/pending
-     *
      * @param Request $request Requête avec pagination
      *
      * @return JsonResponse Réponse JSON paginée des paiements en attente
@@ -111,9 +100,6 @@ class PaiementController extends Controller
 
     /**
      * Détails d'un paiement.
-     *
-     * Endpoint : GET /api/payments/{id}
-     *
      * @param string $id ID du paiement
      *
      * @return JsonResponse Réponse JSON avec détails du paiement ou erreur 404
@@ -131,11 +117,6 @@ class PaiementController extends Controller
     /**
      * Validation manuelle d'un paiement (Admin).
      *
-     * Endpoint : POST /api/payments/{id}/validate
-     *
-     * @param string $id ID du paiement
-     * @param ValiderPaiementRequest $request Requête validée avec utilisateur
-     *
      * @return JsonResponse Réponse JSON avec paiement validé ou erreur
      */
     public function validate(string $id, ValiderPaiementRequest $request): JsonResponse
@@ -150,9 +131,6 @@ class PaiementController extends Controller
 
     /**
      * Rejet manuel d'un paiement (Admin).
-     *
-     * Endpoint : POST /api/payments/{id}/reject
-     *
      * @param string $id ID du paiement
      * @param RejeterPaiementRequest $request Requête validée contenant motif et utilisateur
      *
@@ -170,5 +148,19 @@ class PaiementController extends Controller
         } catch (\Exception $e) {
             return api_error($e->getMessage(), null, 400);
         }
+    }
+
+    /**
+     * Détermine le type d'alerte UI selon le code de validation.
+     */
+    private function getAlertType(int $code): string
+    {
+        return match ($code) {
+            200 => 'success',      // Validation complète
+            206 => 'warning',      // Validation partielle
+            202 => 'info',         // Validation manuelle requise
+            207 => 'warning',      // Validation manuelle avec données manquantes
+            default => 'info'
+        };
     }
 }
