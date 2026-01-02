@@ -11,6 +11,8 @@ use App\Services\Payment\Processors\OcrDataProcessor;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
 class PaiementService
@@ -209,32 +211,133 @@ class PaiementService
      *
      * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator
      */
-    public function getPayments(array $filters = [], int $perPage = 20)
+    public function getPayments(array $filters = [], int $perPage = 20): LengthAwarePaginator
     {
-        $query = Paiement::with(['candidat', 'concours']);
 
-        // Appliquer les filtres
-        if (!empty($filters['statut'])) {
-            $query->where('statut', $filters['statut']);
-        }
+        $query = Paiement::query()
+            ->with([
+                'candidat:id,utilisateur_id,nom_cand,prenom_cand',
+                'candidat.utilisateur:id,email',
+                'concours:id,libelle_concours'
+            ])
+            ->select([
+                'id',
+                'reference',
+                'montant',
+                'statut',
+                'candidat_id',
+                'concours_id',
+                'created_at',
+                'validated_at'
+            ]);
 
-        if (!empty($filters['concours_id'])) {
-            $query->where('concours_id', $filters['concours_id']);
-        }
 
-        if (!empty($filters['date_debut'])) {
-            $query->whereDate('created_at', '>=', $filters['date_debut']);
-        }
+        $query->when(
+            !empty($filters['statut']),
+            fn($q) =>
+            $q->where('statut', $filters['statut'])
+        )
+            ->when(
+                !empty($filters['concours_id']),
+                fn($q) =>
+                $q->where('concours_id', $filters['concours_id'])
+            )
+            ->when(
+                !empty($filters['date_debut']),
+                fn($q) =>
+                $q->where('created_at', '>=', $filters['date_debut'])
+            )
+            ->when(
+                !empty($filters['date_fin']),
+                fn($q) =>
+                $q->where('created_at', '<=', $filters['date_fin'])
+            )
+            ->when(!empty($filters['reference']), function ($q) use ($filters) {
 
-        if (!empty($filters['date_fin'])) {
-            $query->whereDate('created_at', '<=', $filters['date_fin']);
-        }
+                $q->where('reference', 'like', $filters['reference'] . '%');
+            });
 
-        if (!empty($filters['reference'])) {
-            $query->where('reference', 'like', '%' . $filters['reference'] . '%');
-        }
 
-        return $query->orderBy('created_at', 'desc')->paginate($perPage);
+        return $query->latest('created_at')->paginate($perPage);
+    }
+
+    /**
+     *
+     * @param string $query Terme de recherche
+     * @param array $filters Filtres supplémentaires
+     * @param int $perPage Nombre de résultats par page
+     * @return LengthAwarePaginator Résultats de recherche
+     */
+    public function searchPayments(string $query, array $filters = [], int $perPage = 20): LengthAwarePaginator
+    {
+        // Recherche full-text avec poids (A = très important, B = important, C = normal)
+        $searchQuery = "
+            search_vector @@ plainto_tsquery('french', ?) OR
+            reference ILIKE ? OR
+            validation_notes ILIKE ?
+        ";
+
+        $searchParams = [$query, "%{$query}%", "%{$query}%"];
+
+        $results = Paiement::query()
+            ->with([
+                'candidat:id,utilisateur_id,nom_cand,prenom_cand',
+                'candidat.utilisateur:id,email',
+                'concours:id,libelle_concours'
+            ])
+            ->select([
+                'id',
+                'reference',
+                'montant',
+                'statut',
+                'candidat_id',
+                'concours_id',
+                'created_at',
+                'validated_at',
+                'validation_notes'
+            ])
+            ->whereRaw($searchQuery, $searchParams)
+            ->when(!empty($filters['statut']), fn($q) => $q->where('statut', $filters['statut']))
+            ->when(!empty($filters['concours_id']), fn($q) => $q->where('concours_id', $filters['concours_id']))
+            ->when(!empty($filters['date_debut']), fn($q) => $q->where('created_at', '>=', $filters['date_debut']))
+            ->when(!empty($filters['date_fin']), fn($q) => $q->where('created_at', '<=', $filters['date_fin']))
+
+            // Trier par pertinence (full-text ranking)
+            ->orderByRaw("ts_rank(search_vector, plainto_tsquery('french', ?)) DESC", [$query])
+            ->orderBy('created_at', 'desc')
+
+            ->paginate($perPage);
+
+        return $results;
+    }
+
+    /**
+     * Statistiques des paiements (avec cache pour gros volumes).
+     *
+     * @param string|null $concoursId ID du concours (null = tous)
+     * @return array Statistiques des paiements
+     */
+    public function getPaymentStats(?string $concoursId = null): array
+    {
+        $cacheKey = "payment_stats" . ($concoursId ? "_concours_{$concoursId}" : "_global");
+
+        return Cache::remember($cacheKey, 1800, function () use ($concoursId) {
+            $query = Paiement::query();
+
+            if ($concoursId) {
+                $query->where('concours_id', $concoursId);
+            }
+
+            return [
+                'total' => $query->count(),
+                'verified' => (clone $query)->where('statut', StatutPaiement::VERIFIED)->count(),
+                'pending' => (clone $query)->where('statut', StatutPaiement::PENDING)->count(),
+                'rejected' => (clone $query)->where('statut', StatutPaiement::REJECTED)->count(),
+                'manual_review' => (clone $query)->where('statut', StatutPaiement::PENDING_MANUAL_REVIEW)->count(),
+                'total_amount' => (clone $query)->where('statut', StatutPaiement::VERIFIED)->sum('montant'),
+                'last_24h' => (clone $query)->where('created_at', '>=', now()->subDay())->count(),
+            ];
+        });
     }
 
     /**
@@ -271,28 +374,32 @@ class PaiementService
      */
     public function getPaiementInfo(string $pru): ?array
     {
+        // OPTIMISATION AVANCÉE: Cache pour éviter les requêtes répétées
+        $cacheKey = "paiement_info_{$pru}";
 
-        $paiement = Paiement::with([
-            'concours:id,libelle_concours,date_limite_depot,date_examen,est_actif',
-            'concours.configurationPaiement:id,concours_id,banque_nom,numero_compte,montant,date_limit'
-        ])
-            ->where('reference', $pru)
-            ->where('statut', StatutPaiement::VERIFIED)
-            ->whereNull('candidat_id')
-            ->select('id', 'concours_id', 'reference', 'montant', 'validated_at')
-            ->first();
+        return Cache::remember($cacheKey, 300, function () use ($pru) {
+            $paiement = Paiement::with([
+                'concours:id,libelle_concours,date_limite_depot,date_examen,est_actif',
+                'concours.configurationPaiement:id,concours_id,banque_nom,numero_compte,montant,date_limite'
+            ])
+                ->where('reference', $pru)
+                ->where('statut', StatutPaiement::VERIFIED)
+                ->whereNull('candidat_id')
+                ->select('id', 'concours_id', 'reference', 'montant', 'validated_at')
+                ->first();
 
-        if (!$paiement) {
-            return null;
-        }
+            if (!$paiement) {
+                return null;
+            }
 
-        return [
-            'paiement' => $paiement,
-            'concours' => $paiement->concours,
-            'concours_id' => $paiement->concours_id,
-            'montant' => $paiement->montant,
-            'validated_at' => $paiement->validated_at,
-        ];
+            return [
+                'paiement' => $paiement,
+                'concours' => $paiement->concours,
+                'concours_id' => $paiement->concours_id,
+                'montant' => $paiement->montant,
+                'validated_at' => $paiement->validated_at,
+            ];
+        });
     }
 
     /**
@@ -320,9 +427,9 @@ class PaiementService
      *
      * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator
      */
-    public function getPendingPayments(int $perPage = 20)
+    public function getPendingPayments(int $perPage = 20): LengthAwarePaginator
     {
-        return \App\Models\Paiement::with(['candidat', 'concours'])
+        return Paiement::with(['candidat', 'concours'])
             ->whereIn('statut', [
                 StatutPaiement::PENDING,
                 StatutPaiement::PENDING_MANUAL_REVIEW
@@ -344,7 +451,7 @@ class PaiementService
      */
     public function reject(int $paiementId, string $motif, int $userId): Paiement
     {
-        $paiement = \App\Models\Paiement::findOrFail($paiementId);
+        $paiement = Paiement::findOrFail($paiementId);
 
 
         if (!in_array($paiement->statut, [
@@ -465,12 +572,12 @@ class PaiementService
     {
         $paiement = Paiement::findOrFail($paiementId);
 
-        // Vérifier que le paiement peut être validé manuellement
+
         if (!in_array($paiement->statut, [StatutPaiement::PENDING, StatutPaiement::PENDING_MANUAL_REVIEW])) {
             throw new \Exception('Ce paiement ne peut pas être validé manuellement');
         }
 
-        // Marquer comme validé manuellement
+
         $paiement->update([
             'statut' => StatutPaiement::VERIFIED,
             'validated_at' => now(),
