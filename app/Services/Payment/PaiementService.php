@@ -271,10 +271,15 @@ class PaiementService
      */
     public function getPaiementInfo(string $pru): ?array
     {
-        $paiement = Paiement::with(['concours', 'concours.configurationPaiement'])
+
+        $paiement = Paiement::with([
+            'concours:id,libelle_concours,date_limite_depot,date_examen,est_actif',
+            'concours.configurationPaiement:id,concours_id,banque_nom,numero_compte,montant,date_limit'
+        ])
             ->where('reference', $pru)
             ->where('statut', StatutPaiement::VERIFIED)
             ->whereNull('candidat_id')
+            ->select('id', 'concours_id', 'reference', 'montant', 'validated_at')
             ->first();
 
         if (!$paiement) {

@@ -57,10 +57,11 @@ class CandidatService
 
             $concoursId = $paiementInfo['concours_id'];
 
-            // Vérifier que le concours demandé correspond (si fourni)
+
             if (isset($dto->concoursId) && $dto->concoursId !== $concoursId) {
                 throw new \Exception('Le PRU ne correspond pas au concours sélectionné');
             }
+
 
             if ($this->userService->emailExists($dto->email)) {
                 throw new \Exception('Cet email est déjà utilisé');
@@ -83,10 +84,8 @@ class CandidatService
             $this->paiementService->linkToCandidat($dto->pru, $concoursId, $candidat->utilisateur_id);
             $dateInscription = $paiementInfo['validated_at'];
 
-            // Récupérer la session active pour ce concours
-            $sessionActive = $paiementInfo['concours']->sessions()
-                ->where('statut_session', 'ACTIVE')
-                ->first();
+
+            $sessionActive = $this->getActiveSessionForConcours($paiementInfo['concours']);
 
             if (!$sessionActive) {
                 throw new \Exception('Aucune session active trouvée pour ce concours');
@@ -269,5 +268,23 @@ class CandidatService
     public function activate(string $utilisateurId): bool
     {
         return $this->userService->activate($utilisateurId);
+    }
+
+    /**
+     * Récupérer la session active pour un concours (avec cache).
+     *
+     * @param mixed $concours Instance du modèle Concours
+     *
+     * @return mixed Session active ou null
+     */
+    private function getActiveSessionForConcours($concours)
+    {
+        $cacheKey = "concours_{$concours->id}_active_session";
+
+        return Cache::remember($cacheKey, 3600, function () use ($concours) {
+            return $concours->sessions()
+                ->where('statut_session', 'ACTIVE')
+                ->first();
+        });
     }
 }
