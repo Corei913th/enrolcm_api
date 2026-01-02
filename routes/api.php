@@ -10,8 +10,7 @@ Route::prefix('payments')->group(function () {
     require __DIR__ . '/api/payments.php';
 });
 
-Route::middleware('auth:sanctum')->group(function () {
-    Route::prefix('receipts')->group(function () {
-        require __DIR__ . '/api/receipts.php';
-    });
+
+Route::prefix('receipts')->group(function () {
+    require __DIR__ . '/api/receipts.php';
 });
