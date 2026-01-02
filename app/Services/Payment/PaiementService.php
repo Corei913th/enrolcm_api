@@ -4,24 +4,21 @@ namespace App\Services\Payment;
 
 use App\Models\Paiement;
 use App\Enums\StatutPaiement;
-use App\Models\ConcoursPaiement;
 use App\Services\OCR\TesseractOcrService;
 use App\Services\Payment\ConcoursPaiementService;
 use App\Services\Payment\Validators\PaymentOcrValidator;
 use App\Services\Payment\Processors\OcrDataProcessor;
-use App\Services\Payment\Processors\AccountNormalizer;
-use DateTime;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Log;
 
 class PaiementService
 {
     public function __construct(
         private readonly TesseractOcrService $ocrService,
-        private readonly ConcoursPaiementService $concoursPaiementService
+        private readonly ConcoursPaiementService $concoursPaiementService,
+        private readonly OcrDataProcessor $processor
     ) {}
 
     /**
@@ -48,17 +45,17 @@ class PaiementService
             }
 
             $path = $preuve->store('paiements', 'public');
-            $processor = new OcrDataProcessor();
+
 
             try {
                 $fullPath = Storage::disk('public')->path($path);
                 $ocrData = $this->ocrService->extractReceiptData($fullPath);
             } catch (\Exception $e) {
                 Log::warning("OCR failed for payment: {$e->getMessage()}");
-                return $processor->createFailedOcrPayment($concoursId, $path, $e);
+                return $this->processor->createFailedOcrPayment($concoursId, $path, $e);
             }
 
-            // Traiter les données OCR avec le processeur modulaire
+
             $processor = new OcrDataProcessor();
             [$paiement, $errors, $warnings] = $processor->processOcrData($concoursId, $path, $ocrData, $config);
 
@@ -74,12 +71,12 @@ class PaiementService
             $validator = new PaymentOcrValidator();
             $validationResult = $validator->autoValidate($paiement, $config);
 
-            // Déterminer le statut de validation pour l'UI
+
             $hasWarnings = !empty($warnings);
             $isAutoValidated = $validationResult;
 
-            // Déterminer le code de validation
-            $validationCode = $this->getValidationCode($isAutoValidated, $hasWarnings);
+
+            $validationCode = $this->getValidationCodeString($isAutoValidated, $hasWarnings);
 
             return [
                 'paiement' => $paiement,
@@ -87,10 +84,8 @@ class PaiementService
                     'success' => true,
                     'stored' => true,
                     'code' => $validationCode,
-                    'code_label' => $this->getValidationCodeLabel($validationCode),
-                    'complete_success' => $isAutoValidated && !$hasWarnings,
-                    'partial_success' => $isAutoValidated && $hasWarnings,
-                    'needs_manual_review' => !$isAutoValidated || $hasWarnings,
+                    'complete_success' => $validationCode === 'VALIDATION_COMPLETE',
+                    'needs_manual_review' => $validationCode === 'VALIDATION_MANUELLE_REQUISE',
                     'auto_validated' => $isAutoValidated,
                     'has_warnings' => $hasWarnings,
                     'warnings' => $warnings,
@@ -103,37 +98,14 @@ class PaiementService
     }
 
     /**
-     * Retourne un code numérique pour le statut de validation.
+     * Retourne un code string pour le statut de validation.
      */
-    private function getValidationCode(bool $isAutoValidated, bool $hasWarnings): int
+    private function getValidationCodeString(bool $isAutoValidated, bool $hasWarnings): string
     {
         if ($isAutoValidated && !$hasWarnings) {
-            return 200; // Validation complète réussie
+            return 'VALIDATION_COMPLETE';
         }
-
-        if ($isAutoValidated && $hasWarnings) {
-            return 206; // Validation partielle (Partial Content)
-        }
-
-        if (!$isAutoValidated && !$hasWarnings) {
-            return 202; // Accepté pour validation manuelle (Accepted)
-        }
-
-        return 207; // Multi-Status (nécessite validation manuelle + données manquantes)
-    }
-
-    /**
-     * Retourne le label du code de validation.
-     */
-    private function getValidationCodeLabel(int $code): string
-    {
-        return match ($code) {
-            200 => 'VALIDATION_COMPLETE',
-            206 => 'VALIDATION_PARTIELLE',
-            202 => 'VALIDATION_MANUELLE_REQUISE',
-            207 => 'VALIDATION_MANUELLE_AVEC_DONNEES_MANQUANTES',
-            default => 'STATUT_INCONNU'
-        };
+        return 'VALIDATION_MANUELLE_REQUISE';
     }
 
     /**
@@ -142,18 +114,9 @@ class PaiementService
     private function getValidationMessage(bool $isAutoValidated, bool $hasWarnings, array $warnings): string
     {
         if ($isAutoValidated && !$hasWarnings) {
-            return 'Paiement créé et validé automatiquement avec succès.';
+            return 'Paiement valide et confirme automatiquement.';
         }
-
-        if ($isAutoValidated && $hasWarnings) {
-            return 'Paiement créé avec validation automatique partielle. Quelques données manquent mais le paiement est valide.';
-        }
-
-        if (!$isAutoValidated && !$hasWarnings) {
-            return 'Paiement créé mais nécessite validation manuelle.';
-        }
-
-        return 'Paiement créé mais nécessite validation manuelle. Données incomplètes détectées.';
+        return 'Paiement enregistre. Contactez l\'administration pour validation manuelle de votre recu.';
     }
 
     /**
@@ -162,20 +125,57 @@ class PaiementService
      * @param string $pru Référence de paiement unique
      * @param string $concoursId ID du concours
      *
-     * @return array ['valid' => bool, 'message' => string, 'concours' => Concours?, 'montant' => float?]
+     * @return array Résultat de validation avec codes
      */
     public function isPRUValid(string $pru, string $concoursId): array
     {
         $paiement = Paiement::where('reference', $pru)
             ->where('concours_id', $concoursId)
-            ->where('statut', \App\Enums\StatutPaiement::VERIFIED)
             ->whereNull('candidat_id')
             ->first();
 
         if (!$paiement) {
             return [
                 'valid' => false,
-                'message' => 'PRU invalide ou déjà utilisé'
+                'code' => 'PRU_INVALIDE',
+                'message' => 'PRU invalide ou deja utilise',
+                'concours' => null,
+                'montant' => null,
+                'paiement' => null
+            ];
+        }
+
+        // Vérifier le statut du paiement
+        if ($paiement->statut === StatutPaiement::REJECTED) {
+            return [
+                'valid' => false,
+                'code' => 'PAIEMENT_REJETE',
+                'message' => 'Paiement rejete par l\'administration',
+                'concours' => $paiement->concours,
+                'montant' => $paiement->montant,
+                'paiement' => $paiement
+            ];
+        }
+
+        if ($paiement->statut === StatutPaiement::PENDING_MANUAL_REVIEW) {
+            return [
+                'valid' => false,
+                'code' => 'PAIEMENT_EN_ATTENTE_VALIDATION',
+                'message' => 'Paiement en attente de validation par l\'administration',
+                'concours' => $paiement->concours,
+                'montant' => $paiement->montant,
+                'paiement' => $paiement
+            ];
+        }
+
+        if ($paiement->statut !== StatutPaiement::VERIFIED && $paiement->statut !== StatutPaiement::OCR_VERIFIE) {
+            return [
+                'valid' => false,
+                'code' => 'PAIEMENT_NON_VALIDE',
+                'message' => 'Paiement non valide',
+                'concours' => $paiement->concours,
+                'montant' => $paiement->montant,
+                'paiement' => $paiement
             ];
         }
 
@@ -183,14 +183,21 @@ class PaiementService
         if ($config && $config->date_limite < now()) {
             return [
                 'valid' => false,
-                'message' => 'La date limite d\'inscription est dépassée'
+                'code' => 'DATE_DEPASSEE',
+                'message' => 'Date limite d\'inscription depassee',
+                'concours' => $paiement->concours,
+                'montant' => $paiement->montant,
+                'paiement' => $paiement
             ];
         }
 
         return [
             'valid' => true,
+            'code' => 'PRU_VALIDE',
+            'message' => 'PRU valide',
             'concours' => $paiement->concours,
-            'montant' => $paiement->montant
+            'montant' => $paiement->montant,
+            'paiement' => $paiement
         ];
     }
 
@@ -204,7 +211,7 @@ class PaiementService
      */
     public function getPayments(array $filters = [], int $perPage = 20)
     {
-        $query = \App\Models\Paiement::with(['candidat', 'concours']);
+        $query = Paiement::with(['candidat', 'concours']);
 
         // Appliquer les filtres
         if (!empty($filters['statut'])) {
