@@ -37,12 +37,13 @@ class OcrDataProcessor
       return [null, $errors, $warnings];
     }
 
-    // Vérifications avec warnings (doivent être avant la logique de statut)
-    if (!$ocrData->numero_recu) {
+
+    $rawExtracted = $ocrData->raw_data['extracted'] ?? [];
+    if (empty($rawExtracted['numero_recu'])) {
       $warnings[] = 'numéro de reçu';
     }
 
-    if (!$ocrData->numero_compte) {
+    if (empty($rawExtracted['numero_compte'])) {
       $warnings[] = 'numéro de compte';
     }
 
@@ -52,19 +53,21 @@ class OcrDataProcessor
       'numero_compte' => $ocrData->numero_compte,
       'montant' => $ocrData->montant,
       'banque' => $ocrData->banque,
-      'warnings' => $warnings
+      'warnings' => $warnings,
+      'raw_data_extracted' => $ocrData->raw_data['extracted'] ?? null,
+      'ocrData_object' => get_object_vars($ocrData)
     ]);
 
     // Générer référence
-    $reference = $ocrData->numero_recu ?: ('PARTIAL_' . time());
+    $reference = $rawExtracted['numero_recu'] ?: ('PARTIAL_' . time());
 
     // Déterminer le statut initial
     $statut = StatutPaiement::PENDING;
     $validationNotes = null;
 
     // Vérifier unicité de la référence
-    if ($ocrData->numero_recu) {
-      $existant = Paiement::where('reference', $ocrData->numero_recu)
+    if ($rawExtracted['numero_recu']) {
+      $existant = Paiement::where('reference', $rawExtracted['numero_recu'])
         ->where('concours_id', $concoursId)
         ->first();
 
@@ -83,6 +86,20 @@ class OcrDataProcessor
         : $warningText;
     }
 
+    // Utiliser les données extraites brutes car les propriétés DTO peuvent être null
+    $rawExtracted = $ocrData->raw_data['extracted'] ?? [];
+
+    // Debug: Log des données avant création du paiement
+    \Log::info('Paiement Creation Data', [
+      'concours_id' => $concoursId,
+      'reference' => $reference,
+      'montant' => $ocrData->montant ?: 0,
+      'statut' => $statut,
+      'numero_compte_ocr' => $rawExtracted['numero_compte'] ?? null,
+      'reference_ocr' => $rawExtracted['numero_recu'] ?? null,
+      'validation_notes' => $validationNotes,
+    ]);
+
     // Créer le paiement
     $paiement = Paiement::create([
       'concours_id' => $concoursId,
@@ -92,8 +109,8 @@ class OcrDataProcessor
       'statut' => $statut,
       'montant_ocr' => $ocrData->montant,
       'banque_ocr' => $ocrData->banque,
-      'numero_compte_ocr' => $ocrData->numero_compte,
-      'reference_ocr' => $ocrData->numero_recu,
+      'numero_compte_ocr' => $rawExtracted['numero_compte'] ?? null,
+      'reference_ocr' => $rawExtracted['numero_recu'] ?? null,
       'date_ocr' => $ocrData->date_paiement,
       'ocr_confidence' => $ocrData->ocr_confidence,
       'ocr_raw_data' => $ocrData->raw_data,
