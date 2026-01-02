@@ -38,8 +38,5 @@ class Filiere extends Model
             ->withTimestamps();
     }
 
-    public function candidats()
-    {
-        return $this->hasMany(Candidat::class, 'filiere_id');
-    }
+    
 }
