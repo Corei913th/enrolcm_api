@@ -19,7 +19,7 @@ class PaiementController extends Controller
     ) {}
 
     /**
-     * Upload preuve de paiement (AVANT création compte).
+     * Upload preuve de paiement 
      * @param CreatePaiementRequest $request Requête validée contenant concours_id, reference, montant et preuve
      * @return JsonResponse Réponse JSON avec paiement créé ou erreur
      */
@@ -31,37 +31,35 @@ class PaiementController extends Controller
                 preuve: $request->file('preuve')
             );
 
-            $statusCode = $result['validation_info']['code'] >= 200 && $result['validation_info']['code'] < 300 ? 201 : 202;
-
             return api_success([
                 'success' => true,
                 'message' => $result['validation_info']['message'],
                 'data' => $result,
-                'alert_type' => $this->getAlertType($result['validation_info']['code'])
-            ], $statusCode);
+                'alert_type' => $this->getAlertTypeFromCode($result['validation_info']['code'])
+            ]);
         } catch (\Exception $e) {
             return api_error($e->getMessage(), null, 400);
         }
     }
 
     /**
-     * Vérifier si un PRU est valide (AVANT création compte).
+     * Vérifier si un PRU est valide
      * @param VerifyPRURequest $request Requête validée contenant pru et concours_id
      * @return JsonResponse Réponse JSON indiquant validité du PRU
      */
     public function verifyPRU(VerifyPRURequest $request): JsonResponse
     {
         try {
-            $isValid = $this->paiementService->isPRUValid(
+            $result = $this->paiementService->isPRUValid(
                 pru: $request->pru,
                 concoursId: $request->concours_id
             );
 
-            if ($isValid) {
-                return api_success(['valid' => true], 'PRU valide et disponible');
+            if ($result['valid']) {
+                return api_success($result, $result['message']);
             }
 
-            return api_error('PRU invalide ou déjà utilisé', ['valid' => false], 400);
+            return api_error($result['message'], $result, 400);
         } catch (\Exception $e) {
             return api_error($e->getMessage(), null, 400);
         }
@@ -151,15 +149,15 @@ class PaiementController extends Controller
     }
 
     /**
-     * Détermine le type d'alerte UI selon le code de validation.
+     * Détermine le type d'alerte UI selon le code de validation string.
      */
-    private function getAlertType(int $code): string
+    private function getAlertTypeFromCode(string $code): string
     {
         return match ($code) {
-            200 => 'success',      // Validation complète
-            206 => 'warning',      // Validation partielle
-            202 => 'info',         // Validation manuelle requise
-            207 => 'warning',      // Validation manuelle avec données manquantes
+            'VALIDATION_COMPLETE' => 'success',
+            'VALIDATION_PARTIELLE' => 'warning',
+            'VALIDATION_MANUELLE_REQUISE' => 'info',
+            'VALIDATION_MANUELLE_AVEC_DONNEES_MANQUANTES' => 'warning',
             default => 'info'
         };
     }
