@@ -46,6 +46,15 @@ class OcrDataProcessor
       $warnings[] = 'numéro de compte';
     }
 
+    // Debug: Log des données OCR pour diagnostic
+    \Log::info('OCR Data Processor - Données reçues', [
+      'numero_recu' => $ocrData->numero_recu,
+      'numero_compte' => $ocrData->numero_compte,
+      'montant' => $ocrData->montant,
+      'banque' => $ocrData->banque,
+      'warnings' => $warnings
+    ]);
+
     // Générer référence
     $reference = $ocrData->numero_recu ?: ('PARTIAL_' . time());
 
