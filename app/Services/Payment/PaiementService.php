@@ -163,4 +163,34 @@ class PaiementService
         $validator = new \App\Services\Payment\Validators\PaymentOcrValidator();
         return $validator->autoValidate($paiement, $config);
     }
+
+    /**
+     * Validation manuelle d'un paiement par un administrateur.
+     *
+     * @param int $paiementId ID du paiement
+     * @param int $userId ID de l'utilisateur qui valide
+     *
+     * @return Paiement
+     *
+     * @throws \Exception Si le paiement n'existe pas ou ne peut pas être validé
+     */
+    public function manualValidate(int $paiementId, int $userId): Paiement
+    {
+        $paiement = Paiement::findOrFail($paiementId);
+
+        // Vérifier que le paiement peut être validé manuellement
+        if (!in_array($paiement->statut, [StatutPaiement::PENDING, StatutPaiement::PENDING_MANUAL_REVIEW])) {
+            throw new \Exception('Ce paiement ne peut pas être validé manuellement');
+        }
+
+        // Marquer comme validé manuellement
+        $paiement->update([
+            'statut' => StatutPaiement::VERIFIED,
+            'validated_at' => now(),
+            'validated_by' => $userId,
+            'validation_notes' => ($paiement->validation_notes ? $paiement->validation_notes . '; ' : '') . 'Validé manuellement par l\'administrateur',
+        ]);
+
+        return $paiement;
+    }
 }
