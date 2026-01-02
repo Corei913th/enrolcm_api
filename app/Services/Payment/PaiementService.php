@@ -263,6 +263,34 @@ class PaiementService
     }
 
     /**
+     * Récupère les informations complètes d'un paiement depuis son PRU.
+     *
+     * @param string $pru Référence de paiement unique
+     *
+     * @return array|null Informations du paiement ou null
+     */
+    public function getPaiementInfo(string $pru): ?array
+    {
+        $paiement = Paiement::with(['concours', 'concours.configurationPaiement'])
+            ->where('reference', $pru)
+            ->where('statut', StatutPaiement::VERIFIED)
+            ->whereNull('candidat_id')
+            ->first();
+
+        if (!$paiement) {
+            return null;
+        }
+
+        return [
+            'paiement' => $paiement,
+            'concours' => $paiement->concours,
+            'concours_id' => $paiement->concours_id,
+            'montant' => $paiement->montant,
+            'validated_at' => $paiement->validated_at,
+        ];
+    }
+
+    /**
      * Récupère la date de validation d'un paiement.
      *
      * @param string $pru Référence de paiement unique

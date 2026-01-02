@@ -42,17 +42,24 @@ class CandidatService
      * @return array Tableau contenant :
      *   - user : Utilisateur avec relation candidat
      *   - candidature : Candidature créée
-     *   - token : Token d'authentification
      *
      * @throws \Exception Si PRU invalide ou email déjà utilisé
      */
     public function register(RegisterCandidatDTO $dto): array
     {
         return DB::transaction(function () use ($dto) {
-            $verification = $this->verifyPRU(new VerifyPRUDTO($dto->pru, $dto->concoursId));
 
-            if (!$verification['valid']) {
-                throw new \Exception($verification['message']);
+            $paiementInfo = $this->paiementService->getPaiementInfo($dto->pru);
+
+            if (!$paiementInfo) {
+                throw new \Exception('PRU invalide ou déjà utilisé');
+            }
+
+            $concoursId = $paiementInfo['concours_id'];
+
+            // Vérifier que le concours demandé correspond (si fourni)
+            if (isset($dto->concoursId) && $dto->concoursId !== $concoursId) {
+                throw new \Exception('Le PRU ne correspond pas au concours sélectionné');
             }
 
             if ($this->userService->emailExists($dto->email)) {
@@ -73,24 +80,31 @@ class CandidatService
                 'nationalite_cand' => 'Camerounaise',
             ]);
 
-            $this->paiementService->linkToCandidat($dto->pru, $dto->concoursId, $candidat->utilisateur_id);
-            $dateInscription = $this->paiementService->getValidationDate($dto->pru, $dto->concoursId);
+            $this->paiementService->linkToCandidat($dto->pru, $concoursId, $candidat->utilisateur_id);
+            $dateInscription = $paiementInfo['validated_at'];
+
+            // Récupérer la session active pour ce concours
+            $sessionActive = $paiementInfo['concours']->sessions()
+                ->where('statut_session', 'ACTIVE')
+                ->first();
+
+            if (!$sessionActive) {
+                throw new \Exception('Aucune session active trouvée pour ce concours');
+            }
 
             $candidature = Candidature::create([
                 'candidat_id' => $candidat->utilisateur_id,
-                'concours_id' => $dto->concoursId,
-                'session_id' => $dto->sessionId,
+                'concours_id' => $concoursId,
+                'session_id' => $sessionActive->id,
                 'statut_inscription' => StatutInscription::ACTIF,
                 'date_candidature' => now(),
                 'date_inscription' => $dateInscription ?? now(),
             ]);
 
-            $token = $this->userService->generateToken($utilisateur);
 
             return [
                 'user' => $utilisateur->load('candidat'),
                 'candidature' => $candidature,
-                'token' => $token,
             ];
         });
     }
@@ -183,7 +197,7 @@ class CandidatService
             $search = $filters['search'];
             $query->where(function ($q) use ($search) {
                 $q->where('nom_cand', 'like', "%{$search}%")
-                  ->orWhere('prenom_cand', 'like', "%{$search}%");
+                    ->orWhere('prenom_cand', 'like', "%{$search}%");
             });
         }
 
@@ -200,7 +214,7 @@ class CandidatService
         return $query->orderBy('created_at', 'desc')->paginate($perPage);
     }
 
-       /**
+    /**
      * Statistiques sur les candidats.
      *
      * @return array Tableau contenant :
