@@ -23,10 +23,6 @@ class PaiementService
 
     /**
      * Crée un paiement avec preuve uploadée et données OCR.
-     *
-     * Workflow : Upload preuve → OCR → Sauvegarde PENDING → Auto-validation.
-     * IMPORTANT : candidat_id est NULL car le candidat n'existe pas encore.
-     *
      * @param string $concoursId UUID du concours
      * @param string $reference Référence unique du paiement (PRU)
      * @param float $montant Montant payé
@@ -35,6 +31,75 @@ class PaiementService
      * @return Paiement Paiement créé
      *
      * @throws \Exception Si la référence est déjà utilisée ou configuration inactive
+     */
+    /**
+     * Crée un paiement avec OCR automatique (RECOMMANDÉ)
+     * L'OCR extrait automatiquement référence et montant du reçu
+     */
+    public function createPaymentWithOcr(
+        string $concoursId,
+        UploadedFile $preuve
+    ): Paiement {
+        return DB::transaction(function () use ($concoursId, $preuve) {
+            $config = $this->concoursPaiementService->getConfiguration($concoursId);
+            if (!$config || !$config->est_actif) {
+                throw new \Exception('Configuration de paiement non disponible pour ce concours');
+            }
+
+            $path = $preuve->store('paiements', 'public');
+
+            try {
+                $fullPath = Storage::disk('public')->path($path);
+                $ocrData = $this->ocrService->extractReceiptData($fullPath);
+            } catch (\Exception $e) {
+                Log::warning("OCR failed for payment: {$e->getMessage()}");
+                throw new \Exception('Impossible d\'analyser le reçu. Vérifiez que l\'image est lisible.');
+            }
+
+            // Vérifier que l'OCR a détecté les données essentielles
+            if (!$ocrData->numero_recu || !$ocrData->montant) {
+                throw new \Exception('Le reçu n\'a pas pu être analysé correctement. Données manquantes.');
+            }
+
+            // Vérifier l'unicité de la référence
+            $existant = Paiement::where('reference', $ocrData->numero_recu)
+                ->where('concours_id', $concoursId)
+                ->first();
+
+            if ($existant) {
+                throw new \Exception('Cette référence de paiement est déjà utilisée');
+            }
+
+            $statut = StatutPaiement::PENDING;
+
+            // Validation automatique intelligente
+            $paiement = Paiement::create([
+                'concours_id' => $concoursId,
+                'reference' => $ocrData->numero_recu,
+                'montant' => $ocrData->montant,
+                'preuve_paiement' => $path,
+                'statut' => $statut,
+                'montant_ocr' => $ocrData->montant,
+                'banque_ocr' => $ocrData->banque,
+                'numero_compte_ocr' => $ocrData->numero_compte,
+                'reference_ocr' => $ocrData->numero_recu,
+                'date_ocr' => $ocrData->date_paiement,
+                'ocr_confidence' => $ocrData->ocr_confidence,
+                'ocr_raw_data' => $ocrData->raw_data,
+            ]);
+
+            // Tentative de validation automatique
+            $this->autoValidate($paiement);
+
+            return $paiement;
+        });
+    }
+
+    /**
+     * Crée un paiement avec saisie manuelle (FALLBACK)
+     * À utiliser seulement si l'OCR échoue
+     *
+     * @deprecated Utiliser createPaymentWithOcr de préférence
      */
     public function createPayment(
         string $concoursId,
