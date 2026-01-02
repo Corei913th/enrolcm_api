@@ -12,16 +12,16 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->string('code_matiere', 10);
             $table->string('libelle_matiere', 200);
-            $table->uuid('filiere_id')->nullable();
+            $table->uuid('niveau_id')->nullable();
             $table->integer('coefficient')->nullable()->default(2);
             $table->boolean('est_actif')->default(true);
             $table->timestamps();
 
             // Foreign key
-            $table->foreign('filiere_id')->references('id')->on('filieres')->onDelete('restrict');
+            $table->foreign('niveau_id')->references('id')->on('niveaux')->onDelete('restrict');
 
-            // Unicité par filière
-            $table->unique(['filiere_id', 'code_matiere'], 'matieres_filiere_code_unique');
+            // Unicité par niveau
+            $table->unique(['niveau_id', 'code_matiere'], 'matieres_niveau_code_unique');
         });
     }
 

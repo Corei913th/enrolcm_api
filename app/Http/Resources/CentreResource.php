@@ -13,12 +13,14 @@ class CentreResource extends JsonResource
             'libelle_centre' => $this->libelle_centre,
             'type_centre' => $this->type_centre,
             'ville_centre' => $this->ville_centre,
+            'departement' => $this->departement,
+            'arrondissement' => $this->arrondissement,
             'capacite' => $this->capacite,
             'capacite_totale' => $this->getCapaciteTotale(),
             'nombre_salles' => $this->getNombreSalles(),
             'est_actif' => $this->est_actif,
             'created_at' => $this->created_at?->format('Y-m-d H:i:s'),
-            
+            'region' => new RegionRessource($this->whenLoaded('region')),
             'salles' => SalleExamenResource::collection($this->whenLoaded('salles')),
         ];
     }

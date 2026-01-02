@@ -25,15 +25,17 @@ class Centre extends Model
         'capacite',
         'est_actif',
         'responsable_id',
+        'region_id'
     ];
 
     protected $casts = [
         'capacite' => 'integer',
         'est_actif' => 'boolean',
-        'region' => RegionCameroun::class,
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
+
+
 
     // Relations
     public function salles()
@@ -44,6 +46,11 @@ class Centre extends Model
     public function responsable()
     {
         return $this->belongsTo(ResponsableCentre::class, 'responsable_id', 'utilisateur_id');
+    }
+
+    public function region()
+    {
+        return $this->belongsTo(Region::class, 'region_id');
     }
 
     public function candidatures()
@@ -67,9 +74,18 @@ class Centre extends Model
         return $query->where('ville_centre', $ville);
     }
 
-    public function scopeByRegion($query, RegionCameroun $region)
+    public function scopeByRegion($query, $region)
     {
-        return $query->where('region', $region->value);
+        // Accepte soit un RegionCameroun enum, soit un Region model, soit un region_id
+        if ($region instanceof RegionCameroun) {
+            return $query->whereHas('region', function ($q) use ($region) {
+                $q->where('libelle', $region);
+            });
+        } elseif ($region instanceof Region) {
+            return $query->where('region_id', $region->id);
+        } else {
+            return $query->where('region_id', $region);
+        }
     }
 
     public function scopeByDepartement($query, $departement)
@@ -82,9 +98,18 @@ class Centre extends Model
         return $query->where('arrondissement', $arrondissement);
     }
 
-    public function scopeDansLaRegion($query, RegionCameroun $region, $departement = null, $arrondissement = null)
+    public function scopeDansLaRegion($query, $region, $departement = null, $arrondissement = null)
     {
-        $query->where('region', $region->value);
+        // Accepte soit un RegionCameroun enum, soit un Region model, soit un region_id
+        if ($region instanceof RegionCameroun) {
+            $query->whereHas('region', function ($q) use ($region) {
+                $q->where('libelle', $region);
+            });
+        } elseif ($region instanceof Region) {
+            $query->where('region_id', $region->id);
+        } else {
+            $query->where('region_id', $region);
+        }
 
         if ($departement) {
             $query->where('departement', $departement);
@@ -130,15 +155,28 @@ class Centre extends Model
 
         if ($this->arrondissement) $adresse[] = $this->arrondissement;
         if ($this->departement) $adresse[] = $this->departement;
-        if ($this->region) $adresse[] = $this->region->label();
+        if ($this->region && $this->region->libelle) {
+            $adresse[] = $this->region->libelle->label();
+        }
         if ($this->ville_centre) $adresse[] = $this->ville_centre;
 
         return implode(', ', $adresse);
     }
 
-    public function estDansLaRegion(RegionCameroun $region)
+    public function estDansLaRegion($region)
     {
-        return $this->region === $region;
+        // Accepte soit un RegionCameroun enum, soit un Region model, soit un region_id
+        if (!$this->region) {
+            return false;
+        }
+
+        if ($region instanceof RegionCameroun) {
+            return $this->region->libelle === $region;
+        } elseif ($region instanceof Region) {
+            return $this->region_id === $region->id;
+        } else {
+            return $this->region_id === $region;
+        }
     }
 
     // STATISTIQUES

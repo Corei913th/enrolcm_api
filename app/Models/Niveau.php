@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Niveau extends Model
 {
@@ -33,13 +34,8 @@ class Niveau extends Model
         return $this->belongsTo(Filiere::class);
     }
 
-    public function filieres()
+    public function matieres(): HasMany
     {
-        return $this->belongsToMany(Filiere::class, 'filiere_niveau');
-    }
-
-    public function matieres()
-    {
-        return $this->belongsToMany(Matiere::class, 'niveau_matiere');
+        return $this->hasMany(Matiere::class);
     }
 }
