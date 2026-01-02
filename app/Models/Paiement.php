@@ -26,6 +26,8 @@ class Paiement extends Model
         'date_ocr',
         'banque_ocr',
         'reference_ocr',
+        'numero_compte_ocr',
+        'validation_notes',
         'ocr_confidence',
         'ocr_raw_data',
         'statut',
