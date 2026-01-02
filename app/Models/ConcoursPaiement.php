@@ -19,15 +19,32 @@ class ConcoursPaiement extends Model
         'banque_nom',
         'numero_compte',
         'nom_beneficiaire',
+        'devise',
+        'code_banque',
+        'agence_banque',
+        'iban',
+        'type_paiement',
+        'banques_acceptees',
+        'frais_paiement',
         'montant',
         'date_limite',
+        'reference_format',
+        'minimum_confiance_ocr',
+        'validation_auto',
         'instructions',
+        'commentaires',
+        'date_derniere_modification',
         'est_actif',
     ];
 
     protected $casts = [
         'montant' => 'decimal:2',
+        'frais_paiement' => 'decimal:2',
+        'minimum_confiance_ocr' => 'decimal:2',
         'date_limite' => 'date',
+        'date_derniere_modification' => 'datetime',
+        'banques_acceptees' => 'array',
+        'validation_auto' => 'boolean',
         'est_actif' => 'boolean',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
@@ -50,6 +67,26 @@ class ConcoursPaiement extends Model
         return $query->where('date_limite', '>=', now());
     }
 
+    public function scopeParTypePaiement($query, string $type)
+    {
+        return $query->where('type_paiement', $type);
+    }
+
+    public function scopeParDevise($query, string $devise)
+    {
+        return $query->where('devise', $devise);
+    }
+
+    public function scopeValidationAuto($query)
+    {
+        return $query->where('validation_auto', true);
+    }
+
+    public function scopeBanqueAcceptee($query, string $banque)
+    {
+        return $query->whereJsonContains('banques_acceptees', $banque);
+    }
+
     // Helpers
     public function isExpire(): bool
     {
@@ -59,5 +96,33 @@ class ConcoursPaiement extends Model
     public function joursRestants(): int
     {
         return max(0, now()->diffInDays($this->date_limite, false));
+    }
+
+    public function montantTotal(): float
+    {
+        return $this->montant + $this->frais_paiement;
+    }
+
+    public function banqueEstAcceptee(string $nomBanque): bool
+    {
+        return $this->banques_acceptees && in_array($nomBanque, $this->banques_acceptees);
+    }
+
+    public function peutValiderAutomatiquement(): bool
+    {
+        return $this->validation_auto && $this->est_actif && !$this->isExpire();
+    }
+
+    public function getInformationsBancaires(): array
+    {
+        return [
+            'banque' => $this->banque_nom,
+            'code_banque' => $this->code_banque,
+            'agence' => $this->agence_banque,
+            'numero_compte' => $this->numero_compte,
+            'iban' => $this->iban,
+            'beneficiaire' => $this->nom_beneficiaire,
+            'devise' => $this->devise,
+        ];
     }
 }

@@ -28,6 +28,7 @@ class Utilisateur extends Authenticatable
     ];
 
     protected $casts = [
+        'type_utilisateur' => TypeUtilisateur::class,
         'est_actif' => 'boolean',
         'email_verifie' => 'boolean',
         'email_verifie_at' => 'datetime',
@@ -101,7 +102,7 @@ class Utilisateur extends Authenticatable
         return $query->where('est_actif', true);
     }
 
-    public function scopeByType($query, $type)
+    public function scopeByType($query, TypeUtilisateur $type)
     {
         return $query->where('type_utilisateur', $type);
     }
@@ -121,13 +122,14 @@ class Utilisateur extends Authenticatable
     {
         return $this->type_utilisateur === TypeUtilisateur::CORRECTEUR;
     }
+    
 
     public function isResponsableCentre(): bool
     {
         return $this->type_utilisateur === TypeUtilisateur::RESPONSABLE_CENTRE;
     }
 
-    public function hasRole($roleName): bool
+    public function hasRole(TypeUtilisateur $roleName): bool
     {
         return $this->roles()->where('libelle_role', $roleName)->exists();
     }

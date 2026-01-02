@@ -6,20 +6,25 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    public function up()
-    {
-        Schema::create('niveaux', function (Blueprint $table) {
+        public function up()
+        {
+            Schema::create('niveaux', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->string('code_niveau', 10)->unique();
+            $table->string('code_niveau', 10);
             $table->string('libelle_niveau', 100);
             $table->uuid('filiere_id')->nullable();
             $table->integer('ordre')->nullable();
             $table->text('desc_niveau')->nullable();
             $table->boolean('est_actif')->default(true);
             $table->timestamps();
-            
+
+            // Foreign key
             $table->foreign('filiere_id')->references('id')->on('filieres')->onDelete('restrict');
-        });
+
+            // Unique par filière
+            $table->unique(['filiere_id', 'code_niveau'], 'niveaux_filiere_code_unique');
+    });
+
     }
 
     public function down()

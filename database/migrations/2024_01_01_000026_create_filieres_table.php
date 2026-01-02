@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('filieres', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->string('code_filiere', 10)->unique();
+            $table->string('code_filiere', 10);
             $table->string('libelle_filiere', 200);
             $table->uuid('departement_id')->nullable();
             $table->text('desc_filiere')->nullable();

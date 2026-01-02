@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Filiere extends Model
 {
@@ -29,15 +30,6 @@ class Filiere extends Model
         return $this->belongsTo(Departement::class);
     }
 
-    public function niveaux()
-    {
-        return $this->hasMany(Niveau::class, 'filiere_id');
-    }
-
-    public function niveauxPivot()
-    {
-        return $this->belongsToMany(Niveau::class, 'filiere_niveau');
-    }
 
     public function concours()
     {
@@ -47,8 +39,8 @@ class Filiere extends Model
             ->withTimestamps();
     }
 
-    public function candidats()
+    public function niveaux(): HasMany
     {
-        return $this->hasMany(Candidat::class, 'filiere_id');
+        return $this->hasMany(Niveau::class);
     }
 }

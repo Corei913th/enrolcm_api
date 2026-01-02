@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Support\Facades\Schema;
 
 class Concours extends Model
 {
@@ -12,9 +13,15 @@ class Concours extends Model
 
     protected $table = 'concours';
 
+    /**
+     * Cache pour vérifier si session_id existe dans concours_filiere
+     */
+    private static ?bool $hasSessionIdColumn = null;
+
     protected $fillable = [
         'spec_concours_id',
         'libelle_concours',
+        'description',
         'date_limite_depot',
         'date_examen',
         'nbre_max_places',
@@ -44,20 +51,50 @@ class Concours extends Model
         return $this->belongsTo(SpecConcours::class, 'spec_concours_id');
     }
 
+    /**
+     * Vérifier si la colonne session_id existe dans concours_filiere (avec cache)
+     */
+    private static function hasSessionIdColumn(): bool
+    {
+        if (self::$hasSessionIdColumn === null) {
+            self::$hasSessionIdColumn = Schema::hasColumn('concours_filiere', 'session_id');
+        }
+        return self::$hasSessionIdColumn;
+    }
+
     public function filieres()
     {
+        $pivotColumns = ['nombre_places'];
+
+        // Ajouter session_id seulement si la colonne existe dans la table pivot
+        if (self::hasSessionIdColumn()) {
+            $pivotColumns[] = 'session_id';
+        }
+
         return $this->belongsToMany(Filiere::class, 'concours_filiere')
             ->using(ConcoursFiliere::class)
-            ->withPivot(['session_id', 'nombre_places'])
+            ->withPivot($pivotColumns)
             ->withTimestamps();
     }
 
     // RELATION AVANCÉE : Filières par session
     public function filieresParSession($sessionId)
     {
+        $pivotColumns = ['nombre_places'];
+
+        // Ajouter session_id seulement si la colonne existe dans la table pivot
+        if (self::hasSessionIdColumn()) {
+            $pivotColumns[] = 'session_id';
+
+            return $this->belongsToMany(Filiere::class, 'concours_filiere')
+                ->wherePivot('session_id', $sessionId)
+                ->withPivot($pivotColumns)
+                ->withTimestamps();
+        }
+
+        // Si session_id n'existe pas, retourner toutes les filières sans filtre
         return $this->belongsToMany(Filiere::class, 'concours_filiere')
-            ->wherePivot('session_id', $sessionId)
-            ->withPivot(['session_id', 'nombre_places'])
+            ->withPivot($pivotColumns)
             ->withTimestamps();
     }
 
