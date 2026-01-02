@@ -238,6 +238,49 @@ class PaiementService
     }
 
     /**
+     * Lie un paiement à un candidat.
+     *
+     * @param string $pru Référence de paiement unique
+     * @param string $concoursId ID du concours
+     * @param string $candidatId ID du candidat
+     *
+     * @return bool True si lié avec succès
+     */
+    public function linkToCandidat(string $pru, string $concoursId, string $candidatId): bool
+    {
+        $paiement = Paiement::where('reference', $pru)
+            ->where('concours_id', $concoursId)
+            ->where('statut', StatutPaiement::VERIFIED)
+            ->whereNull('candidat_id')
+            ->first();
+
+        if ($paiement) {
+            $paiement->update(['candidat_id' => $candidatId]);
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Récupère la date de validation d'un paiement.
+     *
+     * @param string $pru Référence de paiement unique
+     * @param string $concoursId ID du concours
+     *
+     * @return \Carbon\Carbon|null Date de validation ou null
+     */
+    public function getValidationDate(string $pru, string $concoursId): ?\Carbon\Carbon
+    {
+        $paiement = Paiement::where('reference', $pru)
+            ->where('concours_id', $concoursId)
+            ->where('statut', StatutPaiement::VERIFIED)
+            ->first();
+
+        return $paiement?->validated_at;
+    }
+
+    /**
      * Liste des paiements en attente de validation.
      *
      * @param int $perPage Nombre d'éléments par page
