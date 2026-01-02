@@ -182,7 +182,7 @@ class PaymentOcrValidator
     $paiement->update([
       'statut' => StatutPaiement::VERIFIED,
       'validated_at' => now(),
-      'validated_by' => 'system',
+      'validated_by' => null, // Validation automatique par OCR, pas d'utilisateur
     ]);
   }
 
