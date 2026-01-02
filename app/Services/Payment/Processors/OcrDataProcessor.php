@@ -37,7 +37,7 @@ class OcrDataProcessor
       return [null, $errors, $warnings];
     }
 
-    // Vérifications avec warnings
+    // Vérifications avec warnings (doivent être avant la logique de statut)
     if (!$ocrData->numero_recu) {
       $warnings[] = 'numéro de reçu';
     }
@@ -58,10 +58,11 @@ class OcrDataProcessor
     // Générer référence
     $reference = $ocrData->numero_recu ?: ('PARTIAL_' . time());
 
-    // Vérifier unicité
+    // Déterminer le statut initial
     $statut = StatutPaiement::PENDING;
     $validationNotes = null;
 
+    // Vérifier unicité de la référence
     if ($ocrData->numero_recu) {
       $existant = Paiement::where('reference', $ocrData->numero_recu)
         ->where('concours_id', $concoursId)
@@ -73,16 +74,13 @@ class OcrDataProcessor
       }
     }
 
-    // Ajouter warnings aux notes
+    // Si des données essentielles sont manquantes, forcer validation manuelle
     if (!empty($warnings)) {
+      $statut = StatutPaiement::PENDING_MANUAL_REVIEW;
       $warningText = 'Données OCR manquantes: ' . implode(', ', $warnings);
       $validationNotes = $validationNotes
         ? $validationNotes . '; ' . $warningText
         : $warningText;
-
-      if ($statut === StatutPaiement::PENDING) {
-        $statut = StatutPaiement::PENDING_MANUAL_REVIEW;
-      }
     }
 
     // Créer le paiement
