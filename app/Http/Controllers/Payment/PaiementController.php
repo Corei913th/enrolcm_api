@@ -55,11 +55,18 @@ class PaiementController extends Controller
                 concoursId: $request->concours_id
             );
 
+            // Réponse simplifiée avec seulement les champs essentiels
+            $response = [
+                'valid' => $result['valid'],
+                'code' => $result['code'],
+                'message' => $result['message']
+            ];
+
             if ($result['valid']) {
-                return api_success($result, $result['message']);
+                return api_success($response, $result['message']);
             }
 
-            return api_error($result['message'], $result, 400);
+            return api_error($result['message'], $response, 400);
         } catch (\Exception $e) {
             return api_error($e->getMessage(), null, 400);
         }
