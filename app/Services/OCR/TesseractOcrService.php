@@ -85,9 +85,19 @@ class TesseractOcrService
 
         $patterns = [
             'numero_recu' => [
-                '/(?:N°|Numéro|Ref|Reference|Reçu)[:\s]*([A-Z0-9]{6,}[\-\/]?[A-Z0-9]*)/i',
-                '/(?:Transaction|Trans)[:\s]*([A-Z0-9]{8,})/i',
+                // Patterns pour références avec labels explicites
+                '/(?:N°|Numéro|Ref|Reference|Référence|Reçu)[:\s]+([A-Z0-9\-]{6,})/i',
+                '/(?:Référence|Reference)[:\s]*([A-Z0-9\-]{6,})/i',
+
+                // Patterns spécifiques aux formats connus
+                '/\bRCP(\d{8,})\b/i',
+                '/\bPAY[\-\s](\d{8}[\-\s]\d{3})\b/i',
+                '/\bPAY[\-\s](\d{8}[\-\s]\d{3,})/i',
+
+                // Patterns plus souples
+                '/(?:Transaction|Trans)[:\s]*([A-Z0-9\-]{8,})/i',
                 '/\b([A-Z]{2,4}[\-\/][0-9]{4,}[\-\/][0-9]{4,})\b/i',
+                '/\b([A-Z0-9]{8,})\b/',
                 '/\b([0-9]{10,})\b/',
             ],
             'montant' => [
@@ -107,10 +117,23 @@ class TesseractOcrService
                 '/(BICEC|UBA|SGBC|Afriland|Ecobank|SCB|Express\s*Union|Orange\s*Money|MTN\s*Mobile\s*Money)/i',
             ],
             'numero_compte' => [
-                '/(?:N°?\s*compte|Compte|Account)[:\s]*([A-Z]{3}[\s\-\.]*[\d]{4,}[\s\-\.]*[\d]{4,}[\s\-\.]*[\d]{0,})/i',
-                '/(?:BIC|IBAN|Account\s*Number)[:\s]*([A-Z]{3}[\s\-\.]*[\d]{4,}[\s\-\.]*[\d]{4,}[\s\-\.]*[\d]{0,})/i',
-                '/\b([A-Z]{3}[\s\-\.]*[\d]{4,}[\s\-\.]*[\d]{4,}[\s\-\.]*[\d]{0,})\b/i',
-                '/\b(ECO[\d]{9,}|BICEC[\d]{9,}|UBA[\d]{9,}|SGBC[\d]{9,})\b/i',
+                // Patterns avec labels explicites
+                '/(?:N°?\s*compte|N\s*compte|Numéro\s*de\s*compte|Compte)[:\s]+([A-Z]{2,}[\s\-\.]*[\d]{4,}[\s\-\.]*[\d]{4,}[\s\-\.]*[\d]{0,})/i',
+                '/(?:Account|Account\s*Number|BIC|IBAN)[:\s]+([A-Z]{2,}[\s\-\.]*[\d]{4,}[\s\-\.]*[\d]{4,}[\s\-\.]*[\d]{0,})/i',
+
+                // Patterns génériques pour numéros de compte
+                '/\b([A-Z]{2,}[\s\-\.]*[\d]{4,}[\s\-\.]*[\d]{4,}[\s\-\.]*[\d]{0,})\b/i',
+
+                // Patterns spécifiques aux banques camerounaises
+                '/\b(ECO[\d]{9,}|BICEC[\d]{9,}|UBA[\d]{9,}|SGBC[\d]{9,}|AFRILAND[\d]{9,})\b/i',
+                '/\b(CM[\d]{2,}[\s\-\.]*[\d]{4,}[\s\-\.]*[\d]{4,}[\s\-\.]*[\d]{0,})\b/i',
+
+                // Patterns plus souples pour les erreurs OCR
+                '/([A-Z]{2,}[\d]{6,})/i',
+                '/(\d{10,})/', // Numéros de compte purement numériques (au cas où)
+
+                // Pattern ultime - tout ce qui ressemble à un numéro de compte
+                '/\b([A-Z0-9]{8,})\b/',
             ],
         ];
 

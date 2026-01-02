@@ -298,9 +298,18 @@ class OcrTestController extends Controller
     ];
 
     // 5. Validation de la confiance OCR
-    $confianceValide = $this->validateOcrConfidence($receiptData->ocr_confidence, $config->minimum_confiance_ocr ?? 0.85);
+    $seuilConfiance = $config->minimum_confiance_ocr ?? 0.85;
+    if (is_string($seuilConfiance)) {
+      $seuilConfiance = (float) $seuilConfiance;
+    }
+    // Le seuil en base est en pourcentage (85.00), convertir en décimal (0.85)
+    if ($seuilConfiance > 1) {
+      $seuilConfiance = $seuilConfiance / 100;
+    }
+
+    $confianceValide = $this->validateOcrConfidence($receiptData->ocr_confidence, $seuilConfiance);
     $validations['ocr_confiance'] = [
-      'minimum_requis' => $config->minimum_confiance_ocr ?? 0.85,
+      'minimum_requis' => $seuilConfiance,
       'confiance_detectee' => $receiptData->ocr_confidence,
       'valide' => $confianceValide,
       'message' => $confianceValide ? 'Confiance OCR suffisante' : 'Confiance OCR insuffisante'

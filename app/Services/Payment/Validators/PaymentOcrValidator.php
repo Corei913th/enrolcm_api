@@ -31,6 +31,9 @@ class PaymentOcrValidator
       'ocr_confiance' => $this->validateOcrConfidence($paiement, $config),
     ];
 
+    // Debug temporaire
+    error_log("Validation results: " . json_encode($validations));
+
     $allValid = !in_array(false, $validations, true);
 
     if ($allValid) {
@@ -89,12 +92,23 @@ class PaymentOcrValidator
       return true; // Pas de validation si pas détecté
     }
 
-    if (!$config->banques_acceptees) {
-      return true; // Toutes les banques acceptées
+
+    if ($config->banques_acceptees) {
+      return in_array($banqueOcr, $config->banques_acceptees);
     }
 
-    // Cette logique devrait être dans un service dédié aux banques
-    return in_array($banqueOcr, $config->banques_acceptees);
+
+    if ($config->banque_nom) {
+      // Comparaison insensible à la casse et aux espaces
+      $banqueOcrNormalized = strtolower(trim($banqueOcr));
+      $banqueConfigNormalized = strtolower(trim($config->banque_nom));
+
+      // Vérifier si la banque détectée est contenue dans le nom configuré ou vice versa
+      return str_contains($banqueConfigNormalized, $banqueOcrNormalized) ||
+        str_contains($banqueOcrNormalized, $banqueConfigNormalized);
+    }
+
+    return true; // Pas de contrainte spécifique
   }
 
   /**
@@ -131,11 +145,34 @@ class PaymentOcrValidator
   {
     $confianceOcr = $paiement->ocr_confidence;
 
+    // Debug temporaire
+    error_log("Validating OCR confidence - paiement ID: {$paiement->id}, confiance: {$confianceOcr}");
+
     if (!$confianceOcr) {
+      error_log("OCR confidence is null or zero");
       return false;
     }
 
-    return $confianceOcr >= 50; // Seuil arbitraire
+
+    $seuilMinimum = $config->minimum_confiance_ocr ?? 85.0;
+
+
+    if (is_string($seuilMinimum)) {
+      $seuilMinimum = (float) $seuilMinimum;
+    }
+
+
+    // La confiance détectée est déjà en décimal (0.999... = 99.99%)
+    // Le seuil de la base est en pourcentage (85.00), convertir en décimal (0.85)
+    if ($seuilMinimum > 1) {
+      $seuilMinimum = $seuilMinimum / 100;
+    }
+
+    // Debug temporaire
+    $result = $confianceOcr >= $seuilMinimum;
+    error_log("OCR Confidence validation: {$confianceOcr} >= {$seuilMinimum} (seuil converti de pourcentage à décimal) = " . ($result ? 'TRUE' : 'FALSE'));
+
+    return $result;
   }
 
   /**

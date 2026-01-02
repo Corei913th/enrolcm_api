@@ -23,7 +23,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('paiements', function (Blueprint $table) {
-            // Remettre NOT NULL si nécessaire (mais cela casserait la logique métier)
+
             $table->uuid('candidat_id')->nullable(false)->change();
         });
     }
