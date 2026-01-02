@@ -25,6 +25,7 @@ class Paiement extends Model
         'montant_ocr',
         'date_ocr',
         'banque_ocr',
+        'numero_compte_ocr',
         'reference_ocr',
         'ocr_confidence',
         'ocr_raw_data',
@@ -32,6 +33,7 @@ class Paiement extends Model
         'motif_rejet',
         'validated_at',
         'validated_by',
+        'validation_notes',
     ];
 
     protected $casts = [

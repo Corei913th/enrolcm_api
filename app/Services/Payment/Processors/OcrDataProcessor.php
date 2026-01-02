@@ -47,16 +47,7 @@ class OcrDataProcessor
       $warnings[] = 'numéro de compte';
     }
 
-    // Debug: Log des données OCR pour diagnostic
-    \Log::info('OCR Data Processor - Données reçues', [
-      'numero_recu' => $ocrData->numero_recu,
-      'numero_compte' => $ocrData->numero_compte,
-      'montant' => $ocrData->montant,
-      'banque' => $ocrData->banque,
-      'warnings' => $warnings,
-      'raw_data_extracted' => $ocrData->raw_data['extracted'] ?? null,
-      'ocrData_object' => get_object_vars($ocrData)
-    ]);
+    // Debug temporaire supprimé après diagnostic
 
     // Générer référence
     $reference = $rawExtracted['numero_recu'] ?: ('PARTIAL_' . time());
@@ -89,18 +80,8 @@ class OcrDataProcessor
     // Utiliser les données extraites brutes car les propriétés DTO peuvent être null
     $rawExtracted = $ocrData->raw_data['extracted'] ?? [];
 
-    // Debug: Log des données avant création du paiement
-    \Log::info('Paiement Creation Data', [
-      'concours_id' => $concoursId,
-      'reference' => $reference,
-      'montant' => $ocrData->montant ?: 0,
-      'statut' => $statut,
-      'numero_compte_ocr' => $rawExtracted['numero_compte'] ?? null,
-      'reference_ocr' => $rawExtracted['numero_recu'] ?? null,
-      'validation_notes' => $validationNotes,
-    ]);
-
     // Créer le paiement
+
     $paiement = Paiement::create([
       'concours_id' => $concoursId,
       'reference' => $reference,
@@ -109,7 +90,7 @@ class OcrDataProcessor
       'statut' => $statut,
       'montant_ocr' => $ocrData->montant,
       'banque_ocr' => $ocrData->banque,
-      'numero_compte_ocr' => $rawExtracted['numero_compte'] ?? null,
+      'numero_compte_ocr' => $numeroCompteOcr,
       'reference_ocr' => $rawExtracted['numero_recu'] ?? null,
       'date_ocr' => $ocrData->date_paiement,
       'ocr_confidence' => $ocrData->ocr_confidence,
