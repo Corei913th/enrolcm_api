@@ -27,20 +27,24 @@ class EcoleService
         try {
             $query = Ecole::query()->with('departements');
 
+            
             if (isset($filters['est_actif'])) {
                 $query->where('est_actif', $filters['est_actif']);
             }
 
+            
             if (isset($filters['region'])) {
-                $query->where('region', $filters['region']);
+                $region = preg_replace('/\s+/', '', strtolower($filters['region']));
+                $query->whereRaw("REPLACE(LOWER(region), ' ', '') LIKE ?", ["%{$region}%"]);
             }
 
+            // Recherche fulltext-like sur plusieurs colonnes
             if (isset($filters['search'])) {
-                $search = $filters['search'];
+                $search = preg_replace('/\s+/', '', strtolower($filters['search']));
                 $query->where(function ($q) use ($search) {
-                    $q->where('libelle_ecole', 'like', "%{$search}%")
-                        ->orWhere('code_ecole', 'like', "%{$search}%")
-                        ->orWhere('localisation', 'like', "%{$search}%");
+                    $q->whereRaw("REPLACE(LOWER(libelle_ecole), ' ', '') LIKE ?", ["%{$search}%"])
+                    ->orWhereRaw("REPLACE(LOWER(code_ecole), ' ', '') LIKE ?", ["%{$search}%"])
+                    ->orWhereRaw("REPLACE(LOWER(localisation), ' ', '') LIKE ?", ["%{$search}%"]);
                 });
             }
 
@@ -89,7 +93,7 @@ class EcoleService
     public function getByCode(string $code): Ecole
     {
         try {
-            $ecole = Ecole::with('departements')->byCode($code)->firstOrFail();
+            $ecole = Ecole::with('departements')->where('code_ecole', $code)->firstOrFail();
             return $ecole;
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             throw new EcoleException('École non trouvée avec ce code', 404);

@@ -17,34 +17,32 @@ class EcoleSeeder extends Seeder
             [
                 // ENSP - École Polytechnique de Yaoundé
                 'code_ecole' => 'ENSP',
-                'libelle_ecole' => 'École Nationale Supérieure Polytechnique',
-                'libelle_ecole_en' => 'National Advanced School of Engineering',
+                'libelle_ecole' => 'École Nationale Supérieure Polytechnique de Yaoundé',
+                'libelle_ecole_en' => 'National Advanced School of Engineering of Yaoundé',
 
                 // Localisation
                 'region' => 'CENTRE',
-                'localisation' => 'Quartier Ngoa-Ekellé',
-                'adresse_complete' => 'Quartier Ngoa-Ekellé, Yaoundé, Cameroun',
+                'localisation' => 'Campus Université de Yaoundé I, Ngoa-Ekellé',
+                'adresse_complete' => 'Ngoa-Ekellé, Yaoundé, Cameroun',
                 'ville' => 'Yaoundé',
 
                 // Contact
                 'telephone_ecole' => '+237222234567',
                 'fax' => '+237222234568',
                 'telephone_2' => '+237222234569',
-                'email_ecole' => 'contact@ensp.cm',
-                'siteweb_ecole' => 'https://ensp.cm',
+                'email_ecole' => 'contact@polytechnique.cm',
+                'siteweb_ecole' => 'https://polytechnique.cm',
                 'bp_ecole' => 'BP 8390',
 
                 // Identité
-                'devise' => 'Excellence et Innovation',
+                'devise' => 'Sapienta – Collativa – Cognitio',
                 'slogan' => 'Former les ingénieurs de demain',
-
-
 
                 // Tutelle
                 'nom_institution_tutelle' => 'Ministère de l\'Enseignement Supérieur',
                 'nom_institution_tutelle_en' => 'Ministry of Higher Education',
                 'numero_agrement' => '0001/MINESUP/SG/DAUQ/SDEAC/SE',
-                'date_creation' => '1971-01-01',
+                'date_creation' => '1971-06-04',
 
                 // Statut
                 'est_actif' => true,
@@ -73,13 +71,11 @@ class EcoleSeeder extends Seeder
                 'devise' => 'Savoir et Développement',
                 'slogan' => 'Excellence en agro-industrie',
 
-
-
                 // Tutelle
                 'nom_institution_tutelle' => 'Ministère de l\'Enseignement Supérieur',
                 'nom_institution_tutelle_en' => 'Ministry of Higher Education',
                 'numero_agrement' => '0002/MINESUP/SG/DAUQ/SDEAC/SE',
-                'date_creation' => '1993-01-01',
+                'date_creation' => '1982-01-01',
 
                 // Statut
                 'est_actif' => true,
@@ -101,7 +97,7 @@ class EcoleSeeder extends Seeder
                 'telephone_ecole' => '+237233456789',
                 'fax' => '+237233456790',
                 'telephone_2' => '+237233456791',
-                'email_ecole' => 'contact@enset.cm',
+                'email_ecole' => 'contact@enset-douala.cm',
                 'siteweb_ecole' => 'https://enset-douala.cm',
                 'bp_ecole' => 'BP 1872',
 
@@ -109,13 +105,11 @@ class EcoleSeeder extends Seeder
                 'devise' => 'Former pour Transformer',
                 'slogan' => 'Excellence dans la formation technique',
 
-
-
                 // Tutelle
                 'nom_institution_tutelle' => 'Ministère de l\'Enseignement Supérieur',
                 'nom_institution_tutelle_en' => 'Ministry of Higher Education',
                 'numero_agrement' => '0003/MINESUP/SG/DAUQ/SDEAC/SE',
-                'date_creation' => '1989-01-01',
+                'date_creation' => '1979-01-01',
 
                 // Statut
                 'est_actif' => true,
@@ -136,23 +130,19 @@ class EcoleSeeder extends Seeder
                 // Contact
                 'telephone_ecole' => '+237222567890',
                 'fax' => '+237222567891',
-                'email_ecole' => 'contact@enam.cm',
-                'siteweb_ecole' => 'https://enam.cm',
+                'email_ecole' => 'contact@enam-cm.org',
+                'siteweb_ecole' => 'https://enam-cm.org',
                 'bp_ecole' => 'BP 7171',
 
                 // Identité
                 'devise' => 'Servir avec Excellence',
                 'slogan' => 'Formation des hauts cadres administratifs',
 
-
-
                 // Tutelle
                 'nom_institution_tutelle' => 'Présidence de la République',
                 'nom_institution_tutelle_en' => 'Presidency of the Republic',
                 'numero_agrement' => '0004/PR/SG/DAF',
                 'date_creation' => '1959-01-01',
-
-
 
                 // Statut
                 'est_actif' => true,
@@ -166,15 +156,15 @@ class EcoleSeeder extends Seeder
 
                 // Localisation
                 'region' => 'CENTRE',
-                'localisation' => 'Quartier Bastos',
-                'adresse_complete' => 'Quartier Bastos, Yaoundé, Cameroun',
+                'localisation' => 'Campus Obili',
+                'adresse_complete' => 'Obili, Yaoundé, Cameroun',
                 'ville' => 'Yaoundé',
 
                 // Contact
                 'telephone_ecole' => '+237222678901',
                 'fax' => '+237222678902',
-                'email_ecole' => 'contact@iric.cm',
-                'siteweb_ecole' => 'https://iric.cm',
+                'email_ecole' => 'contact@iricuy2.com',
+                'siteweb_ecole' => 'https://www.iricuy2.com',
                 'bp_ecole' => 'BP 1637',
 
                 // Identité
@@ -182,18 +172,17 @@ class EcoleSeeder extends Seeder
                 'slogan' => 'Former les diplomates de demain',
 
                 // Tutelle
-                'nom_institution_tutelle' => 'Ministère des Relations Extérieures',
-                'nom_institution_tutelle_en' => 'Ministry of External Relations',
+                'nom_institution_tutelle' => 'Université de Yaoundé II / Ministère des Relations Extérieures',
+                'nom_institution_tutelle_en' => 'University of Yaoundé II / Ministry of External Relations',
                 'numero_agrement' => '0005/MINREX/SG/DAF',
-                'date_creation' => '1981-01-01',
-
+                'date_creation' => '1971-01-01',
 
                 // Statut
-                'est_actif' => false,
+                'est_actif' => true,
                 'mentions_legales' => 'Institut de formation des diplomates et cadres des relations internationales.',
             ],
-            [
-                // ENIEG - Génie Civil (exemple supplémentaire)
+                [
+                // ENIEG - Génie Civil
                 'code_ecole' => 'ENIEG',
                 'libelle_ecole' => 'École Nationale Supérieure d\'Ingénierie et de Génie Civil',
                 'libelle_ecole_en' => 'National Advanced School of Engineering and Civil Engineering',
@@ -213,7 +202,6 @@ class EcoleSeeder extends Seeder
                 // Identité
                 'devise' => 'Ingénierie et Développement',
                 'slogan' => 'Construire l\'avenir du Cameroun',
-
 
                 // Tutelle
                 'nom_institution_tutelle' => 'Ministère de l\'Enseignement Supérieur',
