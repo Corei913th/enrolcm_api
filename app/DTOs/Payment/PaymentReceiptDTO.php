@@ -11,6 +11,7 @@ class PaymentReceiptDTO extends Data
         public readonly ?float $montant,
         public readonly ?string $date_paiement,
         public readonly ?string $banque,
+        public readonly ?string $numero_compte,
         public readonly float $ocr_confidence,
         public readonly array $raw_data,
     ) {}
