@@ -15,7 +15,7 @@ class EpreuveResource extends JsonResource
             'session' => $this->session,
             'url_epreuve' => $this->url_epreuve,
             'type_epreuve' => $this->type_epreuve,
-            'type_label' => TypeEpreuve::label($this->type_epreuve),
+            'type_label' => $this->type_epreuve?->label(),
             'duree_en_minute' => $this->duree_en_minute,
             'duree_formatee' => $this->getDureeFormatee(),
             'est_actif' => $this->est_actif,

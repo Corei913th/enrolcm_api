@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use App\Enums\RegionCameroun;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Candidat extends Model
 {
     use HasFactory;
-    
+
     protected $primaryKey = 'utilisateur_id';
     public $incrementing = false;
     protected $keyType = 'string';
@@ -31,7 +32,6 @@ class Candidat extends Model
         'nom_parent',
         'telephone_parent',
         'code_cand',
-        'filiere_id',
         'niveau_scolaire',
         'filiere_origine',
         'etablissement_origine',
@@ -46,11 +46,13 @@ class Candidat extends Model
         'statut_matrimonial',
         'nom_pere',
         'telephone_pere',
-        'numero_recu',
-        'telephone_candidat',
         'region',
         'departement',
         'arrondissement',
+    ];
+
+    protected $hidden = [
+        'utilisateur_id', // Masquer la clé technique
     ];
 
     protected $casts = [
@@ -59,6 +61,7 @@ class Candidat extends Model
         'date_delivrance_cni' => 'date',
         'a_handicap' => 'boolean',
         'annee_obtention_bac' => 'integer',
+        'region' => RegionCameroun::class,
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
@@ -73,28 +76,42 @@ class Candidat extends Model
         return $this->hasMany(Candidature::class, 'candidat_id', 'utilisateur_id');
     }
 
-    public function filiere()
-    {
-        return $this->belongsTo(Filiere::class, 'filiere_id');
-    }
-
-    public function paymentReceipts()
-    {
-        return $this->hasMany(PaymentReceipt::class, 'candidat_id', 'utilisateur_id');
-    }
+    
 
     public function paiements()
     {
-        return $this->hasMany(Paiement::class, 'candidat_id', 'utilisateur_id');
-    }
-
-    public function paymentReferences()
-    {
-        return $this->hasMany(PaymentReference::class, 'candidat_id', 'utilisateur_id');
+        return $this->hasManyThrough(Paiement::class, Candidature::class, 'candidat_id', 'candidature_id', 'utilisateur_id', 'id');
     }
 
     public function getFullName()
     {
         return "{$this->nom_cand} {$this->prenom_cand}";
+    }
+
+    // ACCÈS TRANSPARENT aux données utilisateur
+    public function getTelephoneAttribute()
+    {
+        return $this->utilisateur?->telephone;
+    }
+
+    public function getEmailAttribute()
+    {
+        return $this->utilisateur?->email;
+    }
+
+    public function getUsernameAttribute()
+    {
+        return $this->utilisateur?->user_name;
+    }
+
+    // Vérifications de statut
+    public function estActif(): bool
+    {
+        return $this->utilisateur?->est_actif ?? false;
+    }
+
+    public function emailVerifie(): bool
+    {
+        return $this->utilisateur?->email_verifie ?? false;
     }
 }

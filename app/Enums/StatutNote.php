@@ -2,26 +2,21 @@
 
 namespace App\Enums;
 
-class StatutNote
+enum StatutNote: string
 {
-    public const EN_ATTENTE_SAISIE = 'EN_ATTENTE_SAISIE';
-    public const SAISIE_TERMINEE = 'SAISIE_TERMINEE';
+    case EN_ATTENTE_SAISIE = 'EN_ATTENTE_SAISIE';
+    case SAISIE_TERMINEE = 'SAISIE_TERMINEE';
 
     public static function values(): array
     {
-        return [
-            self::EN_ATTENTE_SAISIE,
-            self::SAISIE_TERMINEE,
-        ];
+        return array_column(self::cases(), 'value');
     }
 
-    public static function label(string $value): string
+    public function label(): string
     {
-        $labels = [
+        return match ($this) {
             self::EN_ATTENTE_SAISIE => 'En attente de saisie',
             self::SAISIE_TERMINEE => 'Saisie terminée',
-        ];
-
-        return $labels[$value] ?? $value;
+        };
     }
 }

@@ -2,35 +2,27 @@
 
 namespace App\Enums;
 
-class Mention
+enum Mention: string
 {
-    public const PASSABLE = 'PASSABLE';
-    public const ASSEZ_BIEN = 'ASSEZ_BIEN';
-    public const BIEN = 'BIEN';
-    public const TRES_BIEN = 'TRES_BIEN';
-    public const EXCELLENT = 'EXCELLENT';
+    case PASSABLE = 'PASSABLE';
+    case ASSEZ_BIEN = 'ASSEZ_BIEN';
+    case BIEN = 'BIEN';
+    case TRES_BIEN = 'TRES_BIEN';
+    case EXCELLENT = 'EXCELLENT';
 
     public static function values(): array
     {
-        return [
-            self::PASSABLE,
-            self::ASSEZ_BIEN,
-            self::BIEN,
-            self::TRES_BIEN,
-            self::EXCELLENT,
-        ];
+        return array_column(self::cases(), 'value');
     }
 
-    public static function label(string $value): string
+    public function label(): string
     {
-        $labels = [
+        return match ($this) {
             self::PASSABLE => 'Passable',
             self::ASSEZ_BIEN => 'Assez Bien',
             self::BIEN => 'Bien',
             self::TRES_BIEN => 'Très Bien',
             self::EXCELLENT => 'Excellent',
-        ];
-
-        return $labels[$value] ?? $value;
+        };
     }
 }

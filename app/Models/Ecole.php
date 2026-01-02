@@ -43,6 +43,7 @@ class Ecole extends Model
     protected $casts = [
         'date_creation' => 'date',
         'est_actif' => 'boolean',
+        'region' => RegionCameroun::class,
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
@@ -54,7 +55,7 @@ class Ecole extends Model
 
     public function getRegionLabel()
     {
-        return $this->region ? RegionCameroun::label($this->region) : null;
+        return $this->region?->label();
     }
 
     // Helpers pour génération de documents
@@ -64,7 +65,7 @@ class Ecole extends Model
             $this->adresse_complete,
             $this->bp_ecole ? "BP: {$this->bp_ecole}" : null,
             $this->ville,
-            $this->region ? RegionCameroun::label($this->region) : null,
+            $this->region?->label(),
         ]);
 
         return implode(', ', $parts);
@@ -73,28 +74,27 @@ class Ecole extends Model
     public function getContactsComplets()
     {
         $contacts = [];
-        
+
         if ($this->telephone_ecole) {
             $contacts[] = "Tél: {$this->telephone_ecole}";
         }
-        
+
         if ($this->telephone_2) {
             $contacts[] = $this->telephone_2;
         }
-        
+
         if ($this->fax) {
             $contacts[] = "Fax: {$this->fax}";
         }
-        
+
         if ($this->email_ecole) {
             $contacts[] = "Email: {$this->email_ecole}";
         }
-        
+
         if ($this->siteweb_ecole) {
             $contacts[] = "Web: {$this->siteweb_ecole}";
         }
 
         return implode(' | ', $contacts);
     }
-
 }
