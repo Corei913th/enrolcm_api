@@ -37,7 +37,7 @@ class PaiementService
     public function createPaymentWithOcr(
         string $concoursId,
         UploadedFile $preuve
-    ): Paiement {
+    ): array {
         return DB::transaction(function () use ($concoursId, $preuve) {
             $config = $this->concoursPaiementService->getConfiguration($concoursId);
             if (!$config || !$config->est_actif) {
