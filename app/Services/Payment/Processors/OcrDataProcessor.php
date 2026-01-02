@@ -81,7 +81,6 @@ class OcrDataProcessor
     $rawExtracted = $ocrData->raw_data['extracted'] ?? [];
 
     // Créer le paiement
-
     $paiement = Paiement::create([
       'concours_id' => $concoursId,
       'reference' => $reference,
@@ -90,7 +89,7 @@ class OcrDataProcessor
       'statut' => $statut,
       'montant_ocr' => $ocrData->montant,
       'banque_ocr' => $ocrData->banque,
-      'numero_compte_ocr' => $numeroCompteOcr,
+      'numero_compte_ocr' => $rawExtracted['numero_compte'] ?? null,
       'reference_ocr' => $rawExtracted['numero_recu'] ?? null,
       'date_ocr' => $ocrData->date_paiement,
       'ocr_confidence' => $ocrData->ocr_confidence,
