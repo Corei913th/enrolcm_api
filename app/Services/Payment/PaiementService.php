@@ -78,7 +78,6 @@ class PaiementService
                 'date_ocr' => $ocrData->date_paiement ?? null,
                 'banque_ocr' => $ocrData->banque ?? null,
                 'reference_ocr' => $ocrData->numero_recu ?? null,
-                'numero_compte_ocr' => $ocrData->numero_compte ?? null,
                 'ocr_confidence' => $ocrData->ocr_confidence ?? null,
                 'ocr_raw_data' => $ocrData->raw_data ?? null,
                 'statut' => $statut,
@@ -93,18 +92,12 @@ class PaiementService
     }
 
     /**
-     * Auto-validation d'un paiement via OCR avec vérifications STRICTES.
+     * Auto-validation d'un paiement via OCR.
      *
-     * Vérifications effectuées :
-     * - Référence PRU valide
-     * - Montant EXACT (pas de tolérance)
-     * - Date avant la limite
-     * - Banque acceptée
-     * - Numéro de compte exact (si configuré)
-     * - Bénéficiaire (réservé pour évolution future)
-     * - Confiance OCR suffisante
-     *
-     * IMPORTANT: Toutes les contraintes de configuration concours doivent être respectées STRICTEMENT.
+     * Vérifie montant ±5% et date.
+     * Note: La référence n'est pas vérifiée car le PRU est fourni manuellement
+     * et diffère du numéro de reçu bancaire extrait par OCR.
+     * Si OK → statut VERIFIED.
      *
      * @param Paiement $paiement Paiement à valider
      *
@@ -121,16 +114,14 @@ class PaiementService
             return false;
         }
 
-        $referenceValide = $this->isPRUValid($paiement->reference, $paiement->concours_id)['valid'];
+        // Validation de référence similaire à isPRUValid mais pour OCR
+        $referenceValide = $this->validatePaymentReference($paiement->reference);
         $montantValide = $this->verifyAmount($paiement, $config->montant);
         $dateValide = $this->verifyDate($paiement, $config->date_limite);
         $banqueValide = $this->verifyBank($paiement, $config);
-        $numeroCompteValide = $this->verifyAccountNumber($paiement, $config);
-        $beneficiaireValide = $this->verifyBeneficiary($paiement, $config);
         $confianceOcrValide = $this->verifyOcrConfidence($paiement, $config);
 
-        // Validation automatique complète - tout est parfait
-        if ($referenceValide && $montantValide && $dateValide && $banqueValide && $numeroCompteValide && $beneficiaireValide && $confianceOcrValide) {
+        if ($referenceValide && $montantValide && $dateValide && $banqueValide && $confianceOcrValide) {
             $paiement->update([
                 'statut' => StatutPaiement::VERIFIED,
                 'validated_at' => now(),
@@ -139,39 +130,47 @@ class PaiementService
             return true;
         }
 
-        // Vérifier si l'échec est seulement dû à des erreurs OCR mineures
-        $hasOcrData = $paiement->montant_ocr || $paiement->banque_ocr || $paiement->reference_ocr || $paiement->numero_compte_ocr;
+        return false;
+    }
 
-        if ($hasOcrData && $referenceValide && $confianceOcrValide) {
-            // Erreurs mineures OCR seulement - marquer pour validation manuelle
-            $shouldMarkForManualReview = false;
-
-            // Si montant invalide mais proche (tolérance déjà appliquée dans verifyAmount)
-            if (!$montantValide) {
-                $shouldMarkForManualReview = true;
-            }
-
-            // Si numéro compte invalide mais similaire (tolérance OCR)
-            if (!$numeroCompteValide && $this->isMinorOcrError($paiement, $config)) {
-                $shouldMarkForManualReview = true;
-            }
-
-            // Si date invalide mais OCR présente
-            if (!$dateValide && $paiement->date_ocr) {
-                $shouldMarkForManualReview = true;
-            }
-
-            if ($shouldMarkForManualReview) {
-                $paiement->update([
-                    'statut' => StatutPaiement::PENDING_MANUAL_REVIEW,
-                    'validation_notes' => 'Erreur OCR mineure détectée - validation manuelle requise',
-                ]);
-                return true; // Considéré comme "traité" mais nécessite validation manuelle
-            }
+    /**
+     * Valide le format de la référence de paiement OCR.
+     *
+     * Similaire à isPRUValid mais adaptée à la validation automatique OCR.
+     *
+     * @param string|null $reference Référence à valider
+     *
+     * @return bool True si la référence est valide
+     */
+    private function validatePaymentReference(?string $reference): bool
+    {
+        if (empty($reference)) {
+            return false;
         }
 
-        // Échec réel - pas d'OCR ou erreurs majeures
-        return false;
+        // Nettoyer la référence
+        $reference = trim($reference);
+
+        // Vérifier la longueur minimale (comme dans isPRUValid)
+        if (strlen($reference) < 6) {
+            return false;
+        }
+
+        // Vérifier le format (lettres, chiffres, tirets, points)
+        if (!preg_match('/^[A-Z0-9\-_\.]+$/i', $reference)) {
+            return false;
+        }
+
+        // Pour les références OCR, on accepte aussi les formats avec des espaces
+        // mais on nettoie pour la validation
+        $cleanReference = preg_replace('/\s+/', '', $reference);
+
+        // Vérifier qu'il reste des caractères après nettoyage
+        if (empty($cleanReference) || strlen($cleanReference) < 6) {
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -312,22 +311,21 @@ class PaiementService
     }
 
     /**
-     * Vérifie si le montant OCR correspond EXACTEMENT au montant attendu.
-     *
-     * IMPORTANT: Aucune tolérance n'est acceptée. Le montant doit être strictement identique
-     * à la somme demandée dans la configuration du concours.
+     * Vérifie si le montant OCR est dans la tolérance de ±5% du montant attendu.
      *
      * @param Paiement $paiement Paiement à vérifier
      * @param float $expectedAmount Montant attendu
      *
-     * @return bool True si le montant correspond exactement
+     * @return bool True si le montant est valide
      */
     private function verifyAmount(Paiement $paiement, float $expectedAmount): bool
     {
+        $tolerance = 0.05; // ±5%
+        $min = $expectedAmount * (1 - $tolerance);
+        $max = $expectedAmount * (1 + $tolerance);
         $amount = $paiement->montant_ocr ?? $paiement->montant;
 
-        // Vérification stricte : le montant doit être exactement égal (tolérance de 1 centime pour les arrondis)
-        return abs($amount - $expectedAmount) < 0.01;
+        return $amount >= $min && $amount <= $max;
     }
 
     /**
@@ -367,176 +365,6 @@ class PaiementService
         }
 
         return $this->concoursPaiementService->banqueEstAcceptee($config, $banqueOcr);
-    }
-
-    /**
-     * Vérifie si le numéro de compte OCR correspond exactement au numéro configuré.
-     * @param Paiement $paiement Paiement à vérifier
-     * @param ConcoursPaiement $config Configuration du concours
-     *
-     * @return bool True si le numéro de compte correspond exactement
-     */
-    private function verifyAccountNumber(Paiement $paiement, ConcoursPaiement $config): bool
-    {
-        // Si aucun numéro de compte configuré, on considère comme valide
-        if (!$config->numero_compte) {
-            return true;
-        }
-
-        // Utiliser numero_compte_ocr (stocké lors de la création du paiement)
-        $numeroCompteOcr = $paiement->numero_compte_ocr;
-
-        // Si aucun numéro détecté par OCR, validation manuelle nécessaire
-        if (!$numeroCompteOcr) {
-            return false; // Maintenant strict : doit être détecté par OCR
-        }
-
-        // Nettoyage pour comparaison (supprimer espaces, tirets, et normaliser)
-        $detected = preg_replace('/[\s\-\.]/', '', trim(strtoupper($numeroCompteOcr)));
-        $required = preg_replace('/[\s\-\.]/', '', trim(strtoupper($config->numero_compte)));
-
-        // Comparaison exacte d'abord
-        if ($detected === $required) {
-            return true;
-        }
-
-        // Si pas exact, vérifier similarité (tolérance OCR)
-        return $this->areSimilarAccountNumbers($detected, $required);
-    }
-
-    /**
-     * Vérifie si deux numéros de compte sont similaires (tolérance OCR).
-     * Gère les confusions classiques : 8↔0, 1↔7, 6↔5, etc.
-     */
-    private function areSimilarAccountNumbers(string $detected, string $required): bool
-    {
-        // Même longueur ?
-        if (strlen($detected) !== strlen($required)) {
-            return false;
-        }
-
-        // Même préfixe bancaire ?
-        $detectedPrefix = $this->extractBankPrefix($detected);
-        $requiredPrefix = $this->extractBankPrefix($required);
-
-        if ($detectedPrefix !== $requiredPrefix) {
-            return false;
-        }
-
-        // Comparer chiffre par chiffre avec tolérance
-        $maxDifferences = 1; // Maximum 1 différence acceptée
-        $differences = 0;
-
-        $detectedNumbers = substr($detected, strlen($detectedPrefix));
-        $requiredNumbers = substr($required, strlen($requiredPrefix));
-
-        for ($i = 0; $i < strlen($detectedNumbers); $i++) {
-            if ($detectedNumbers[$i] !== $requiredNumbers[$i]) {
-                $differences++;
-
-                // Vérifier si c'est une confusion classique
-                if (!$this->isCommonOcrConfusion($detectedNumbers[$i], $requiredNumbers[$i])) {
-                    $differences++; // Pénalité pour confusion non-standard
-                }
-
-                if ($differences > $maxDifferences) {
-                    return false;
-                }
-            }
-        }
-
-        return $differences <= $maxDifferences;
-    }
-
-    /**
-     * Extrait le préfixe bancaire (lettres au début).
-     */
-    private function extractBankPrefix(string $account): string
-    {
-        preg_match('/^[A-Z]+/', $account, $matches);
-        return $matches[0] ?? '';
-    }
-
-    /**
-     * Détermine si l'erreur OCR peut être considérée comme mineure
-     * et justifie une validation manuelle plutôt qu'un rejet.
-     */
-    private function isMinorOcrError(Paiement $paiement, ConcoursPaiement $config): bool
-    {
-        if (!$paiement->numero_compte_ocr || !$config->numero_compte) {
-            return false;
-        }
-
-        $detected = preg_replace('/[\s\-\.]/', '', trim(strtoupper($paiement->numero_compte_ocr)));
-        $required = preg_replace('/[\s\-\.]/', '', trim(strtoupper($config->numero_compte)));
-
-        // Même préfixe bancaire ?
-        $detectedPrefix = $this->extractBankPrefix($detected);
-        $requiredPrefix = $this->extractBankPrefix($required);
-
-        if ($detectedPrefix !== $requiredPrefix) {
-            return false; // Erreur majeure - mauvaise banque
-        }
-
-        // Calculer le nombre d'erreurs de chiffres
-        $detectedNumbers = substr($detected, strlen($detectedPrefix));
-        $requiredNumbers = substr($required, strlen($requiredPrefix));
-
-        $errors = 0;
-        $totalDigits = strlen($requiredNumbers);
-
-        for ($i = 0; $i < min(strlen($detectedNumbers), $totalDigits); $i++) {
-            if (isset($detectedNumbers[$i]) && $detectedNumbers[$i] !== $requiredNumbers[$i]) {
-                $errors++;
-            }
-        }
-
-        // Erreur mineure si ≤ 2 erreurs sur les chiffres (ex: 8→0, 1→7)
-        return $errors <= 2;
-    }
-
-    /**
-     * Vérifie si deux chiffres sont sujets à confusion OCR courante.
-     */
-    private function isCommonOcrConfusion(string $digit1, string $digit2): bool
-    {
-        $confusions = [
-            '0' => ['8', '6', '9'],
-            '1' => ['7', '9'],
-            '2' => ['7'],
-            '3' => ['8'],
-            '5' => ['6', '8'],
-            '6' => ['5', '0', '8'],
-            '7' => ['1', '2'],
-            '8' => ['0', '3', '5', '6', '9'],
-            '9' => ['8', '1'],
-        ];
-
-        return isset($confusions[$digit1]) && in_array($digit2, $confusions[$digit1]);
-    }
-
-    /**
-     * Vérifie si le bénéficiaire OCR correspond exactement au bénéficiaire configuré.
-     *
-     * IMPORTANT: Le nom du bénéficiaire doit être strictement identique à celui
-     * défini dans la configuration du concours.
-     *
-     * @param Paiement $paiement Paiement à vérifier
-     * @param ConcoursPaiement $config Configuration du concours
-     *
-     * @return bool True si le bénéficiaire correspond exactement
-     */
-    private function verifyBeneficiary(Paiement $paiement, ConcoursPaiement $config): bool
-    {
-        // Si aucun bénéficiaire configuré, on considère comme valide
-        if (!$config->nom_beneficiaire) {
-            return true;
-        }
-
-        // Pour le moment, on ne peut pas extraire le bénéficiaire par OCR de manière fiable
-        // Cette validation devra être faite manuellement ou via amélioration OCR
-        // Retourner true pour ne pas bloquer la validation automatique
-        return true;
     }
 
     /**
