@@ -11,5 +11,8 @@ Route::middleware(['auth:sanctum', 'role:ADMIN'])
 
 
 Route::prefix('candidats')->group(function () {
-        require __DIR__ . '/api/candidats.php';
+    require __DIR__ . '/api/candidats.php';
 });
+
+// Admin documents routes
+require __DIR__ . '/api/admin-documents.php';
