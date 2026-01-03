@@ -18,16 +18,12 @@ use Illuminate\Http\JsonResponse;
 class CandidatController extends Controller
 {
     public function __construct(
-        private readonly CandidatService $candidatService
+        private readonly CandidatService  $candidatService
     ) {}
 
     /**
      * Vérifier PRU (PUBLIC - avant création compte).
-     *
-     * Endpoint : POST /api/candidates/verify-pru
-     *
      * @param VerifyPRURequest $request Requête validée contenant PRU et concours_id
-     *
      * @return JsonResponse Réponse JSON indiquant validité du PRU
      */
     public function verifyPRU(VerifyPRURequest $request): JsonResponse
@@ -48,11 +44,7 @@ class CandidatController extends Controller
 
     /**
      * Créer compte candidat (PUBLIC - après paiement validé).
-     *
-     * Endpoint : POST /api/candidates/register
-     *
      * @param RegisterCandidatRequest $request Requête validée contenant les informations du candidat
-     *
      * @return JsonResponse Réponse JSON avec compte créé ou erreur
      */
     public function register(RegisterCandidatRequest $request): JsonResponse
@@ -69,11 +61,7 @@ class CandidatController extends Controller
 
     /**
      * Login candidat.
-     *
-     * Endpoint : POST /api/candidates/login
-     *
      * @param LoginCandidatRequest $request Requête validée contenant PRU et mot de passe
-     *
      * @return JsonResponse Réponse JSON avec utilisateur et token ou erreur
      */
     public function login(LoginCandidatRequest $request): JsonResponse
@@ -90,17 +78,13 @@ class CandidatController extends Controller
 
     /**
      * Profil du candidat connecté.
-     *
-     * Endpoint : GET /api/candidates/me
-     *
      * @param Request $request Requête contenant l'utilisateur connecté
-     *
      * @return JsonResponse Réponse JSON avec profil candidat ou erreur
      */
     public function me(Request $request): JsonResponse
     {
         try {
-            $candidat = $this->candidatService->getById($request->user()->id);
+            $candidat = $this->candidatService->getByUserId($request->user()->id);
             return api_success($candidat);
         } catch (\Exception $e) {
             return api_error($e->getMessage(), null, 404);
@@ -109,11 +93,7 @@ class CandidatController extends Controller
 
     /**
      * Mettre à jour profil du candidat connecté.
-     *
-     * Endpoint : PUT /api/candidates/me
-     *
      * @param UpdateCandidatProfileRequest $request Requête validée contenant les nouvelles données
-     *
      * @return JsonResponse Réponse JSON avec profil mis à jour ou erreur
      */
     public function updateProfile(UpdateCandidatProfileRequest $request): JsonResponse
@@ -130,11 +110,7 @@ class CandidatController extends Controller
 
     /**
      * Liste des candidats (ADMIN).
-     *
-     * Endpoint : GET /api/candidates
-     *
      * @param Request $request Requête avec filtres et pagination
-     *
      * @return JsonResponse Réponse JSON paginée des candidats
      */
     public function index(Request $request): JsonResponse
@@ -149,17 +125,13 @@ class CandidatController extends Controller
 
     /**
      * Détails d'un candidat (ADMIN).
-     *
-     * Endpoint : GET /api/candidates/{id}
-     *
      * @param string $id ID du candidat
-     *
      * @return JsonResponse Réponse JSON avec détails du candidat ou erreur
      */
     public function show(string $id): JsonResponse
     {
         try {
-            $candidat = $this->candidatService->getById($id);
+            $candidat = $this->candidatService->getByUserId($id);
             return api_success($candidat);
         } catch (\Exception $e) {
             return api_error('Candidat introuvable', null, 404);
@@ -168,9 +140,6 @@ class CandidatController extends Controller
 
     /**
      * Statistiques candidats (ADMIN).
-     *
-     * Endpoint : GET /api/candidates/stats
-     *
      * @return JsonResponse Réponse JSON avec statistiques des candidats
      */
     public function stats(): JsonResponse
@@ -181,11 +150,7 @@ class CandidatController extends Controller
 
     /**
      * Désactiver un candidat (ADMIN).
-     *
-     * Endpoint : POST /api/candidates/{id}/deactivate
-     *
      * @param string $id ID du candidat
-     *
      * @return JsonResponse Réponse JSON avec succès ou erreur
      */
     public function deactivate(string $id): JsonResponse
@@ -200,11 +165,7 @@ class CandidatController extends Controller
 
     /**
      * Activer un candidat (ADMIN).
-     *
-     * Endpoint : POST /api/candidates/{id}/activate
-     *
      * @param string $id ID du candidat
-     *
      * @return JsonResponse Réponse JSON avec succès ou erreur
      */
     public function activate(string $id): JsonResponse
@@ -219,11 +180,7 @@ class CandidatController extends Controller
 
     /**
      * Récupérer candidat par PRU (ADMIN).
-     *
-     * Endpoint : GET /api/candidates/pru/{pru}
-     *
      * @param string $pru PRU du candidat
-     *
      * @return JsonResponse Réponse JSON avec candidat ou erreur
      */
     public function getByPRU(string $pru): JsonResponse

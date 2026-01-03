@@ -3,20 +3,21 @@
 namespace App\Services\Candidats;
 
 use App\Models\Candidat;
-use App\Models\Candidature;
 use App\DTOs\Candidats\VerifyPRUDTO;
 use App\DTOs\Candidats\RegisterCandidatDTO;
 use App\DTOs\Candidats\LoginCandidatDTO;
 use App\DTOs\Candidats\UpdateCandidatProfileDTO;
 use App\Services\Users\UserService;
+use App\Services\Candidature\CandidatureService;
 use App\Services\Payment\PaiementService;
-use App\Enums\StatutInscription;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class CandidatService
 {
     public function __construct(
         private readonly UserService $userService,
+        private readonly CandidatureService $candidatureService,
         private readonly PaiementService $paiementService
     ) {}
 
@@ -40,8 +41,6 @@ class CandidatService
      * @param RegisterCandidatDTO $dto DTO contenant les informations du candidat
      *
      * @return array Tableau contenant :
-     *   - user : Utilisateur avec relation candidat
-     *   - candidature : Candidature créée
      *
      * @throws \Exception Si PRU invalide ou email déjà utilisé
      */
@@ -91,14 +90,12 @@ class CandidatService
                 throw new \Exception('Aucune session active trouvée pour ce concours');
             }
 
-            $candidature = Candidature::create([
-                'candidat_id' => $candidat->utilisateur_id,
-                'concours_id' => $concoursId,
-                'session_id' => $sessionActive->id,
-                'statut_inscription' => StatutInscription::ACTIF,
-                'date_candidature' => now(),
-                'date_inscription' => $dateInscription ?? now(),
-            ]);
+            $candidature = $this->candidatureService->createCandidature(
+                $candidat,
+                $concoursId,
+                $sessionActive,
+                $dateInscription
+            );
 
 
             return [
@@ -113,9 +110,7 @@ class CandidatService
      *
      * @param LoginCandidatDTO $dto DTO contenant PRU et mot de passe
      *
-     * @return array Tableau contenant :
-     *   - user : Utilisateur avec relations candidat et candidatures
-     *   - token : Token d'authentification
+     * @return array 
      *
      * @throws \Exception Si les identifiants sont incorrects
      */
@@ -159,9 +154,10 @@ class CandidatService
      *
      * @return Candidat Candidat avec relations utilisateur, concours et session
      */
-    public function getById(string $utilisateurId): Candidat
+    public function getByUserId(string $utilisateurId): Candidat
     {
-        return Candidat::with(['utilisateur', 'candidatures.concours', 'candidatures.session'])
+        $relations = ['utilisateur:id,email, telephone', 'candidatures.concours:id, libelle_concours', 'candidatures.session:id, libelle_session'];
+        return Candidat::with($relations)
             ->where('utilisateur_id', $utilisateurId)
             ->firstOrFail();
     }
