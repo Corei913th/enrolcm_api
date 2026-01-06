@@ -12,19 +12,21 @@ use App\Services\Ecoles\EcoleFileService;
 use App\Services\Ecoles\EcolePdfService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+
 
 class EcoleController extends Controller
 {
-    protected EcoleService $ecoleService;
-
-    public function __construct(EcoleService $ecoleService)
-    {
-        $this->ecoleService = $ecoleService;
-    }
+    public function __construct(
+        private readonly EcoleService $ecoleService,
+        private readonly EcoleFileService $fileService,
+        private readonly EcolePdfService $pdfService
+    ) {}
 
     /**
-     * Liste des écoles avec filtres et pagination
+     * Get paginated list of schools with optional filters
+     *
+     * @param Request $request Available query params: est_actif, region, search, per_page
+     * @return JsonResponse Paginated schools with EcoleResource
      */
     public function index(Request $request): JsonResponse
     {
@@ -33,8 +35,9 @@ class EcoleController extends Controller
             $ecoles = $this->ecoleService->getAll($filters);
 
             return api_paginated(
-                EcoleResource::collection($ecoles)->resource,
-                'Liste des écoles récupérée avec succès'
+                $ecoles,
+                'Liste des écoles récupérée avec succès',
+                EcoleResource::class
             );
         } catch (EcoleException $e) {
             return api_error($e->getMessage(), null, $e->getCode());
@@ -42,16 +45,19 @@ class EcoleController extends Controller
     }
 
     /**
-     * Afficher une école spécifique par ID
+     * Get a specific school by ID with relationships loaded
+     *
+     * @param string $id School UUID
+     * @return JsonResponse School data with EcoleResource
      */
     public function show(string $id): JsonResponse
     {
         try {
             $ecole = $this->ecoleService->getById($id);
-            
+
             return api_success(
-                'École récupérée avec succès',
-                new EcoleResource($ecole)
+                new EcoleResource($ecole),
+                'École récupérée avec succès'
             );
         } catch (EcoleException $e) {
             return api_error($e->getMessage(), null, $e->getCode());
@@ -59,16 +65,19 @@ class EcoleController extends Controller
     }
 
     /**
-     * Afficher une école par son code
+     * Get a school by its unique code
+     *
+     * @param string $code School code (unique identifier)
+     * @return JsonResponse School data with EcoleResource
      */
     public function showByCode(string $code): JsonResponse
     {
         try {
             $ecole = $this->ecoleService->getByCode($code);
-            
+
             return api_success(
-                'École récupérée avec succès',
-                new EcoleResource($ecole)
+                new EcoleResource($ecole),
+                'École récupérée avec succès'
             );
         } catch (EcoleException $e) {
             return api_error($e->getMessage(), null, $e->getCode());
@@ -76,48 +85,25 @@ class EcoleController extends Controller
     }
 
     /**
-     * Créer une nouvelle école avec fichiers
+     * Create a new school with optional file uploads
+     *
+     * @param StoreEcoleRequest $request Validated request with school data and optional files
+     * @return JsonResponse Created school with EcoleResource
      */
     public function store(StoreEcoleRequest $request): JsonResponse
     {
         try {
-            $ecole = null;
-            
-            DB::transaction(function () use ($request, &$ecole) {
-                // Créer l'école
-                $ecoleData = CreateEcoleDTO::from($request->except(['logo', 'embleme', 'header_frame']));
-                $ecole = $this->ecoleService->create($ecoleData);
+            $ecoleData = CreateEcoleDTO::from($request->except(['logo', 'embleme', 'header_frame']));
+            $files = [];
 
-                // Uploader les fichiers si présents
-                $fileService = new EcoleFileService();
-                
-                if ($request->hasFile('logo')) {
-                    $logoInfo = $fileService->uploadFile($ecole, $request->file('logo'), 'logo');
-                    $ecole->update([
-                        'logo_path' => $logoInfo['path'],
-                        'logo_original_name' => $logoInfo['original_name'],
-                    ]);
-                }
+            if ($request->hasFile('logo')) $files['logo'] = $request->file('logo');
+            if ($request->hasFile('embleme')) $files['embleme'] = $request->file('embleme');
+            if ($request->hasFile('header_frame')) $files['header_frame'] = $request->file('header_frame');
 
-                if ($request->hasFile('embleme')) {
-                    $emblemeInfo = $fileService->uploadFile($ecole, $request->file('embleme'), 'embleme');
-                    $ecole->update([
-                        'embleme_path' => $emblemeInfo['path'],
-                        'embleme_original_name' => $emblemeInfo['original_name'],
-                    ]);
-                }
-
-                if ($request->hasFile('header_frame')) {
-                    $headerInfo = $fileService->uploadFile($ecole, $request->file('header_frame'), 'header_frame');
-                    $ecole->update([
-                        'header_frame_path' => $headerInfo['path'],
-                        'header_frame_original_name' => $headerInfo['original_name'],
-                    ]);
-                }
-            });
+            $ecole = $this->ecoleService->createWithFiles($ecoleData, $files);
 
             return api_created(
-                new EcoleResource($ecole->fresh()),
+                new EcoleResource($ecole),
                 'École créée avec succès'
             );
         } catch (EcoleException $e) {
@@ -128,48 +114,28 @@ class EcoleController extends Controller
     }
 
     /**
-     * Mettre à jour une école avec fichiers
+     * Update an existing school with optional file uploads
+     *
+     * @param UpdateEcoleRequest $request Validated request with updated data and optional files
+     * @param string $id School UUID to update
+     * @return JsonResponse Updated school with EcoleResource
      */
     public function update(UpdateEcoleRequest $request, string $id): JsonResponse
     {
         try {
-            $ecole = null;
-            
-            DB::transaction(function () use ($request, $id, &$ecole) {
-                // Mettre à jour les données de base
-                $ecoleData = CreateEcoleDTO::from($request->except(['logo', 'embleme', 'header_frame']));
-                $ecole = $this->ecoleService->update($id, $ecoleData);
 
-                // Uploader les nouveaux fichiers si présents
-                $fileService = new EcoleFileService();
-                
-                if ($request->hasFile('logo')) {
-                    $logoInfo = $fileService->uploadFile($ecole, $request->file('logo'), 'logo');
-                    $ecole->update([
-                        'logo_path' => $logoInfo['path'],
-                        'logo_original_name' => $logoInfo['original_name'],
-                    ]);
-                }
+            $ecoleData = CreateEcoleDTO::from($request->except(['logo', 'embleme', 'header_frame']));
+            $files = [];
 
-                if ($request->hasFile('embleme')) {
-                    $emblemeInfo = $fileService->uploadFile($ecole, $request->file('embleme'), 'embleme');
-                    $ecole->update([
-                        'embleme_path' => $emblemeInfo['path'],
-                        'embleme_original_name' => $emblemeInfo['original_name'],
-                    ]);
-                }
+            if ($request->hasFile('logo')) $files['logo'] = $request->file('logo');
+            if ($request->hasFile('embleme')) $files['embleme'] = $request->file('embleme');
+            if ($request->hasFile('header_frame')) $files['header_frame'] = $request->file('header_frame');
 
-                if ($request->hasFile('header_frame')) {
-                    $headerInfo = $fileService->uploadFile($ecole, $request->file('header_frame'), 'header_frame');
-                    $ecole->update([
-                        'header_frame_path' => $headerInfo['path'],
-                        'header_frame_original_name' => $headerInfo['original_name'],
-                    ]);
-                }
-            });
+
+            $ecole = $this->ecoleService->updateWithFiles($id, $ecoleData, $files);
 
             return api_updated(
-                new EcoleResource($ecole->fresh()),
+                new EcoleResource($ecole),
                 'École mise à jour avec succès'
             );
         } catch (EcoleException $e) {
@@ -180,22 +146,17 @@ class EcoleController extends Controller
     }
 
     /**
-     * Supprimer une école et ses fichiers
+     * Delete a school and all its associated files
+     *
+     * @param string $id School UUID to delete
+     * @return JsonResponse Success message
      */
     public function destroy(string $id): JsonResponse
     {
         try {
-            DB::transaction(function () use ($id) {
-                $ecole = $this->ecoleService->getById($id);
-                
-                // Supprimer tous les fichiers
-                $fileService = new EcoleFileService();
-                $fileService->deleteAllFiles($ecole);
-                
-                // Supprimer l'école
-                $this->ecoleService->delete($id);
-            });
-            
+
+            $this->ecoleService->deleteWithFiles($id);
+
             return api_deleted('École et fichiers supprimés avec succès');
         } catch (EcoleException $e) {
             return api_error($e->getMessage(), null, $e->getCode());
@@ -203,13 +164,16 @@ class EcoleController extends Controller
     }
 
     /**
-     * Activer/Désactiver une école
+     * Toggle the active status of a school
+     *
+     * @param string $id School UUID
+     * @return JsonResponse Updated school with EcoleResource
      */
     public function toggleStatus(string $id): JsonResponse
     {
         try {
             $ecole = $this->ecoleService->toggleStatus($id);
-            
+
             return api_updated(
                 new EcoleResource($ecole),
                 'Statut de l\'école modifié avec succès'
@@ -220,16 +184,18 @@ class EcoleController extends Controller
     }
 
     /**
-     * Liste des écoles actives (pour les sélections)
+     * Get list of all active schools for dropdown selections
+     *
+     * @return JsonResponse Collection of active schools with EcoleResource
      */
     public function active(): JsonResponse
     {
         try {
             $ecoles = $this->ecoleService->getActive();
-            
+
             return api_success(
-                'Écoles actives récupérées avec succès',
-                EcoleResource::collection($ecoles)
+                EcoleResource::collection($ecoles),
+                'Écoles actives récupérées avec succès'
             );
         } catch (EcoleException $e) {
             return api_error($e->getMessage(), null, $e->getCode());
@@ -237,7 +203,11 @@ class EcoleController extends Controller
     }
 
     /**
-     * Uploader un fichier pour une école
+     * Upload a file (logo, embleme, header_frame) for a school
+     *
+     * @param Request $request Must contain 'type' and 'file' fields
+     * @param string $id School UUID
+     * @return JsonResponse Updated school with EcoleResource
      */
     public function uploadFile(Request $request, string $id): JsonResponse
     {
@@ -248,26 +218,22 @@ class EcoleController extends Controller
 
         try {
             $ecole = $this->ecoleService->getById($id);
-            $fileService = new EcoleFileService();
-            
-            $fileInfo = $fileService->uploadFile(
+
+            $fileInfo = $this->fileService->uploadFile(
                 $ecole,
                 $request->file('file'),
                 $request->input('type')
             );
 
-            // Mettre à jour l'école avec les infos du fichier
-            $pathField = $request->input('type') . '_path';
-            $nameField = $request->input('type') . '_original_name';
-            
-            $ecole->update([
-                $pathField => $fileInfo['path'],
-                $nameField => $fileInfo['original_name'],
-            ]);
+            $ecole = $this->ecoleService->updateFileInfo(
+                $ecole->id,
+                $request->input('type'),
+                $fileInfo
+            );
 
             return api_success(
-                'Fichier uploadé avec succès',
-                new EcoleResource($ecole->fresh())
+                new EcoleResource($ecole),
+                'Fichier uploadé avec succès'
             );
         } catch (\Exception $e) {
             return api_error($e->getMessage());
@@ -275,7 +241,11 @@ class EcoleController extends Controller
     }
 
     /**
-     * Supprimer un fichier d'une école
+     * Delete a file (logo, embleme, header_frame) for a school
+     *
+     * @param Request $request Must contain 'type' field
+     * @param string $id School UUID
+     * @return JsonResponse Updated school with EcoleResource
      */
     public function deleteFile(Request $request, string $id): JsonResponse
     {
@@ -285,22 +255,17 @@ class EcoleController extends Controller
 
         try {
             $ecole = $this->ecoleService->getById($id);
-            $fileService = new EcoleFileService();
-            
-            $fileService->deleteFile($ecole, $request->input('type'));
+            $this->fileService->deleteFile($ecole, $request->input('type'));
 
-            // Mettre à jour l'école
-            $pathField = $request->input('type') . '_path';
-            $nameField = $request->input('type') . '_original_name';
-            
-            $ecole->update([
-                $pathField => null,
-                $nameField => null,
-            ]);
+
+            $ecole = $this->ecoleService->clearFileInfo(
+                $ecole->id,
+                $request->input('type')
+            );
 
             return api_success(
-                'Fichier supprimé avec succès',
-                new EcoleResource($ecole->fresh())
+                new EcoleResource($ecole),
+                'Fichier supprimé avec succès'
             );
         } catch (\Exception $e) {
             return api_error($e->getMessage());
@@ -308,7 +273,11 @@ class EcoleController extends Controller
     }
 
     /**
-     * Générer une attestation PDF
+     * Generate and download a PDF attestation document for a student
+     *
+     * @param Request $request Must contain student info fields
+     * @param string $id School UUID
+     * @return mixed PDF download response
      */
     public function generateAttestation(Request $request, string $id)
     {
@@ -321,10 +290,9 @@ class EcoleController extends Controller
 
         try {
             $ecole = $this->ecoleService->getById($id);
-            $pdfService = new EcolePdfService();
-            
-            $pdf = $pdfService->generateAttestation($ecole, $request->all());
-            
+
+            $pdf = $this->pdfService->generateAttestation($ecole, $request->all());
+
             return $pdf->download('attestation_' . $request->input('numero', 'ATT') . '.pdf');
         } catch (\Exception $e) {
             return api_error($e->getMessage());
@@ -332,20 +300,22 @@ class EcoleController extends Controller
     }
 
     /**
-     * Prévisualiser l'entête PDF
+     * Preview the PDF header for a school
+     *
+     * @param string $id School UUID
+     * @return mixed PDF stream or download response
      */
     public function previewHeader(string $id)
     {
         try {
             $ecole = $this->ecoleService->getById($id);
-            $pdfService = new EcolePdfService();
-            
-            $pdf = $pdfService->generateDocument(
+
+            $pdf = $this->pdfService->generateDocument(
                 $ecole,
                 'APERÇU DE L\'ENTÊTE',
                 '<p style="text-align: center; margin-top: 50px;">Ceci est un aperçu de l\'entête officielle de l\'école.</p>'
             );
-            
+
             return $pdf->stream('preview_header.pdf');
         } catch (\Exception $e) {
             return api_error($e->getMessage());

@@ -28,25 +28,24 @@ class EcoleFileService
         'header_frame' => 5120, // 5MB
     ];
 
+
     /**
-     * Uploader un fichier pour une école
+     * Upload a file for a school
+     *
+     * @param Ecole $ecole School model
+     * @param UploadedFile $file Uploaded file
+     * @param string $type File type: 'logo', 'embleme', 'header_frame'
+     * @return array File information array with 'path', 'original_name', 'url'
      */
     public function uploadFile(Ecole $ecole, UploadedFile $file, string $type): array
     {
-        // Valider le type de fichier
         $this->validateFile($file, $type);
-
-        // Supprimer l'ancien fichier si existe
         $this->deleteOldFile($ecole, $type);
-
-        // Générer un nom unique
         $filename = $this->generateFilename($file, $type);
-
-        // Définir le chemin de stockage
         $directory = "ecoles/{$ecole->id}";
         $path = "{$directory}/{$filename}";
 
-        // Stocker le fichier
+        
         Storage::disk('public')->putFileAs($directory, $file, $filename);
 
         Log::info("Fichier {$type} uploadé pour l'école", [
@@ -64,12 +63,16 @@ class EcoleFileService
     }
 
     /**
-     * Supprimer un fichier d'une école
+     * Delete a file for a school
+     *
+     * @param Ecole $ecole School model
+     * @param string $type File type: 'logo', 'embleme', 'header_frame'
+     * @return bool True if deletion successful
      */
     public function deleteFile(Ecole $ecole, string $type): bool
     {
         $pathField = "{$type}_path";
-        
+
         if (!$ecole->$pathField) {
             return false;
         }
@@ -77,7 +80,7 @@ class EcoleFileService
         try {
             if (Storage::disk('public')->exists($ecole->$pathField)) {
                 Storage::disk('public')->delete($ecole->$pathField);
-                
+
                 Log::info("Fichier {$type} supprimé pour l'école", [
                     'ecole_id' => $ecole->id,
                     'type' => $type,
@@ -91,13 +94,16 @@ class EcoleFileService
                 'ecole_id' => $ecole->id,
                 'error' => $e->getMessage(),
             ]);
-            
+
             return false;
         }
     }
 
     /**
-     * Supprimer tous les fichiers d'une école
+     * Delete all files for a school
+     *
+     * @param Ecole $ecole School model
+     * @return void
      */
     public function deleteAllFiles(Ecole $ecole): void
     {
@@ -105,7 +111,6 @@ class EcoleFileService
         $this->deleteFile($ecole, 'embleme');
         $this->deleteFile($ecole, 'header_frame');
 
-        // Supprimer le dossier de l'école s'il est vide
         $directory = "ecoles/{$ecole->id}";
         if (Storage::disk('public')->exists($directory)) {
             $files = Storage::disk('public')->files($directory);
@@ -116,35 +121,41 @@ class EcoleFileService
     }
 
     /**
-     * Valider un fichier
+     * Validate a file
+     *
+     * @param UploadedFile $file Uploaded file
+     * @param string $type File type: 'logo', 'embleme', 'header_frame'
+     * @return void
+     * @throws \InvalidArgumentException If file is not valid
      */
     private function validateFile(UploadedFile $file, string $type): void
     {
-        // Vérifier le type MIME
         if (!in_array($file->getMimeType(), self::ALLOWED_TYPES[$type])) {
             throw new \InvalidArgumentException(
-                "Type de fichier non autorisé pour {$type}. Types acceptés : " . 
-                implode(', ', self::ALLOWED_TYPES[$type])
+                "Type de fichier non autorisé pour {$type}. Types acceptés : " .
+                    implode(', ', self::ALLOWED_TYPES[$type])
             );
         }
 
-        // Vérifier la taille
         $maxSize = self::MAX_SIZES[$type] * 1024; // Convertir en bytes
         if ($file->getSize() > $maxSize) {
             throw new \InvalidArgumentException(
-                "Fichier trop volumineux pour {$type}. Taille maximale : " . 
-                self::MAX_SIZES[$type] . " Ko"
+                "Fichier trop volumineux pour {$type}. Taille maximale : " .
+                    self::MAX_SIZES[$type] . " Ko"
             );
         }
 
-        // Vérifier que c'est bien une image
         if (!$file->isValid()) {
             throw new \InvalidArgumentException("Fichier invalide ou corrompu");
         }
     }
 
     /**
-     * Supprimer l'ancien fichier
+     * Delete the old file
+     *
+     * @param Ecole $ecole School model
+     * @param string $type File type: 'logo', 'embleme', 'header_frame'
+     * @return void
      */
     private function deleteOldFile(Ecole $ecole, string $type): void
     {
@@ -152,19 +163,27 @@ class EcoleFileService
     }
 
     /**
-     * Générer un nom de fichier unique
+     * Generate a unique filename
+     *
+     * @param UploadedFile $file Uploaded file
+     * @param string $type File type: 'logo', 'embleme', 'header_frame'
+     * @return string Unique filename
      */
     private function generateFilename(UploadedFile $file, string $type): string
     {
         $extension = $file->getClientOriginalExtension();
         $timestamp = now()->format('YmdHis');
         $random = Str::random(8);
-        
+
         return "{$type}_{$timestamp}_{$random}.{$extension}";
     }
 
     /**
-     * Obtenir les informations d'un fichier
+     * Get file information
+     *
+     * @param Ecole $ecole School model
+     * @param string $type File type: 'logo', 'embleme', 'header_frame'
+     * @return array File information array with 'path', 'url', 'original_name', 'exists', 'size', 'mime_type'
      */
     public function getFileInfo(Ecole $ecole, string $type): ?array
     {
