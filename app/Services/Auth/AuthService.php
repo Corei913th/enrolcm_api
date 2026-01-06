@@ -51,10 +51,10 @@ class AuthService
         $accessToken = $this->userService->generateToken($utilisateur, 'auth_token', 60); // 60 minutes
         $refreshToken = $this->userService->generateRefreshToken($utilisateur, 30); // 30 jours
 
-        $relations = $this->getRelationsForUser($utilisateur);
+        //$relations = $this->getRelationsForUser($utilisateur);
 
         return [
-            'user' => $utilisateur->load($relations),
+            'user' => $utilisateur,
             'access_token' => $accessToken['access_token'],
             'refresh_token' => $refreshToken['refresh_token'],
             'token_type' => $accessToken['token_type'],
