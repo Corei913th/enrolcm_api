@@ -91,6 +91,7 @@ class UserService
         $utilisateur->tokens()->where('name', $tokenName)->delete();
 
         $expiresAt = now()->addMinutes($expiresInMinutes);
+
         $token = $utilisateur->createToken($tokenName, ['*'], $expiresAt);
 
         return [
@@ -159,6 +160,10 @@ class UserService
 
         // Générer un nouveau access token
         $accessToken = $this->generateToken($utilisateur);
+<<<<<<< HEAD
+=======
+
+>>>>>>> origin/feature/concours
         // Générer un nouveau refresh token
         $newRefreshToken = $this->generateRefreshToken($utilisateur);
 
@@ -232,11 +237,13 @@ class UserService
     public function createStaff(CreateUserDTO $dto): Utilisateur
     {
         return DB::transaction(function () use ($dto) {
+            $typeUtilisateur = TypeUtilisateur::from($dto->type_utilisateur);
+
             $user = Utilisateur::create([
                 'email' => $dto->email,
                 'user_name' => $dto->user_name,
                 'mot_de_passe' => Hash::make($dto->mot_de_passe),
-                'type_utilisateur' => $dto->type_utilisateur,
+                'type_utilisateur' => $typeUtilisateur,
                 'email_verifie' => false,
                 'telephone' => $dto->telephone,
             ]);
