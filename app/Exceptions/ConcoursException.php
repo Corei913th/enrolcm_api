@@ -109,4 +109,24 @@ class ConcoursException extends Exception
     {
         return new self("Le nombre de places ne peut pas être inférieur au nombre de candidatures validées ({$candidatures}).", 400);
     }
+
+    public static function reaffectationImpossible(string $raison): self
+    {
+        return new self("Réaffectation impossible: {$raison}.", 400);
+    }
+
+    public static function noteInvalide(float $valeur): self
+    {
+        return new self("La note {$valeur} est invalide. Elle doit être comprise entre 0 et 20.", 400);
+    }
+
+    public static function noteDejaExiste(string $candidatureId, string $epreuveId): self
+    {
+        return new self("Une note existe déjà pour cette candidature ({$candidatureId}) et cette épreuve ({$epreuveId}).", 400);
+    }
+
+    public static function noteNonModifiable(string $noteId): self
+    {
+        return new self("La note {$noteId} ne peut pas être modifiée car elle est déjà validée.", 400);
+    }
 }
