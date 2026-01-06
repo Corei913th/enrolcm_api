@@ -116,6 +116,7 @@ class UserService
         $utilisateur->tokens()->where('name', 'refresh_token')->delete();
 
         $expiresAt = now()->addDays($expiresInDays);
+
         $token = $utilisateur->createToken('refresh_token', ['refresh'], $expiresAt);
 
         return [
@@ -160,6 +161,7 @@ class UserService
 
         // Générer un nouveau access token
         $accessToken = $this->generateToken($utilisateur);
+
         // Générer un nouveau refresh token
         $newRefreshToken = $this->generateRefreshToken($utilisateur);
 
