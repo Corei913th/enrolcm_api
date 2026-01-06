@@ -3,20 +3,21 @@
 namespace App\Services\Candidats;
 
 use App\Models\Candidat;
-use App\Models\Candidature;
 use App\DTOs\Candidats\VerifyPRUDTO;
 use App\DTOs\Candidats\RegisterCandidatDTO;
 use App\DTOs\Candidats\LoginCandidatDTO;
 use App\DTOs\Candidats\UpdateCandidatProfileDTO;
 use App\Services\Users\UserService;
+use App\Services\Candidature\CandidatureService;
 use App\Services\Payment\PaiementService;
-use App\Enums\StatutInscription;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class CandidatService
 {
     public function __construct(
         private readonly UserService $userService,
+        private readonly CandidatureService $candidatureService,
         private readonly PaiementService $paiementService
     ) {}
 
@@ -40,20 +41,26 @@ class CandidatService
      * @param RegisterCandidatDTO $dto DTO contenant les informations du candidat
      *
      * @return array Tableau contenant :
-     *   - user : Utilisateur avec relation candidat
-     *   - candidature : Candidature créée
-     *   - token : Token d'authentification
      *
      * @throws \Exception Si PRU invalide ou email déjà utilisé
      */
     public function register(RegisterCandidatDTO $dto): array
     {
         return DB::transaction(function () use ($dto) {
-            $verification = $this->verifyPRU(new VerifyPRUDTO($dto->pru, $dto->concoursId));
 
-            if (!$verification['valid']) {
-                throw new \Exception($verification['message']);
+            $paiementInfo = $this->paiementService->getPaiementInfo($dto->pru);
+
+            if (!$paiementInfo) {
+                throw new \Exception('PRU invalide ou déjà utilisé');
             }
+
+            $concoursId = $paiementInfo['concours_id'];
+
+
+            if (isset($dto->concoursId) && $dto->concoursId !== $concoursId) {
+                throw new \Exception('Le PRU ne correspond pas au concours sélectionné');
+            }
+
 
             if ($this->userService->emailExists($dto->email)) {
                 throw new \Exception('Cet email est déjà utilisé');
@@ -73,24 +80,27 @@ class CandidatService
                 'nationalite_cand' => 'Camerounaise',
             ]);
 
-            $this->paiementService->linkToCandidat($dto->pru, $dto->concoursId, $candidat->utilisateur_id);
-            $dateInscription = $this->paiementService->getValidationDate($dto->pru, $dto->concoursId);
+            $this->paiementService->linkToCandidat($dto->pru, $concoursId, $candidat->utilisateur_id);
+            $dateInscription = $paiementInfo['validated_at'];
 
-            $candidature = Candidature::create([
-                'candidat_id' => $candidat->utilisateur_id,
-                'concours_id' => $dto->concoursId,
-                'session_id' => $dto->sessionId,
-                'statut_inscription' => StatutInscription::ACTIF,
-                'date_candidature' => now(),
-                'date_inscription' => $dateInscription ?? now(),
-            ]);
 
-            $token = $this->userService->generateToken($utilisateur);
+            $sessionActive = $this->getActiveSessionForConcours($paiementInfo['concours']);
+
+            if (!$sessionActive) {
+                throw new \Exception('Aucune session active trouvée pour ce concours');
+            }
+
+            $candidature = $this->candidatureService->createCandidature(
+                $candidat,
+                $concoursId,
+                $sessionActive,
+                $dateInscription
+            );
+
 
             return [
                 'user' => $utilisateur->load('candidat'),
                 'candidature' => $candidature,
-                'token' => $token,
             ];
         });
     }
@@ -100,9 +110,7 @@ class CandidatService
      *
      * @param LoginCandidatDTO $dto DTO contenant PRU et mot de passe
      *
-     * @return array Tableau contenant :
-     *   - user : Utilisateur avec relations candidat et candidatures
-     *   - token : Token d'authentification
+     * @return array 
      *
      * @throws \Exception Si les identifiants sont incorrects
      */
@@ -146,9 +154,10 @@ class CandidatService
      *
      * @return Candidat Candidat avec relations utilisateur, concours et session
      */
-    public function getById(string $utilisateurId): Candidat
+    public function getByUserId(string $utilisateurId): Candidat
     {
-        return Candidat::with(['utilisateur', 'candidatures.concours', 'candidatures.session'])
+        $relations = ['utilisateur:id,email, telephone', 'candidatures.concours:id, libelle_concours', 'candidatures.session:id, libelle_session'];
+        return Candidat::with($relations)
             ->where('utilisateur_id', $utilisateurId)
             ->firstOrFail();
     }
@@ -183,7 +192,7 @@ class CandidatService
             $search = $filters['search'];
             $query->where(function ($q) use ($search) {
                 $q->where('nom_cand', 'like', "%{$search}%")
-                  ->orWhere('prenom_cand', 'like', "%{$search}%");
+                    ->orWhere('prenom_cand', 'like', "%{$search}%");
             });
         }
 
@@ -200,7 +209,7 @@ class CandidatService
         return $query->orderBy('created_at', 'desc')->paginate($perPage);
     }
 
-       /**
+    /**
      * Statistiques sur les candidats.
      *
      * @return array Tableau contenant :
@@ -255,5 +264,23 @@ class CandidatService
     public function activate(string $utilisateurId): bool
     {
         return $this->userService->activate($utilisateurId);
+    }
+
+    /**
+     * Récupérer la session active pour un concours (avec cache).
+     *
+     * @param mixed $concours Instance du modèle Concours
+     *
+     * @return mixed Session active ou null
+     */
+    private function getActiveSessionForConcours($concours)
+    {
+        $cacheKey = "concours_{$concours->id}_active_session";
+
+        return Cache::remember($cacheKey, 3600, function () use ($concours) {
+            return $concours->sessions()
+                ->where('statut_session', 'ACTIVE')
+                ->first();
+        });
     }
 }

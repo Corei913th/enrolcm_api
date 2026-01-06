@@ -11,8 +11,8 @@ class RegisterCandidatDTO
         public readonly string $email,
         public readonly string $telephone,
         public readonly string $password,
-        public readonly string $concoursId,
-        public readonly string $sessionId
+        public readonly ?string $concoursId = null, // Optionnel, récupéré depuis PRU
+        public readonly ?string $sessionId = null    // Optionnel, récupéré automatiquement
     ) {}
 
     public static function fromRequest(array $data): self
@@ -24,8 +24,8 @@ class RegisterCandidatDTO
             email: $data['email'],
             telephone: $data['telephone'],
             password: $data['password'],
-            concoursId: $data['concours_id'],
-            sessionId: $data['session_id']
+            concoursId: $data['concours_id'] ?? null,
+            sessionId: $data['session_id'] ?? null
         );
     }
 }
