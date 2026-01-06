@@ -35,3 +35,8 @@ yarn-error.log
 /storage/logs/*
 !/storage/logs/.gitignore
 database/database.sqlite
+
+# Documentation (local only)
+/docs/
+
+

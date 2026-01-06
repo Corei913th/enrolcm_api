@@ -14,6 +14,14 @@ Route::prefix('auth')->group(function () {
     require __DIR__ . '/api/auth.php';
 });
 
+Route::prefix('payments')->group(function () {
+    require __DIR__ . '/api/payments.php';
+});
+
+Route::prefix('receipts')->group(function () {
+    require __DIR__ . '/api/receipts.php';
+});
+
 Route::prefix('candidates')->group(function () {
     require __DIR__ . '/api/candidates.php';
 });

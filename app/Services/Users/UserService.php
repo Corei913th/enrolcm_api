@@ -160,10 +160,6 @@ class UserService
 
         // Générer un nouveau access token
         $accessToken = $this->generateToken($utilisateur);
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/feature/concours
         // Générer un nouveau refresh token
         $newRefreshToken = $this->generateRefreshToken($utilisateur);
 

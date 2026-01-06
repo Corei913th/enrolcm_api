@@ -14,20 +14,19 @@ class RegisterCandidatRequest extends FormRequest
     public function rules()
     {
         return [
-            'user_name' => 'required|string|unique:utilisateurs,user_name',
+            'user_name' => 'required|string|unique:utilisateurs,user_name', // Numéro de reçu
             'mot_de_passe' => 'required|string|min:6|confirmed',
-            'nationalite_cand' => 'nullable|string|max:50',
         ];
     }
 
     public function messages()
     {
         return [
-            'user_name.required' => 'Le nom d\'utilisateur est obligatoire',
-            'user_name.string' => 'Le nom d\'utilisateur doit être une chaîne de caractères',      
-            'mot_de_passe.string' => 'Le mot de passe doit être une chaîne de caractères',
+            'user_name.required' => 'Le numéro de reçu est obligatoire',
+            'user_name.unique' => 'Ce numéro de reçu a déjà été utilisé',
             'mot_de_passe.required' => 'Le mot de passe est obligatoire',
             'mot_de_passe.min' => 'Le mot de passe doit contenir au moins 6 caractères',
+            'mot_de_passe.confirmed' => 'Les mots de passe ne correspondent pas',
         ];
     }
 }

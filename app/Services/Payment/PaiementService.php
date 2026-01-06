@@ -213,7 +213,6 @@ class PaiementService
      */
     public function getPayments(array $filters = [], int $perPage = 20): LengthAwarePaginator
     {
-
         $query = Paiement::query()
             ->with([
                 'candidat:id,utilisateur_id,nom_cand,prenom_cand',
@@ -231,37 +230,31 @@ class PaiementService
                 'validated_at'
             ]);
 
-
         $query->when(
             !empty($filters['statut']),
-            fn($q) =>
-            $q->where('statut', $filters['statut'])
+            fn($q) => $q->where('statut', $filters['statut'])
         )
             ->when(
                 !empty($filters['concours_id']),
-                fn($q) =>
-                $q->where('concours_id', $filters['concours_id'])
+                fn($q) => $q->where('concours_id', $filters['concours_id'])
             )
             ->when(
                 !empty($filters['date_debut']),
-                fn($q) =>
-                $q->where('created_at', '>=', $filters['date_debut'])
+                fn($q) => $q->where('created_at', '>=', $filters['date_debut'])
             )
             ->when(
                 !empty($filters['date_fin']),
-                fn($q) =>
-                $q->where('created_at', '<=', $filters['date_fin'])
+                fn($q) => $q->where('created_at', '<=', $filters['date_fin'])
             )
             ->when(!empty($filters['reference']), function ($q) use ($filters) {
-
                 $q->where('reference', 'like', $filters['reference'] . '%');
             });
-
 
         return $query->latest('created_at')->paginate($perPage);
     }
 
     /**
+     * Recherche full-text dans les paiements.
      *
      * @param string $query Terme de recherche
      * @param array $filters Filtres supplémentaires
@@ -301,11 +294,9 @@ class PaiementService
             ->when(!empty($filters['concours_id']), fn($q) => $q->where('concours_id', $filters['concours_id']))
             ->when(!empty($filters['date_debut']), fn($q) => $q->where('created_at', '>=', $filters['date_debut']))
             ->when(!empty($filters['date_fin']), fn($q) => $q->where('created_at', '<=', $filters['date_fin']))
-
             // Trier par pertinence (full-text ranking)
             ->orderByRaw("ts_rank(search_vector, plainto_tsquery('french', ?)) DESC", [$query])
             ->orderBy('created_at', 'desc')
-
             ->paginate($perPage);
 
         return $results;
@@ -572,12 +563,12 @@ class PaiementService
     {
         $paiement = Paiement::findOrFail($paiementId);
 
-
+        // Vérifier que le paiement peut être validé manuellement
         if (!in_array($paiement->statut, [StatutPaiement::PENDING, StatutPaiement::PENDING_MANUAL_REVIEW])) {
             throw new \Exception('Ce paiement ne peut pas être validé manuellement');
         }
 
-
+        // Marquer comme validé manuellement
         $paiement->update([
             'statut' => StatutPaiement::VERIFIED,
             'validated_at' => now(),

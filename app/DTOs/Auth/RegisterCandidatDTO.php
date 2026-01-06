@@ -8,7 +8,7 @@ use App\Http\Requests\Auth\RegisterCandidatRequest;
 class RegisterCandidatDTO extends Data
 {
     public function __construct(
-        public readonly string $user_name,
+        public readonly string $user_name, // Numéro de reçu
         public readonly string $mot_de_passe,
         public readonly ?string $nationalite_cand = 'Camerounaise',
     ) {}

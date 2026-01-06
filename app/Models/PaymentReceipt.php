@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use App\Enums\StatutVerificationPaiement;
 
 class PaymentReceipt extends Model
 {
@@ -32,6 +33,7 @@ class PaymentReceipt extends Model
         'montant' => 'decimal:2',
         'date_paiement' => 'date',
         'ocr_data' => 'array',
+        'statut_verification' => StatutVerificationPaiement::class,
         'verified_at' => 'datetime',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
@@ -51,50 +53,52 @@ class PaymentReceipt extends Model
     // Scopes
     public function scopeEnAttente($query)
     {
-        return $query->where('statut_verification', 'en_attente');
+        return $query->where('statut_verification', StatutVerificationPaiement::EN_ATTENTE);
     }
 
     public function scopeVerifie($query)
     {
-        return $query->where('statut_verification', 'verifie');
+        return $query->where('statut_verification', StatutVerificationPaiement::VERIFIE);
     }
 
     public function scopeRejete($query)
     {
-        return $query->where('statut_verification', 'rejete');
+        return $query->where('statut_verification', StatutVerificationPaiement::REJETE);
     }
 
     // Helpers
-    public function isEnAttente()
+    public function isVerifie(): bool
     {
-        return $this->statut_verification === 'en_attente';
+        return $this->statut_verification === StatutVerificationPaiement::VERIFIE;
     }
 
-    public function isVerifie()
+    public function isRejete(): bool
     {
-        return $this->statut_verification === 'verifie';
+        return $this->statut_verification === StatutVerificationPaiement::REJETE;
     }
 
-    public function isRejete()
+    public function isEnAttente(): bool
     {
-        return $this->statut_verification === 'rejete';
+        return $this->statut_verification === StatutVerificationPaiement::EN_ATTENTE;
     }
 
-    public function verifier($userId)
+    public function verify(Utilisateur $verifier): void
     {
-        $this->statut_verification = 'verifie';
-        $this->verified_at = now();
-        $this->verified_by = $userId;
-        $this->motif_rejet = null;
-        $this->save();
+        $this->update([
+            'statut_verification' => StatutVerificationPaiement::VERIFIE,
+            'verified_at' => now(),
+            'verified_by' => $verifier->id,
+            'motif_rejet' => null,
+        ]);
     }
 
-    public function rejeter($motif, $userId)
+    public function reject(string $motif, Utilisateur $verifier): void
     {
-        $this->statut_verification = 'rejete';
-        $this->motif_rejet = $motif;
-        $this->verified_at = now();
-        $this->verified_by = $userId;
-        $this->save();
+        $this->update([
+            'statut_verification' => StatutVerificationPaiement::REJETE,
+            'motif_rejet' => $motif,
+            'verified_at' => now(),
+            'verified_by' => $verifier->id,
+        ]);
     }
 }
