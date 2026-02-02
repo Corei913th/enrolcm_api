@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Payment;
 
 use App\Http\Controllers\Controller;
-use App\Services\Payment\PaiementService;
+use App\Services\Domain\Paiement\PaiementService;
 use App\Http\Requests\Payment\CreatePaiementRequest;
 use App\Http\Requests\Payment\ValiderPaiementRequest;
 use App\Http\Requests\Payment\RejeterPaiementRequest;

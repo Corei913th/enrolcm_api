@@ -7,6 +7,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
+/**
+ * @mixin IdeHelperSession
+ */
 class Session extends Model
 {
     use HasFactory, HasUuids;
@@ -44,6 +47,11 @@ class Session extends Model
     public function candidatures()
     {
         return $this->hasMany(Candidature::class, 'session_id');
+    }
+
+    public function resultats()
+    {
+        return $this->hasMany(ResultatFinal::class, 'session_id');
     }
 
     public function etatsSession()

@@ -25,10 +25,15 @@ enum TypeNotification: string
     case PAIEMENT_VALIDE = 'PAIEMENT_VALIDE';
     case PAIEMENT_REJETE = 'PAIEMENT_REJETE';
 
+        // Documents
+    case DOCUMENT_VALIDE = 'DOCUMENT_VALIDE';
+    case DOCUMENT_REJETE = 'DOCUMENT_REJETE';
+
         // Système
     case INFORMATION_GENERALE = 'INFORMATION_GENERALE';
     case ALERTE = 'ALERTE';
     case RAPPEL = 'RAPPEL';
+
 
     public static function values(): array
     {
@@ -51,6 +56,8 @@ enum TypeNotification: string
             self::PAIEMENT_RECU => 'Paiement reçu',
             self::PAIEMENT_VALIDE => 'Paiement validé',
             self::PAIEMENT_REJETE => 'Paiement rejeté',
+            self::DOCUMENT_VALIDE => 'Document validé',
+            self::DOCUMENT_REJETE => 'Document rejeté',
             self::INFORMATION_GENERALE => 'Information générale',
             self::ALERTE => 'Alerte',
             self::RAPPEL => 'Rappel',

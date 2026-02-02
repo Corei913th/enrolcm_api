@@ -129,4 +129,14 @@ class ConcoursException extends Exception
     {
         return new self("La note {$noteId} ne peut pas être modifiée car elle est déjà validée.", 400);
     }
+
+    public static function noSessionAttached(string $concoursId): self
+    {
+        return new self("Le concours {$concoursId} n'est attaché à aucune session.", 400);
+    }
+
+    public static function filiereNotFromSameEcole(string $filiereLibelle, string $concoursLibelle): self
+    {
+        return new self("La filière '{$filiereLibelle}' n'appartient pas à la même école que le concours '{$concoursLibelle}'.", 400);
+    }
 }

@@ -8,6 +8,9 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use App\Enums\EtatCandidature;
 use App\Models\EtatCandidature as ModelsEtatCandidature;
 
+/**
+ * @mixin IdeHelperEtat
+ */
 class Etat extends Model
 {
     use HasFactory, HasUuids;

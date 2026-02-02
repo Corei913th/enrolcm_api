@@ -3,487 +3,448 @@
 namespace App\Http\Controllers\Concours;
 
 use App\Http\Controllers\Controller;
-use App\Services\Concours\ConcoursService;
-use App\Services\Concours\ConcoursPaiementService;
-use App\Services\Concours\ConcoursFiliereService;
+use App\Services\Domain\Concours\ConcoursService;
+use App\Services\Domain\Concours\CentreService;
+use App\Services\Domain\Concours\ConcoursFiliereService;
+use App\Services\Domain\Paiement\ConcoursPaiementService;
+use App\Services\Domain\Candidature\CandidatureService;
 use App\Http\Requests\Concours\CreateConcoursRequest;
 use App\Http\Requests\Concours\UpdateConcoursRequest;
 use App\Http\Requests\Concours\ConfigurerPaiementRequest;
-use App\Http\Requests\Concours\AttachConcoursToSessionRequest;
-use App\Http\Requests\Concours\AttachFiliereRequest;
-use App\Http\Requests\Concours\UpdateFilierePlacesRequest;
+use App\Http\Requests\Concours\AttachCentreRequest;
+use App\Http\Requests\Concours\UpdateCentreStatusRequest;
+use App\Http\Requests\Concours\SyncCentresRequest;
 use App\DTOs\Concours\CreateConcoursDTO;
 use App\DTOs\Concours\UpdateConcoursDTO;
-use App\DTOs\Concours\ConfigurePaymentDTO;
-use App\DTOs\Concours\AttachConcoursToSessionDTO;
-use App\DTOs\Concours\AttachFiliereDTO;
 use App\Exceptions\ConcoursException;
 use App\Http\Resources\ConcoursResource;
-use Illuminate\Http\Request;
+use App\Services\Infrastructure\Pdf\FicheInscriptionPdfService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+
 
 class ConcoursController extends Controller
 {
     public function __construct(
         private readonly ConcoursService $concoursService,
         private readonly ConcoursPaiementService $paymentService,
-        private readonly ConcoursFiliereService $filiereService
+        private readonly ConcoursFiliereService $filiereService,
+        private readonly CentreService $centreService,
+        private readonly CandidatureService $candidatureService,
+        private readonly FicheInscriptionPdfService $ficheService
     ) {}
 
     /**
-     * Liste des concours avec filtres et pagination.
-     *
-     * Endpoint : GET /api/concours
-     *
-     * @param Request $request Requête contenant filtres et pagination
-     *
-     * @return JsonResponse Réponse JSON paginée
+     * Liste des concours avec filtres et pagination (Caché 5 min).
      */
     public function index(Request $request): JsonResponse
     {
-        $filters = $request->only(['est_actif', 'spec_concours_id', 'search', 'session_id']);
+        $filters = $request->only(['statut', 'ecole_id', 'search']);
         $perPage = $request->input('per_page', 20);
+        $page = $request->input('page', 1);
 
-        $concours = $this->concoursService->getAll($filters, $perPage);
+        $cacheKey = 'concours_list_' . md5(json_encode($filters) . $perPage . $page);
 
-        return api_paginated($concours, 'Liste des concours', ConcoursResource::class);
+        $concours = Cache::remember($cacheKey, 300, function () use ($filters, $perPage) {
+            return $this->concoursService->getAll($filters, $perPage);
+        });
+
+        return api_paginated($concours, 'Liste des concours');
     }
 
     /**
-     * Liste des concours disponibles (ouverts).
-     *
-     * Endpoint : GET /api/concours/availables
-     *
-     * @param Request $request Requête avec pagination
-     *
-     * @return JsonResponse Réponse JSON paginée
+     * Liste des concours disponibles (ouverts) (Caché 5 min).
      */
     public function availables(Request $request): JsonResponse
     {
         $perPage = $request->input('per_page', 20);
-        $concours = $this->concoursService->getAvailableConcours($perPage);
+        $page = $request->input('page', 1);
+        $cacheKey = "concours_availables_{$perPage}_{$page}";
 
-        return api_paginated($concours, 'Concours ouverts', ConcoursResource::class);
+        $concours = Cache::remember($cacheKey, 300, function () use ($perPage) {
+            return $this->concoursService->getAvailableConcours($perPage);
+        });
+
+        return api_paginated($concours, 'Liste des concours ouverts');
     }
 
     /**
      * Détails d’un concours.
-     *
-     * Endpoint : GET /api/concours/{id}
-     *
-     * @param string $id ID du concours
-     *
-     * @return JsonResponse Réponse JSON avec détails du concours
      */
     public function show(string $id): JsonResponse
     {
-        try {
-            $concours = $this->concoursService->getById($id);
-            return api_success(new ConcoursResource($concours));
-        } catch (ConcoursException $e) {
-            return api_error($e->getMessage(), null, $e->getCode());
-        }
+        $concours = Cache::remember("concours_detail_{$id}", 300, function () use ($id) {
+            return $this->concoursService->getById($id, true);
+        });
+        return api_success(new ConcoursResource($concours));
     }
 
     /**
      * Créer un concours.
-     *
-     * Endpoint : POST /api/concours
-     *
-     * @param CreateConcoursRequest $request Requête validée
-     *
-     * @return JsonResponse Réponse JSON avec concours créé
      */
     public function store(CreateConcoursRequest $request): JsonResponse
     {
-        try {
-            $dto = CreateConcoursDTO::fromRequest($request->validated());
-            $concours = $this->concoursService->create($dto);
-            return api_created(new ConcoursResource($concours), 'Concours créé avec succès');
-        } catch (ConcoursException $e) {
-            return api_error($e->getMessage(), null, $e->getCode());
-        }
+        $dto = CreateConcoursDTO::fromRequest($request);
+        $concours = $this->concoursService->create($dto);
+        return api_created(new ConcoursResource($concours), 'Concours créé avec succès');
     }
 
     /**
      * Mettre à jour un concours.
-     *
-     * Endpoint : PUT /api/concours/{id}
-     *
-     * @param string $id ID du concours
-     * @param UpdateConcoursRequest $request Requête validée
-     *
-     * @return JsonResponse Réponse JSON avec concours mis à jour
      */
     public function update(string $id, UpdateConcoursRequest $request): JsonResponse
     {
-        try {
-            $dto = UpdateConcoursDTO::fromRequest($request->validated());
-            $concours = $this->concoursService->update($id, $dto);
-            return api_success(new ConcoursResource($concours), 'Concours mis à jour avec succès');
-        } catch (ConcoursException $e) {
-            return api_error($e->getMessage(), null, $e->getCode());
-        }
+        $dto = UpdateConcoursDTO::fromRequest($request);
+        $concours = $this->concoursService->update($id, $dto);
+        return api_updated(new ConcoursResource($concours), 'Concours mis à jour avec succès');
     }
 
     /**
      * Supprimer un concours.
-     *
-     * Endpoint : DELETE /api/concours/{id}
-     *
-     * @param string $id ID du concours
-     *
-     * @return JsonResponse Réponse JSON succès ou erreur
      */
     public function destroy(string $id): JsonResponse
     {
-        try {
-            $this->concoursService->delete($id);
-            return api_success(null, 'Concours supprimé avec succès');
-        } catch (ConcoursException $e) {
-            return api_error($e->getMessage(), null, $e->getCode());
-        }
+        $this->concoursService->delete($id);
+        Cache::flush();
+        return api_deleted('Concours supprimé avec succès');
     }
 
     /**
      * Activer un concours.
-     *
-     * Endpoint : POST /api/concours/{id}/activate
-     *
-     * @param string $id ID du concours
-     *
-     * @return JsonResponse Réponse JSON avec concours activé
      */
     public function activate(string $id): JsonResponse
     {
-        try {
-            $concours = $this->concoursService->activate($id);
-            return api_success(new ConcoursResource($concours), 'Concours activé avec succès');
-        } catch (ConcoursException $e) {
-            return api_error($e->getMessage(), null, $e->getCode());
-        }
+        $concours = $this->concoursService->activate($id, true);
+        Cache::flush();
+        return api_success(new ConcoursResource($concours), 'Concours activé avec succès');
     }
 
     /**
      * Désactiver un concours.
-     *
-     * Endpoint : POST /api/concours/{id}/deactivate
-     *
-     * @param string $id ID du concours
-     *
-     * @return JsonResponse Réponse JSON avec concours désactivé
      */
     public function deactivate(string $id): JsonResponse
     {
-        try {
-            $concours = $this->concoursService->deactivate($id);
-            return api_success(new ConcoursResource($concours), 'Concours désactivé avec succès');
-        } catch (ConcoursException $e) {
-            return api_error($e->getMessage(), null, $e->getCode());
-        }
+        $concours = $this->concoursService->deactivate($id, false);
+        Cache::flush();
+        return api_success(new ConcoursResource($concours), 'Concours désactivé avec succès');
+    }
+
+    /**
+     * Assigner une spécification à un concours.
+     */
+    public function assignSpec(string $id, Request $request): JsonResponse
+    {
+        $request->validate([
+            'spec_concours_id' => 'required|uuid|exists:specs_concours,id'
+        ]);
+
+        $concours = $this->concoursService->getById($id);
+        $concours->spec_concours_id = $request->input('spec_concours_id');
+        $concours->save();
+
+        Cache::flush();
+        return api_success(new ConcoursResource($concours), 'Spécification assignée avec succès');
     }
 
     /**
      * Configurer le paiement d’un concours.
-     *
-     * Endpoint : POST /api/concours/{id}/configure-payment
-     *
-     * @param string $id ID du concours
-     * @param ConfigurerPaiementRequest $request Requête validée
-     *
-     * @return JsonResponse Réponse JSON avec configuration enregistrée
      */
     public function configurePayment(string $id, ConfigurerPaiementRequest $request): JsonResponse
     {
-        try {
-            $dto = ConfigurePaymentDTO::fromRequest($request->validated());
-            $config = $this->paymentService->configurePayment($id, $dto);
-            return api_success($config, 'Configuration de paiement enregistrée avec succès');
-        } catch (ConcoursException $e) {
-            return api_error($e->getMessage(), null, $e->getCode());
-        }
+        $config = $this->paymentService->configurerPaiement($id, $request->validated());
+        return api_success($config, 'Configuration du paiement enregistrée');
     }
 
     /**
      * Obtenir les informations de paiement d’un concours.
-     *
-     * Endpoint : GET /api/concours/{id}/payment-info
-     *
-     * @param string $id ID du concours
-     *
-     * @return JsonResponse Réponse JSON avec infos de paiement
      */
     public function paymentInfo(string $id): JsonResponse
     {
-        try {
-            $info = $this->paymentService->getPaymentInfo($id);
-            return api_success($info);
-        } catch (ConcoursException $e) {
-            return api_error($e->getMessage(), null, $e->getCode());
-        }
+        $info = $this->paymentService->getConfiguration($id);
+        return api_success($info);
     }
 
     /**
      * Obtenir les statistiques d’un concours.
-     *
-     * Endpoint : GET /api/concours/{id}/stats
-     *
-     * @param string $id ID du concours
-     *
-     * @return JsonResponse Réponse JSON avec statistiques
      */
     public function stats(string $id): JsonResponse
     {
-        try {
-            $stats = $this->concoursService->getStats($id);
-            return api_success($stats);
-        } catch (ConcoursException $e) {
-            return api_error($e->getMessage(), null, $e->getCode());
-        }
+        $stats = $this->concoursService->getStats($id);
+        return api_success($stats);
     }
 
     /**
      * Attacher une session à un concours.
-     *
-     * Endpoint : POST /api/concours/{id}/attach-session
-     *
-     * @param string $id ID du concours
-     * @param Request $request Requête contenant session_id
-     *
-     * @return JsonResponse Réponse JSON succès
      */
     public function attachSession(string $id, Request $request): JsonResponse
     {
-        try {
-            $request->validate(['session_id' => 'required|exists:sessions,id']);
-            $this->concoursService->attachSession($id, $request->session_id);
-            return api_success(null, 'Session attachée au concours avec succès (état: OUVERTE)');
-        } catch (ConcoursException $e) {
-            return api_error($e->getMessage(), null, $e->getCode());
-        }
+        $sessionId = $request->input('session_id');
+        $this->concoursService->attachSession($id, $sessionId);
+        return api_success(null, 'Session attachée au concours');
     }
 
     /**
      * Détacher une session d’un concours.
-     *
-     * Endpoint : DELETE /api/concours/{id}/detach-session/{sessionId}
-     *
-     * @param string $id ID du concours
-     * @param string $sessionId ID de la session
-     *
-     * @return JsonResponse Réponse JSON succès ou erreur
      */
     public function detachSession(string $id, string $sessionId): JsonResponse
     {
-        try {
-            $this->concoursService->detachSession($id, $sessionId);
-            return api_success(null, 'Session détachée du concours avec succès');
-        } catch (ConcoursException $e) {
-            return api_error($e->getMessage(), null, $e->getCode());
-        }
+        $this->concoursService->detachSession($id, $sessionId);
+        return api_success(null, 'Session détachée du concours');
     }
 
     /**
-     * Modifier l’état d’une session liée à un concours.
-     *
-     * Endpoint : POST /api/concours/{id}/sessions/{sessionId}/change-state
-     *
-     * @param string $id ID du concours
-     * @param string $sessionId ID de la session
-     * @param Request $request Requête contenant le nouvel état (OUVERTE ou FERMEE)
-     *
-     * @return JsonResponse Réponse JSON succès ou erreur
+     * Changer l'état d'un concours dans une session.
      */
     public function changeSessionState(string $id, string $sessionId, Request $request): JsonResponse
     {
-        try {
-            $request->validate(['etat' => 'required|in:OUVERTE,FERMEE']);
-            $this->concoursService->changeSessionState($id, $sessionId, $request->etat);
-            return api_success(null, 'État de la session modifié avec succès');
-        } catch (ConcoursException $e) {
-            return api_error($e->getMessage(), null, $e->getCode());
-        }
+        $state = $request->input('etat');
+        $this->concoursService->changeSessionState($id, $sessionId, $state);
+        return api_success(null, 'État de la session mis à jour');
     }
 
     /**
-     * Obtenir l’état courant d’une session liée à un concours.
-     *
-     * Endpoint : GET /api/concours/{id}/sessions/{sessionId}/state
-     *
-     * @param string $id ID du concours
-     * @param string $sessionId ID de la session
-     *
-     * @return JsonResponse Réponse JSON avec l’état courant
+     * Liste des centres.
      */
-    public function getSessionState(string $id, string $sessionId): JsonResponse
+    public function listCentres(string $concours): JsonResponse
     {
         try {
-            $etat = $this->concoursService->getCurrentSessionState($id, $sessionId);
-            return api_success(['etat' => $etat]);
+            $centres = $this->centreService->listCentres($concours);
+            return api_success($centres, 'Liste des centres');
         } catch (ConcoursException $e) {
             return api_error($e->getMessage(), null, $e->getCode());
-        }
-    }
-
-    /**
-     * Attacher un concours template à une session.
-     *
-     * Endpoint : POST /api/concours/{id}/attach-session
-     *
-     * @param AttachConcoursToSessionRequest $request Requête validée
-     * @param string $id ID du concours template
-     *
-     * @return JsonResponse Réponse JSON avec le concours attaché
-     */
-    public function attachToSession(AttachConcoursToSessionRequest $request, string $id): JsonResponse
-    {
-        try {
-            $dto = AttachConcoursToSessionDTO::fromRequest($request->validated());
-            $concours = $this->concoursService->attachToSession($id, $dto->session_id, $dto->toArray());
-
-            return api_success([
-                'concours' => $concours->load('sessions'),
-                'message' => 'Concours attaché à la session avec succès'
-            ], 201);
-        } catch (ConcoursException $e) {
-            return api_error($e->getMessage(), null, $e->getCode());
-        } catch (\Illuminate\Database\QueryException $e) {
-            // Erreurs de base de données (contraintes, clés étrangères, etc.)
-            return api_error('Erreur de base de données lors de l\'attachement du concours à la session', [
-                'details' => config('app.debug') ? $e->getMessage() : null
-            ], 500);
         } catch (\Exception $e) {
-            // Erreurs générales avec plus de contexte
-            $errorContext = [
-                'concours_id' => $id,
-                'session_id' => $request->input('session_id'),
-                'action' => 'attach_concours_to_session'
-            ];
+            return api_error($e->getMessage(), null, 500);
+        }
+    }
 
-            return api_error(
-                'Échec de l\'attachement du concours à la session: ' . $e->getMessage(),
-                config('app.debug') ? $errorContext : null,
-                500
+    /**
+     * Attacher un centre.
+     */
+    public function attachCentre(string $concours, AttachCentreRequest $request): JsonResponse
+    {
+        try {
+            $centre = $this->centreService->attachCentre(
+                $concours,
+                $request->centre_id,
+                $request->boolean('est_actif', true)
             );
+            return api_success($centre, 'Centre attaché au concours');
+        } catch (ConcoursException $e) {
+            return api_error($e->getMessage(), null, $e->getCode());
+        } catch (\Exception $e) {
+            return api_error($e->getMessage(), null, 500);
         }
     }
 
     /**
-     * Attacher une filière à un concours pour une session.
-     *
-     * Endpoint : POST /api/concours/{id}/sessions/{sessionId}/filieres
-     *
-     * @param string $id ID du concours
-     * @param string $sessionId ID de la session
-     * @param AttachFiliereRequest $request Requête validée
-     *
-     * @return JsonResponse Réponse JSON avec la filière attachée
+     * Détacher un centre.
      */
-    public function attachFiliere(string $id, string $sessionId, AttachFiliereRequest $request): JsonResponse
+    public function detachCentre(string $concours, string $centreId): JsonResponse
     {
         try {
-            $dto = AttachFiliereDTO::fromRequest($request->validated());
-            $relation = $this->filiereService->attachFiliere($id, $sessionId, $dto->filiere_id, $dto->nombre_places);
-
-            return api_created([
-                'filiere_id' => $relation->filiere_id,
-                'nombre_places' => $relation->nombre_places,
-            ], 'Filière attachée au concours avec succès');
+            $this->centreService->detachCentre($concours, $centreId);
+            return api_success(null, 'Centre détaché du concours');
         } catch (ConcoursException $e) {
             return api_error($e->getMessage(), null, $e->getCode());
+        } catch (\Exception $e) {
+            return api_error($e->getMessage(), null, 500);
         }
     }
 
     /**
-     * Détacher une filière d'un concours pour une session.
-     *
-     * Endpoint : DELETE /api/concours/{id}/sessions/{sessionId}/filieres/{filiereId}
-     *
-     * @param string $id ID du concours
-     * @param string $sessionId ID de la session
-     * @param string $filiereId ID de la filière
-     *
-     * @return JsonResponse Réponse JSON succès
+     * Mettre à jour le statut d'un centre.
      */
-    public function detachFiliere(string $id, string $sessionId, string $filiereId): JsonResponse
+    public function updateCentreStatus(string $concours, string $centreId, UpdateCentreStatusRequest $request): JsonResponse
     {
         try {
-            $this->filiereService->detachFiliere($id, $sessionId, $filiereId);
-            return api_success(null, 'Filière détachée du concours avec succès');
+            $centre = $this->centreService->updateCentreStatus($concours, $centreId, $request->est_actif);
+            return api_success($centre, 'Statut du centre mis à jour');
         } catch (ConcoursException $e) {
             return api_error($e->getMessage(), null, $e->getCode());
+        } catch (\Exception $e) {
+            return api_error($e->getMessage(), null, 500);
         }
     }
 
     /**
-     * Lister toutes les filières d'un concours pour une session.
-     *
-     * Endpoint : GET /api/concours/{id}/sessions/{sessionId}/filieres
-     *
-     * @param string $id ID du concours
-     * @param string $sessionId ID de la session
-     *
-     * @return JsonResponse Réponse JSON avec la liste des filières
+     * Synchroniser les centres.
      */
-    public function listFilieres(string $id, string $sessionId): JsonResponse
+    public function syncCentres(string $concours, SyncCentresRequest $request): JsonResponse
     {
         try {
-            $filieres = $this->filiereService->listFilieres($id, $sessionId);
-            return api_success($filieres, 'Liste des filières récupérée avec succès');
+            $result = $this->centreService->syncCentres($concours, $request->centre_ids);
+            return api_success($result, 'Centres synchronisés avec succès');
         } catch (ConcoursException $e) {
             return api_error($e->getMessage(), null, $e->getCode());
+        } catch (\Exception $e) {
+            return api_error($e->getMessage(), null, 500);
         }
     }
 
     /**
-     * Obtenir les statistiques d'une filière pour un concours et une session.
-     *
-     * Endpoint : GET /api/concours/{id}/sessions/{sessionId}/filieres/{filiereId}/stats
-     *
-     * @param string $id ID du concours
-     * @param string $sessionId ID de la session
-     * @param string $filiereId ID de la filière
-     *
-     * @return JsonResponse Réponse JSON avec les statistiques
+     * Liste des candidats pour un concours.
      */
-    public function getFiliereStats(string $id, string $sessionId, string $filiereId): JsonResponse
+    public function listCandidats(string $id, Request $request): JsonResponse
     {
-        try {
-            $stats = $this->filiereService->getStats($id, $sessionId, $filiereId);
-            return api_success($stats, 'Statistiques de la filière récupérées avec succès');
-        } catch (ConcoursException $e) {
-            return api_error($e->getMessage(), null, $e->getCode());
+        $filters = $request->only(['search', 'statut_candidature', 'region', 'serie_bac', 'est_actif']);
+        $perPage = $request->input('per_page', 20);
+
+        $candidats = $this->candidatureService->getCandidatsForConcours($id, $filters, $perPage);
+
+        return api_paginated($candidats, 'Liste des candidats du concours');
+    }
+
+    /**
+     * Liste des filières attachées à un concours.
+     */
+    public function listFilieresAttachees(string $id): JsonResponse
+    {
+        $concours = $this->concoursService->getById($id);
+        $session = $concours->sessions()->first();
+
+        if (!$session) {
+            return api_error('Ce concours n\'est attaché à aucune session', 400);
         }
+
+        $filieres = $this->filiereService->listFilieres($id, $session->id);
+
+        return api_success($filieres, 'Filières attachées au concours');
+    }
+
+    /**
+     * Liste des filières disponibles (non attachées) pour un concours.
+     */
+    public function listFilieresDisponibles(string $id): JsonResponse
+    {
+        $filieres = $this->filiereService->getFilieresDisponibles($id);
+
+        return api_success($filieres, 'Filières disponibles pour ce concours');
+    }
+
+    /**
+     * Attacher une filière à un concours.
+     */
+    public function attachFiliere(string $id, Request $request): JsonResponse
+    {
+        $request->validate([
+            'filiere_id' => 'required|exists:filieres,id',
+            'nombre_places' => 'required|integer|min:1'
+        ]);
+
+        $concours = $this->concoursService->getById($id);
+        $session = $concours->sessions()->first();
+
+        if (!$session) {
+            return api_error('Ce concours n\'est attaché à aucune session', 400);
+        }
+
+        $this->filiereService->attachFiliere(
+            $id,
+            $session->id,
+            $request->input('filiere_id'),
+            $request->input('nombre_places')
+        );
+
+        return api_success(null, 'Filière attachée avec succès');
+    }
+
+    /**
+     * Détacher une filière d'un concours.
+     */
+    public function detachFiliere(string $id, string $filiereId): JsonResponse
+    {
+        $concours = $this->concoursService->getById($id);
+        $session = $concours->sessions()->first();
+
+        if (!$session) {
+            return api_error('Ce concours n\'est attaché à aucune session', 400);
+        }
+
+        $this->filiereService->detachFiliere($id, $session->id, $filiereId);
+
+        return api_success(null, 'Filière détachée avec succès');
     }
 
     /**
      * Mettre à jour le nombre de places d'une filière.
-     *
-     * Endpoint : PUT /api/concours/{id}/sessions/{sessionId}/filieres/{filiereId}/places
-     *
-     * @param string $id ID du concours
-     * @param string $sessionId ID de la session
-     * @param string $filiereId ID de la filière
-     * @param UpdateFilierePlacesRequest $request Requête validée
-     *
-     * @return JsonResponse Réponse JSON avec la filière mise à jour
      */
-    public function updateFilierePlaces(string $id, string $sessionId, string $filiereId, UpdateFilierePlacesRequest $request): JsonResponse
+    public function updateFiliereNombrePlaces(string $id, string $filiereId, Request $request): JsonResponse
+    {
+        $request->validate([
+            'nombre_places' => 'required|integer|min:1'
+        ]);
+
+        $concours = $this->concoursService->getById($id);
+        $session = $concours->sessions()->first();
+
+        if (!$session) {
+            return api_error('Ce concours n\'est attaché à aucune session', 400);
+        }
+
+        $this->filiereService->updateNombrePlaces(
+            $id,
+            $session->id,
+            $filiereId,
+            $request->input('nombre_places')
+        );
+
+        return api_success(null, 'Nombre de places mis à jour avec succès');
+    }
+
+    /**
+     * Télécharger la fiche d'inscription PDF pour une candidature validée
+     */
+    public function telechargerFicheInscription(Request $request, string $candidatureId): mixed
     {
         try {
-            $relation = $this->filiereService->updateNombrePlaces(
-                $id,
-                $sessionId,
-                $filiereId,
-                $request->validated()['nombre_places']
-            );
+            $candidature = $this->candidatureService->getCandidatureOrFail($candidatureId);
+
+            if (!$candidature->estValidee()) {
+                return api_error('Seules les candidatures validées peuvent générer une fiche d\'inscription', 403);
+            }
+            $pdf = $this->ficheService->genererFicheInscription($candidature);
+
+            $filename = 'fiche-inscription-' . ($candidature->numero_candidature ?? $candidature->code_cand_def) . '.pdf';
+
+            return $pdf->download($filename);
+        } catch (\Exception $e) {
+            return api_error('Erreur lors de la génération de la fiche: ' . $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Valider la cohérence des places (somme filières vs total concours).
+     */
+    public function validatePlaces(string $id, Request $request): JsonResponse
+    {
+        try {
+            $sessionId = $request->input('session_id');
+            $this->concoursService->validatePlacesCoherence($id, $sessionId);
 
             return api_success([
-                'filiere_id' => $relation->filiere_id,
-                'nombre_places' => $relation->nombre_places,
-            ], 'Nombre de places mis à jour avec succès');
-        } catch (ConcoursException $e) {
-            return api_error($e->getMessage(), null, $e->getCode());
+                'coherent' => true,
+                'message' => 'La répartition des places est cohérente'
+            ]);
+        } catch (\Exception $e) {
+            return api_error($e->getMessage(), [
+                'coherent' => false
+            ], 422);
+        }
+    }
+
+    /**
+     * Obtenir un rapport détaillé sur la répartition des places.
+     */
+    public function placesReport(string $id, Request $request): JsonResponse
+    {
+        try {
+            $sessionId = $request->input('session_id');
+            $report = $this->concoursService->getPlacesReport($id, $sessionId);
+
+            return api_success($report, 'Rapport de répartition des places');
+        } catch (\Exception $e) {
+            return api_error($e->getMessage(), null, 500);
         }
     }
 }

@@ -2,41 +2,12 @@
 
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('concours')->group(function () {
-    require __DIR__ . '/api/concours.php';
-});
+/**
+ * Point d'entrée principal de l'API
+ * 
+ * Toutes les routes sont versionnées et organisées par domaine métier
+ * Structure : /api/v1/{role}/{domaine}/{ressource}
+ */
 
-Route::middleware(['auth:sanctum', 'role:ADMIN'])
-    ->prefix('users')
-    ->group(base_path('routes/api/users.php'));
-
-Route::prefix('auth')->group(function () {
-    require __DIR__ . '/api/auth.php';
-});
-
-Route::prefix('payments')->group(function () {
-    require __DIR__ . '/api/payments.php';
-});
-
-Route::prefix('receipts')->group(function () {
-    require __DIR__ . '/api/receipts.php';
-});
-
-Route::prefix('candidates')->group(function () {
-    require __DIR__ . '/api/candidates.php';
-});
-
-Route::prefix('candidats')->group(function () {
-    require __DIR__ . '/api/candidats.php';
-});
-
-Route::middleware('auth:sanctum', 'role:ADMIN')->group(function () {
-    Route::prefix('departements')->group(function () {
-        require __DIR__ . '/api/departements.php';
-    });
-    require __DIR__ . '/api/matieres.php';
-    require __DIR__ . '/api/niveaux.php';
-});
-
-// Admin documents routes
-require __DIR__ . '/api/admin-documents.php';
+// API v1 - Architecture RESTful avec versioning
+Route::prefix('v1')->group(base_path('routes/api/v1/routes.php'));

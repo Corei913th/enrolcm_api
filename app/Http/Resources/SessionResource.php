@@ -14,8 +14,12 @@ class SessionResource extends JsonResource
             'id' => $this->id,
             'libelle_session' => $this->libelle_session,
             'desc_session' => $this->desc_session,
+            'statut_session' => $this->statut_session,
+            'date_ouverture_inscription' => $this->date_ouverture_inscription?->format('Y-m-d'),
+            'date_fermeture_inscription' => $this->date_fermeture_inscription?->format('Y-m-d'),
             'est_actif' => $this->est_actif,
-            'created_at' => $this->created_at?->format('Y-m-d H:i:s'),          
+            'created_at' => $this->created_at?->format('Y-m-d H:i:s'),
+            'updated_at' => $this->updated_at?->format('Y-m-d H:i:s'),
             'concours' => ConcoursResource::collection($this->whenLoaded('concours')),
         ];
     }

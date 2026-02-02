@@ -22,9 +22,14 @@ class UpdateNiveauRequest extends FormRequest
     public function rules(): array
     {
         $niveauId = $this->route('niveau');
-        
+
         return [
-            'code_niveau' => 'required|string|max:10|unique:niveaux,code_niveau,' . $niveauId,
+            'code_niveau' => [
+                'required',
+                'string',
+                'max:10',
+                \Illuminate\Validation\Rule::unique('niveaux', 'code_niveau')->ignore($niveauId)
+            ],
             'libelle_niveau' => 'required|string|max:100',
             'filiere_id' => 'nullable|uuid|exists:filieres,id',
             'ordre' => 'nullable|integer|min:1',

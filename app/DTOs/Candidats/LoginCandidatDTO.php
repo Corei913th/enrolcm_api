@@ -5,14 +5,14 @@ namespace App\DTOs\Candidats;
 class LoginCandidatDTO
 {
     public function __construct(
-        public readonly string $pru,
+        public readonly string $email,
         public readonly string $password
     ) {}
 
     public static function fromRequest(array $data): self
     {
         return new self(
-            pru: $data['pru'],
+            email: $data['email'],
             password: $data['password']
         );
     }

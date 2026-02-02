@@ -13,8 +13,8 @@ class CandidatResource extends JsonResource
             'nom_complet' => $this->nom_complet,
             'nom_cand' => $this->nom_cand,
             'prenom_cand' => $this->prenom_cand,
-            'pru' => $this->pru,
-            'code_cand' => $this->code_cand,
+            'premiere_langue' => $this->premiere_langue?->value,
+            'autre_langue' => $this->autre_langue,
             
             // Informations personnelles
             'date_naissance_cand' => $this->date_naissance_cand?->format('Y-m-d'),
@@ -24,14 +24,14 @@ class CandidatResource extends JsonResource
             'nationalite_cand' => $this->nationalite_cand,
             'numero_cni' => $this->numero_cni,
             'date_delivrance_cni' => $this->date_delivrance_cni?->format('Y-m-d'),
-            'statut_matrimonial' => $this->statut_matrimonial,
+            'statut_matrimonial' => $this->statut_matrimonial?->value,
             'ethnie_cand' => $this->ethnie_cand,
             'handicap' => $this->handicap,
             
             // Contact
             'adresse_cand' => $this->adresse_cand,
-            'telephone_candidat' => $this->telephone_candidat,
-            'region' => $this->region,
+            'telephone' => $this->telephone,
+            'region' => $this->region?->value,
             'departement' => $this->departement,
             'arrondissement' => $this->arrondissement,
             

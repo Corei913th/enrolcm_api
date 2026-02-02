@@ -14,19 +14,19 @@ class LoginRequest extends FormRequest
     public function rules()
     {
         return [
-            'user_name' => 'required|string',
-            'mot_de_passe' => 'required|string|min:6',
+            'email' => 'required|email',
+            'password' => 'required|string|min:6',
         ];
     }
 
     public function messages()
     {
         return [
-            'user_name.required' => 'Le nom d\'utilisateur est obligatoire',
-            'user_name.string' => 'Le nom d\'utilisateur doit être une chaîne de caractères',      
-            'mot_de_passe.string' => 'Le mot de passe doit être une chaîne de caractères',
-            'mot_de_passe.required' => 'Le mot de passe est obligatoire',
-            'mot_de_passe.min' => 'Le mot de passe doit contenir au moins 6 caractères',
+            'email.required' => 'L\' email est obligatoire',
+            'email.string' => 'Le nom d\'utilisateur doit être une chaîne de caractères',      
+            'password.string' => 'Le mot de passe doit être une chaîne de caractères',
+            'password.required' => 'Le mot de passe est obligatoire',
+            'password.min' => 'Le mot de passe doit contenir au moins 6 caractères',
         ];
     }
 }

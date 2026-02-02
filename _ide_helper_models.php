@@ -17,16 +17,53 @@ namespace App\Models{
  * @property string $matricule
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property string|null $ecole_id
+ * @property-read \App\Models\Ecole|null $ecole
  * @property-read \App\Models\Utilisateur $utilisateur
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Admin newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Admin newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Admin query()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Admin whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Admin whereEcoleId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Admin whereMatricule($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Admin whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Admin whereUtilisateurId($value)
+ * @mixin \Eloquent
  */
-	class Admin extends \Eloquent {}
+	#[\AllowDynamicProperties]
+	class IdeHelperAdmin {}
+}
+
+namespace App\Models{
+/**
+ * @property int $id
+ * @property string $candidature_id
+ * @property string $type
+ * @property string $severity
+ * @property string $title
+ * @property string $message
+ * @property bool $is_dismissed
+ * @property \Illuminate\Support\Carbon|null $dismissed_at
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \App\Models\Candidature $candidature
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Alert newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Alert newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Alert query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Alert whereCandidatureId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Alert whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Alert whereDismissedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Alert whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Alert whereIsDismissed($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Alert whereMessage($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Alert whereSeverity($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Alert whereTitle($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Alert whereType($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Alert whereUpdatedAt($value)
+ * @mixin \Eloquent
+ */
+	#[\AllowDynamicProperties]
+	class IdeHelperAlert {}
 }
 
 namespace App\Models{
@@ -69,6 +106,8 @@ namespace App\Models{
  * @property string|null $filiere_id
  * @property bool $a_handicap
  * @property string|null $type_handicap
+ * @property \App\Enums\Langue $premiere_langue
+ * @property string|null $autre_langue Préciser si premiere_langue = Autre
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Candidature> $candidatures
  * @property-read int|null $candidatures_count
  * @property-read \App\Models\Filiere|null $filiere
@@ -88,6 +127,7 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Candidat whereAnneeDiplome($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Candidat whereAnneeObtentionBac($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Candidat whereArrondissement($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Candidat whereAutreLangue($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Candidat whereCodeCand($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Candidat whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Candidat whereDateDelivranceCni($value)
@@ -108,6 +148,7 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Candidat whereNomPere($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Candidat whereNomTuteurCand($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Candidat whereNumeroCni($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Candidat wherePremiereLangue($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Candidat wherePrenomCand($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Candidat whereRegion($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Candidat whereSerieBac($value)
@@ -120,8 +161,10 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Candidat whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Candidat whereUtilisateurId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Candidat whereVilleEtablissement($value)
+ * @mixin \Eloquent
  */
-	class Candidat extends \Eloquent {}
+	#[\AllowDynamicProperties]
+	class IdeHelperCandidat {}
 }
 
 namespace App\Models{
@@ -141,14 +184,20 @@ namespace App\Models{
  * @property \Illuminate\Support\Carbon|null $deleted_at
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
- * @property string|null $centre_id
+ * @property string|null $centre_examen_id
  * @property \App\Enums\StatutCandidature $statut_candidature
  * @property bool $documents_complets
  * @property bool $paiement_valide
+ * @property string|null $search_vector
+ * @property string|null $numero_candidature
+ * @property string|null $centre_depot_id
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\CandidatureSalle> $affectationsSalles
  * @property-read int|null $affectations_salles_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Alert> $alerts
+ * @property-read int|null $alerts_count
  * @property-read \App\Models\Candidat $candidat
- * @property-read \App\Models\Centre|null $centre
+ * @property-read \App\Models\Centre|null $centreDepot
+ * @property-read \App\Models\Centre|null $centreExamen
  * @property-read \App\Models\Concours $concours
  * @property-read \App\Models\ConcoursSession $concoursSession
  * @property-read \App\Models\Convocation|null $convocation
@@ -168,6 +217,7 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Candidature byConcoursSession($concoursId, $sessionId)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Candidature bySession($sessionId)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Candidature enAttente()
+ * @method static \Database\Factories\CandidatureFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Candidature newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Candidature newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Candidature onlyTrashed()
@@ -175,7 +225,8 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Candidature rejetees()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Candidature validees()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Candidature whereCandidatId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Candidature whereCentreId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Candidature whereCentreDepotId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Candidature whereCentreExamenId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Candidature whereCodeCandDef($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Candidature whereCodeCandTemp($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Candidature whereConcoursId($value)
@@ -188,15 +239,19 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Candidature whereDocumentsComplets($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Candidature whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Candidature whereMotifRejet($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Candidature whereNumeroCandidature($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Candidature wherePaiementValide($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Candidature whereQrCode($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Candidature whereSearchVector($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Candidature whereSessionId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Candidature whereStatutCandidature($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Candidature whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Candidature withTrashed(bool $withTrashed = true)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Candidature withoutTrashed()
+ * @mixin \Eloquent
  */
-	class Candidature extends \Eloquent {}
+	#[\AllowDynamicProperties]
+	class IdeHelperCandidature {}
 }
 
 namespace App\Models{
@@ -231,8 +286,10 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CandidatureSalle wherePlanningEpreuveId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CandidatureSalle whereSalleId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CandidatureSalle whereUpdatedAt($value)
+ * @mixin \Eloquent
  */
-	class CandidatureSalle extends \Eloquent {}
+	#[\AllowDynamicProperties]
+	class IdeHelperCandidatureSalle {}
 }
 
 namespace App\Models{
@@ -246,22 +303,25 @@ namespace App\Models{
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property string|null $responsable_id
- * @property \App\Enums\RegionCameroun|null $region
+ * @property \App\Models\Region $region
  * @property string|null $departement
  * @property string|null $arrondissement
+ * @property string $region_id
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\CandidatureSalle> $affectations
  * @property-read int|null $affectations_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Candidature> $candidatures
  * @property-read int|null $candidatures_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Concours> $concours
+ * @property-read int|null $concours_count
  * @property-read \App\Models\ResponsableCentre|null $responsable
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\SalleExamen> $salles
  * @property-read int|null $salles_count
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Centre actif()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Centre byArrondissement($arrondissement)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Centre byDepartement($departement)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Centre byRegion(\App\Enums\RegionCameroun $region)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Centre byRegion($region)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Centre byVille($ville)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Centre dansLaRegion(\App\Enums\RegionCameroun $region, $departement = null, $arrondissement = null)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Centre dansLaRegion($region, $departement = null, $arrondissement = null)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Centre newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Centre newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Centre query()
@@ -273,31 +333,39 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Centre whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Centre whereLibelleCentre($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Centre whereRegion($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Centre whereRegionId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Centre whereResponsableId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Centre whereTypeCentre($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Centre whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Centre whereVilleCentre($value)
+ * @mixin \Eloquent
  */
-	class Centre extends \Eloquent {}
+	#[\AllowDynamicProperties]
+	class IdeHelperCentre {}
 }
 
 namespace App\Models{
 /**
  * @property string $id
  * @property string $libelle_concours
- * @property \Illuminate\Support\Carbon $date_limite_depot
- * @property \Illuminate\Support\Carbon $date_examen
- * @property int $nbre_max_places
+ * @property \Illuminate\Support\Carbon|null $date_limite_depot
+ * @property \Illuminate\Support\Carbon|null $date_examen
+ * @property int|null $nbre_max_places
  * @property numeric $frais_inscription
  * @property bool $est_actif
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property string|null $spec_concours_id
+ * @property string|null $description
+ * @property string|null $ecole_id
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Candidature> $candidatures
  * @property-read int|null $candidatures_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Centre> $centers
+ * @property-read int|null $centers_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\ConcoursSession> $concoursSessions
  * @property-read int|null $concours_sessions_count
  * @property-read \App\Models\ConcoursPaiement|null $configurationPaiement
+ * @property-read \App\Models\Ecole|null $ecole
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\EtatConcoursSession> $etatsConcours
  * @property-read int|null $etats_concours_count
  * @property-read \App\Models\ConcoursSession|\App\Models\ConcoursFiliere|null $pivot
@@ -305,15 +373,20 @@ namespace App\Models{
  * @property-read int|null $filieres_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Paiement> $paiements
  * @property-read int|null $paiements_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\PlanningEpreuve> $plannings
+ * @property-read int|null $plannings_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Session> $sessions
  * @property-read int|null $sessions_count
  * @property-read \App\Models\SpecConcours|null $specConcours
+ * @method static \Database\Factories\ConcoursFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Concours newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Concours newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Concours query()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Concours whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Concours whereDateExamen($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Concours whereDateLimiteDepot($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Concours whereDescription($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Concours whereEcoleId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Concours whereEstActif($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Concours whereFraisInscription($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Concours whereId($value)
@@ -321,8 +394,10 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Concours whereNbreMaxPlaces($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Concours whereSpecConcoursId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Concours whereUpdatedAt($value)
+ * @mixin \Eloquent
  */
-	class Concours extends \Eloquent {}
+	#[\AllowDynamicProperties]
+	class IdeHelperConcours {}
 }
 
 namespace App\Models{
@@ -345,8 +420,10 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ConcoursFiliere whereNombrePlaces($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ConcoursFiliere whereSessionId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ConcoursFiliere whereUpdatedAt($value)
+ * @mixin \Eloquent
  */
-	class ConcoursFiliere extends \Eloquent {}
+	#[\AllowDynamicProperties]
+	class IdeHelperConcoursFiliere {}
 }
 
 namespace App\Models{
@@ -362,25 +439,56 @@ namespace App\Models{
  * @property bool $est_actif
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property string $devise
+ * @property string|null $code_banque
+ * @property string|null $agence_banque
+ * @property string|null $iban
+ * @property string $type_paiement
+ * @property array<array-key, mixed>|null $banques_acceptees
+ * @property numeric $frais_paiement
+ * @property string|null $reference_format
+ * @property numeric $minimum_confiance_ocr
+ * @property bool $validation_auto
+ * @property string|null $commentaires
+ * @property \Illuminate\Support\Carbon|null $date_derniere_modification
  * @property-read \App\Models\Concours $concours
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ConcoursPaiement actif()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ConcoursPaiement banqueAcceptee(string $banque)
+ * @method static \Database\Factories\ConcoursPaiementFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ConcoursPaiement newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ConcoursPaiement newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ConcoursPaiement nonExpire()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ConcoursPaiement parDevise(string $devise)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ConcoursPaiement parTypePaiement(string $type)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ConcoursPaiement query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ConcoursPaiement validationAuto()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ConcoursPaiement whereAgenceBanque($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ConcoursPaiement whereBanqueNom($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ConcoursPaiement whereBanquesAcceptees($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ConcoursPaiement whereCodeBanque($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ConcoursPaiement whereCommentaires($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ConcoursPaiement whereConcoursId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ConcoursPaiement whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ConcoursPaiement whereDateDerniereModification($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ConcoursPaiement whereDateLimite($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ConcoursPaiement whereDevise($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ConcoursPaiement whereEstActif($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ConcoursPaiement whereFraisPaiement($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ConcoursPaiement whereIban($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ConcoursPaiement whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ConcoursPaiement whereInstructions($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ConcoursPaiement whereMinimumConfianceOcr($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ConcoursPaiement whereMontant($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ConcoursPaiement whereNomBeneficiaire($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ConcoursPaiement whereNumeroCompte($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ConcoursPaiement whereReferenceFormat($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ConcoursPaiement whereTypePaiement($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ConcoursPaiement whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ConcoursPaiement whereValidationAuto($value)
+ * @mixin \Eloquent
  */
-	class ConcoursPaiement extends \Eloquent {}
+	#[\AllowDynamicProperties]
+	class IdeHelperConcoursPaiement {}
 }
 
 namespace App\Models{
@@ -402,8 +510,10 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ConcoursSession whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ConcoursSession whereSessionId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ConcoursSession whereUpdatedAt($value)
+ * @mixin \Eloquent
  */
-	class ConcoursSession extends \Eloquent {}
+	#[\AllowDynamicProperties]
+	class IdeHelperConcoursSession {}
 }
 
 namespace App\Models{
@@ -440,8 +550,10 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Convocation whereNumeroConvocation($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Convocation whereQrCode($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Convocation whereUpdatedAt($value)
+ * @mixin \Eloquent
  */
-	class Convocation extends \Eloquent {}
+	#[\AllowDynamicProperties]
+	class IdeHelperConvocation {}
 }
 
 namespace App\Models{
@@ -460,8 +572,10 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Correcteur whereSpecialite($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Correcteur whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Correcteur whereUtilisateurId($value)
+ * @mixin \Eloquent
  */
-	class Correcteur extends \Eloquent {}
+	#[\AllowDynamicProperties]
+	class IdeHelperCorrecteur {}
 }
 
 namespace App\Models{
@@ -488,8 +602,10 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Departement whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Departement whereLibelleDepartement($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Departement whereUpdatedAt($value)
+ * @mixin \Eloquent
  */
-	class Departement extends \Eloquent {}
+	#[\AllowDynamicProperties]
+	class IdeHelperDepartement {}
 }
 
 namespace App\Models{
@@ -498,24 +614,84 @@ namespace App\Models{
  * @property string $candidature_id
  * @property string $fichier_url
  * @property string $nom_original
- * @property string $type_document
+ * @property \App\Enums\TypeDocument $type_document
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property string|null $updated_at
+ * @property string|null $document_requis_id
+ * @property \App\Enums\StatutVerificationDocument $statut_verification
+ * @property string|null $commentaire_verification
+ * @property string|null $valide_par
+ * @property \Illuminate\Support\Carbon|null $date_verification
  * @property-read \App\Models\Candidature $candidature
+ * @property-read \App\Models\DocumentRequis|null $documentRequis
+ * @property-read \App\Models\Utilisateur|null $validePar
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Document byCandidature($candidatureId)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Document byDocumentRequis($documentRequisId)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Document byType($type)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Document enAttente()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Document newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Document newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Document query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Document rejetes()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Document valides()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Document whereCandidatureId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Document whereCommentaireVerification($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Document whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Document whereDateVerification($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Document whereDocumentRequisId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Document whereFichierUrl($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Document whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Document whereNomOriginal($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Document whereStatutVerification($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Document whereTypeDocument($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Document whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Document whereValidePar($value)
+ * @mixin \Eloquent
  */
-	class Document extends \Eloquent {}
+	#[\AllowDynamicProperties]
+	class IdeHelperDocument {}
+}
+
+namespace App\Models{
+/**
+ * @property string $id
+ * @property string $concours_id
+ * @property string $nom_document
+ * @property string|null $description
+ * @property \App\Enums\TypeDocument $type_document
+ * @property bool $est_obligatoire
+ * @property array<array-key, mixed>|null $format_accepte
+ * @property int $taille_max_mb
+ * @property bool $est_actif
+ * @property int $ordre_affichage
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \App\Models\Concours $concours
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Document> $documentsSoumis
+ * @property-read int|null $documents_soumis_count
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DocumentRequis actifs()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DocumentRequis byConcours($concoursId)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DocumentRequis newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DocumentRequis newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DocumentRequis obligatoires()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DocumentRequis ordered()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DocumentRequis query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DocumentRequis whereConcoursId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DocumentRequis whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DocumentRequis whereDescription($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DocumentRequis whereEstActif($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DocumentRequis whereEstObligatoire($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DocumentRequis whereFormatAccepte($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DocumentRequis whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DocumentRequis whereNomDocument($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DocumentRequis whereOrdreAffichage($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DocumentRequis whereTailleMaxMb($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DocumentRequis whereTypeDocument($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|DocumentRequis whereUpdatedAt($value)
+ * @mixin \Eloquent
+ */
+	#[\AllowDynamicProperties]
+	class IdeHelperDocumentRequis {}
 }
 
 namespace App\Models{
@@ -549,8 +725,22 @@ namespace App\Models{
  * @property string|null $telephone_2
  * @property string|null $slogan
  * @property string|null $mentions_legales
+ * @property string|null $logo_path
+ * @property string|null $embleme_path
+ * @property string|null $header_frame_path
+ * @property string|null $logo_original_name
+ * @property string|null $embleme_original_name
+ * @property string|null $header_frame_original_name
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Concours> $concours
+ * @property-read int|null $concours_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Departement> $departements
  * @property-read int|null $departements_count
+ * @property-read mixed $embleme_full_path
+ * @property-read mixed $embleme_url
+ * @property-read mixed $header_frame_full_path
+ * @property-read mixed $header_frame_url
+ * @property-read mixed $logo_full_path
+ * @method static \Database\Factories\EcoleFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Ecole newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Ecole newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Ecole query()
@@ -562,13 +752,19 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Ecole whereDevise($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Ecole whereEmailEcole($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Ecole whereEmblemeEcole($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Ecole whereEmblemeOriginalName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Ecole whereEmblemePath($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Ecole whereEstActif($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Ecole whereFax($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Ecole whereHeaderFrameOriginalName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Ecole whereHeaderFramePath($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Ecole whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Ecole whereLibelleEcole($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Ecole whereLibelleEcoleEn($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Ecole whereLocalisation($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Ecole whereLogoInstitutionTutelleUrl($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Ecole whereLogoOriginalName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Ecole whereLogoPath($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Ecole whereLogoUrl($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Ecole whereMentionsLegales($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Ecole whereNomDirecteur($value)
@@ -583,8 +779,10 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Ecole whereTitreDirecteur($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Ecole whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Ecole whereVille($value)
+ * @mixin \Eloquent
  */
-	class Ecole extends \Eloquent {}
+	#[\AllowDynamicProperties]
+	class IdeHelperEcole {}
 }
 
 namespace App\Models{
@@ -593,30 +791,40 @@ namespace App\Models{
  * @property string $intitule
  * @property string|null $session
  * @property string|null $url_epreuve
- * @property string $type_epreuve
+ * @property \App\Enums\TypeEpreuve $type_epreuve
  * @property int $duree_en_minute
  * @property bool $est_actif
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property int $coefficient_defaut
+ * @property numeric|null $note_eliminatoire
+ * @property bool $est_eliminatoire
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Note> $notes
  * @property-read int|null $notes_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\PlanningEpreuve> $plannings
+ * @property-read int|null $plannings_count
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Epreuve actif()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Epreuve bySession($session)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Epreuve byType($type)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Epreuve newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Epreuve newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Epreuve query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Epreuve whereCoefficientDefaut($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Epreuve whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Epreuve whereDureeEnMinute($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Epreuve whereEstActif($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Epreuve whereEstEliminatoire($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Epreuve whereIdEpreuve($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Epreuve whereIntitule($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Epreuve whereNoteEliminatoire($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Epreuve whereSession($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Epreuve whereTypeEpreuve($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Epreuve whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Epreuve whereUrlEpreuve($value)
+ * @mixin \Eloquent
  */
-	class Epreuve extends \Eloquent {}
+	#[\AllowDynamicProperties]
+	class IdeHelperEpreuve {}
 }
 
 namespace App\Models{
@@ -636,8 +844,10 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Etat whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Etat whereLibelleEtat($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Etat whereUpdatedAt($value)
+ * @mixin \Eloquent
  */
-	class Etat extends \Eloquent {}
+	#[\AllowDynamicProperties]
+	class IdeHelperEtat {}
 }
 
 namespace App\Models{
@@ -661,8 +871,10 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|EtatCandidature whereEtatId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|EtatCandidature whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|EtatCandidature whereUpdatedAt($value)
+ * @mixin \Eloquent
  */
-	class EtatCandidature extends \Eloquent {}
+	#[\AllowDynamicProperties]
+	class IdeHelperEtatCandidature {}
 }
 
 namespace App\Models{
@@ -672,8 +884,10 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|EtatConcours newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|EtatConcours newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|EtatConcours query()
+ * @mixin \Eloquent
  */
-	class EtatConcours extends \Eloquent {}
+	#[\AllowDynamicProperties]
+	class IdeHelperEtatConcours {}
 }
 
 namespace App\Models{
@@ -697,8 +911,10 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|EtatConcoursSession whereEtatSessionId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|EtatConcoursSession whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|EtatConcoursSession whereUpdatedAt($value)
+ * @mixin \Eloquent
  */
-	class EtatConcoursSession extends \Eloquent {}
+	#[\AllowDynamicProperties]
+	class IdeHelperEtatConcoursSession {}
 }
 
 namespace App\Models{
@@ -716,8 +932,10 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|EtatSession whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|EtatSession whereLibelleEtat($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|EtatSession whereUpdatedAt($value)
+ * @mixin \Eloquent
  */
-	class EtatSession extends \Eloquent {}
+	#[\AllowDynamicProperties]
+	class IdeHelperEtatSession {}
 }
 
 namespace App\Models{
@@ -730,16 +948,12 @@ namespace App\Models{
  * @property bool $est_actif
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Candidat> $candidats
- * @property-read int|null $candidats_count
  * @property-read \App\Models\ConcoursFiliere|null $pivot
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Concours> $concours
  * @property-read int|null $concours_count
  * @property-read \App\Models\Departement|null $departement
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Niveau> $niveaux
  * @property-read int|null $niveaux_count
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Niveau> $niveauxPivot
- * @property-read int|null $niveaux_pivot_count
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Filiere newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Filiere newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Filiere query()
@@ -751,8 +965,10 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Filiere whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Filiere whereLibelleFiliere($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Filiere whereUpdatedAt($value)
+ * @mixin \Eloquent
  */
-	class Filiere extends \Eloquent {}
+	#[\AllowDynamicProperties]
+	class IdeHelperFiliere {}
 }
 
 namespace App\Models{
@@ -760,12 +976,12 @@ namespace App\Models{
  * @property string $id
  * @property string $code_matiere
  * @property string $libelle_matiere
+ * @property string|null $niveau_id
  * @property int|null $coefficient
  * @property bool $est_actif
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Niveau> $niveaux
- * @property-read int|null $niveaux_count
+ * @property-read \App\Models\Niveau|null $niveau
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Matiere newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Matiere newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Matiere query()
@@ -775,9 +991,12 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Matiere whereEstActif($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Matiere whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Matiere whereLibelleMatiere($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Matiere whereNiveauId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Matiere whereUpdatedAt($value)
+ * @mixin \Eloquent
  */
-	class Matiere extends \Eloquent {}
+	#[\AllowDynamicProperties]
+	class IdeHelperMatiere {}
 }
 
 namespace App\Models{
@@ -792,8 +1011,6 @@ namespace App\Models{
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property-read \App\Models\Filiere|null $filiere
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Filiere> $filieres
- * @property-read int|null $filieres_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Matiere> $matieres
  * @property-read int|null $matieres_count
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Niveau newModelQuery()
@@ -808,8 +1025,10 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Niveau whereLibelleNiveau($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Niveau whereOrdre($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Niveau whereUpdatedAt($value)
+ * @mixin \Eloquent
  */
-	class Niveau extends \Eloquent {}
+	#[\AllowDynamicProperties]
+	class IdeHelperNiveau {}
 }
 
 namespace App\Models{
@@ -848,8 +1067,10 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Note whereValeur($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Note withTrashed(bool $withTrashed = true)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Note withoutTrashed()
+ * @mixin \Eloquent
  */
-	class Note extends \Eloquent {}
+	#[\AllowDynamicProperties]
+	class IdeHelperNote {}
 }
 
 namespace App\Models{
@@ -895,14 +1116,16 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Notification whereTypeNotification($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Notification whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Notification whereUtilisateurId($value)
+ * @mixin \Eloquent
  */
-	class Notification extends \Eloquent {}
+	#[\AllowDynamicProperties]
+	class IdeHelperNotification {}
 }
 
 namespace App\Models{
 /**
  * @property string $id
- * @property string $candidat_id
+ * @property string|null $candidat_id
  * @property string $concours_id
  * @property string $reference
  * @property numeric $montant
@@ -920,11 +1143,14 @@ namespace App\Models{
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property string|null $candidature_id
- * @property-read \App\Models\Candidat $candidat
+ * @property string|null $search_vector
+ * @property string|null $validation_notes
+ * @property-read \App\Models\Candidat|null $candidat
  * @property-read \App\Models\Candidature|null $candidature
  * @property-read \App\Models\Concours $concours
  * @property-read \App\Models\Utilisateur|null $validatedBy
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Paiement enAttente()
+ * @method static \Database\Factories\PaiementFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Paiement newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Paiement newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Paiement ocrVerifie()
@@ -947,12 +1173,16 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Paiement wherePreuvePaiement($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Paiement whereReference($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Paiement whereReferenceOcr($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Paiement whereSearchVector($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Paiement whereStatut($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Paiement whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Paiement whereValidatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Paiement whereValidatedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Paiement whereValidationNotes($value)
+ * @mixin \Eloquent
  */
-	class Paiement extends \Eloquent {}
+	#[\AllowDynamicProperties]
+	class IdeHelperPaiement {}
 }
 
 namespace App\Models{
@@ -965,7 +1195,7 @@ namespace App\Models{
  * @property \Illuminate\Support\Carbon|null $date_paiement
  * @property string $image_path
  * @property array<array-key, mixed>|null $ocr_data
- * @property string $statut_verification
+ * @property \App\Enums\StatutVerificationPaiement $statut_verification
  * @property string|null $motif_rejet
  * @property \Illuminate\Support\Carbon|null $verified_at
  * @property string|null $verified_by
@@ -974,6 +1204,7 @@ namespace App\Models{
  * @property-read \App\Models\Candidat|null $candidat
  * @property-read \App\Models\Utilisateur|null $verifiedBy
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PaymentReceipt enAttente()
+ * @method static \Database\Factories\PaymentReceiptFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PaymentReceipt newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PaymentReceipt newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PaymentReceipt query()
@@ -993,8 +1224,10 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PaymentReceipt whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PaymentReceipt whereVerifiedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PaymentReceipt whereVerifiedBy($value)
+ * @mixin \Eloquent
  */
-	class PaymentReceipt extends \Eloquent {}
+	#[\AllowDynamicProperties]
+	class IdeHelperPaymentReceipt {}
 }
 
 namespace App\Models{
@@ -1016,8 +1249,10 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Permission whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Permission whereLibellePermission($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Permission whereUpdatedAt($value)
+ * @mixin \Eloquent
  */
-	class Permission extends \Eloquent {}
+	#[\AllowDynamicProperties]
+	class IdeHelperPermission {}
 }
 
 namespace App\Models{
@@ -1033,6 +1268,7 @@ namespace App\Models{
  * @property bool $est_actif
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property int|null $coefficient
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\CandidatureSalle> $affectationsSalles
  * @property-read int|null $affectations_salles_count
  * @property-read \App\Models\Concours $concours
@@ -1044,6 +1280,7 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PlanningEpreuve newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PlanningEpreuve parDate($date)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PlanningEpreuve query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|PlanningEpreuve whereCoefficient($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PlanningEpreuve whereConcoursId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PlanningEpreuve whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PlanningEpreuve whereDateEpreuve($value)
@@ -1055,8 +1292,35 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PlanningEpreuve whereInstructions($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PlanningEpreuve whereSessionId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PlanningEpreuve whereUpdatedAt($value)
+ * @mixin \Eloquent
  */
-	class PlanningEpreuve extends \Eloquent {}
+	#[\AllowDynamicProperties]
+	class IdeHelperPlanningEpreuve {}
+}
+
+namespace App\Models{
+/**
+ * @property string $id
+ * @property string $code
+ * @property \App\Enums\RegionCameroun $libelle
+ * @property bool $est_actif
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Centre> $centres
+ * @property-read int|null $centres_count
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Region newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Region newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Region query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Region whereCode($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Region whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Region whereEstActif($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Region whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Region whereLibelle($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Region whereUpdatedAt($value)
+ * @mixin \Eloquent
+ */
+	#[\AllowDynamicProperties]
+	class IdeHelperRegion {}
 }
 
 namespace App\Models{
@@ -1073,8 +1337,10 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ResponsableCentre whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ResponsableCentre whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ResponsableCentre whereUtilisateurId($value)
+ * @mixin \Eloquent
  */
-	class ResponsableCentre extends \Eloquent {}
+	#[\AllowDynamicProperties]
+	class IdeHelperResponsableCentre {}
 }
 
 namespace App\Models{
@@ -1114,8 +1380,10 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ResultatFinal whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ResultatFinal withTrashed(bool $withTrashed = true)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ResultatFinal withoutTrashed()
+ * @mixin \Eloquent
  */
-	class ResultatFinal extends \Eloquent {}
+	#[\AllowDynamicProperties]
+	class IdeHelperResultatFinal {}
 }
 
 namespace App\Models{
@@ -1139,8 +1407,10 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Role whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Role whereLibelleRole($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Role whereUpdatedAt($value)
+ * @mixin \Eloquent
  */
-	class Role extends \Eloquent {}
+	#[\AllowDynamicProperties]
+	class IdeHelperRole {}
 }
 
 namespace App\Models{
@@ -1165,8 +1435,10 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SalleExamen whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SalleExamen whereNumeroSalle($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SalleExamen whereUpdatedAt($value)
+ * @mixin \Eloquent
  */
-	class SalleExamen extends \Eloquent {}
+	#[\AllowDynamicProperties]
+	class IdeHelperSalleExamen {}
 }
 
 namespace App\Models{
@@ -1191,6 +1463,7 @@ namespace App\Models{
  * @property-read int|null $etats_session_count
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Session actif()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Session byStatut(\App\Enums\StatutSession $statut)
+ * @method static \Database\Factories\SessionFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Session newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Session newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Session ouvertes()
@@ -1204,8 +1477,10 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Session whereLibelleSession($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Session whereStatutSession($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Session whereUpdatedAt($value)
+ * @mixin \Eloquent
  */
-	class Session extends \Eloquent {}
+	#[\AllowDynamicProperties]
+	class IdeHelperSession {}
 }
 
 namespace App\Models{
@@ -1222,16 +1497,25 @@ namespace App\Models{
  * @property array<array-key, mixed>|null $series_bac_acceptees
  * @property array<array-key, mixed>|null $nationalites_acceptees
  * @property bool $est_actif
+ * @property array<array-key, mixed>|null $diplomes_requis Liste des diplômes requis pour admission parallèle
+ * @property string|null $criteres_admission_supplementaires Critères additionnels d'admission
+ * @property bool $accepte_diplomes_equivalents Accepter les diplômes équivalents reconnus
+ * @property bool $accepte_candidats_en_cours Accepter les candidats préparant le diplôme
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Concours> $concours
  * @property-read int|null $concours_count
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SpecConcours actif()
+ * @method static \Database\Factories\SpecConcoursFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SpecConcours newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SpecConcours newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SpecConcours query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|SpecConcours whereAccepteCandidatsEnCours($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|SpecConcours whereAccepteDiplomesEquivalents($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SpecConcours whereAgeMaximum($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SpecConcours whereAgeMinimum($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SpecConcours whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|SpecConcours whereCriteresAdmissionSupplementaires($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SpecConcours whereDescInfosConcours($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|SpecConcours whereDiplomesRequis($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SpecConcours whereDocumentsRequis($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SpecConcours whereEstActif($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SpecConcours whereId($value)
@@ -1240,8 +1524,10 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SpecConcours whereNomSpec($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SpecConcours whereSeriesBacAcceptees($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SpecConcours whereUpdatedAt($value)
+ * @mixin \Eloquent
  */
-	class SpecConcours extends \Eloquent {}
+	#[\AllowDynamicProperties]
+	class IdeHelperSpecConcours {}
 }
 
 namespace App\Models{
@@ -1256,9 +1542,10 @@ namespace App\Models{
  * @property string|null $telephone
  * @property bool $est_actif
  * @property bool $email_verifie
- * @property string $type_utilisateur
+ * @property \App\Enums\TypeUtilisateur $type_utilisateur
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property string|null $search_vector
  * @property-read \App\Models\Admin|null $admin
  * @property-read \App\Models\Candidat|null $candidat
  * @property-read \App\Models\Correcteur|null $correcteur
@@ -1270,7 +1557,7 @@ namespace App\Models{
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \Laravel\Sanctum\PersonalAccessToken> $tokens
  * @property-read int|null $tokens_count
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User actif()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User byType($type)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User byType(\App\Enums\TypeUtilisateur $type)
  * @method static \Database\Factories\UserFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User newQuery()
@@ -1281,12 +1568,15 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereEstActif($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereMotDePasse($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereSearchVector($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereTelephone($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereTypeUtilisateur($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereUserName($value)
+ * @mixin \Eloquent
  */
-	class User extends \Eloquent {}
+	#[\AllowDynamicProperties]
+	class IdeHelperUser {}
 }
 
 namespace App\Models{
@@ -1298,9 +1588,10 @@ namespace App\Models{
  * @property string|null $telephone
  * @property bool $est_actif
  * @property bool $email_verifie
- * @property string $type_utilisateur
+ * @property \App\Enums\TypeUtilisateur $type_utilisateur
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property string|null $search_vector
  * @property-read \App\Models\Admin|null $admin
  * @property-read \App\Models\Candidat|null $candidat
  * @property-read \App\Models\Correcteur|null $correcteur
@@ -1312,7 +1603,8 @@ namespace App\Models{
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \Laravel\Sanctum\PersonalAccessToken> $tokens
  * @property-read int|null $tokens_count
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Utilisateur actif()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Utilisateur byType($type)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Utilisateur byType(\App\Enums\TypeUtilisateur $type)
+ * @method static \Database\Factories\UtilisateurFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Utilisateur newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Utilisateur newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Utilisateur query()
@@ -1322,11 +1614,14 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Utilisateur whereEstActif($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Utilisateur whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Utilisateur whereMotDePasse($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Utilisateur whereSearchVector($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Utilisateur whereTelephone($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Utilisateur whereTypeUtilisateur($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Utilisateur whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Utilisateur whereUserName($value)
+ * @mixin \Eloquent
  */
-	class Utilisateur extends \Eloquent {}
+	#[\AllowDynamicProperties]
+	class IdeHelperUtilisateur {}
 }
 

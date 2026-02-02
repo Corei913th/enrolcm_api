@@ -31,14 +31,14 @@ class PaymentReceiptFactory extends Factory
             'candidat_id' => Candidat::factory(),
             'numero_recu' => $numeroRecu,
             'banque' => $this->faker->randomElement($banques),
-            'montant' => 5000,
+            'montant' => 20000,
             'date_paiement' => $this->faker->dateTimeBetween('-30 days', 'now'),
             'image_path' => 'receipts/' . $this->faker->uuid() . '.jpg',
             'ocr_data' => [
-                'full_text' => "Reçu de paiement\nNuméro: {$numeroRecu}\nMontant: 5000 FCFA",
+                'full_text' => "Reçu de paiement\nNuméro: {$numeroRecu}\nMontant: 20000 FCFA",
                 'extracted' => [
                     'numero_recu' => $numeroRecu,
-                    'montant' => '5000',
+                    'montant' => '20000',
                     'banque' => $this->faker->randomElement($banques),
                 ],
             ],
@@ -48,7 +48,7 @@ class PaymentReceiptFactory extends Factory
 
     public function verifie(): static
     {
-        return $this->state(fn (array $attributes) => [
+        return $this->state(fn(array $attributes) => [
             'statut_verification' => StatutVerificationPaiement::VERIFIE,
             'verified_at' => now(),
             'verified_by' => Utilisateur::factory(),
@@ -57,7 +57,7 @@ class PaymentReceiptFactory extends Factory
 
     public function rejete(): static
     {
-        return $this->state(fn (array $attributes) => [
+        return $this->state(fn(array $attributes) => [
             'statut_verification' => StatutVerificationPaiement::REJETE,
             'motif_rejet' => $this->faker->sentence(),
             'verified_at' => now(),
@@ -67,7 +67,7 @@ class PaymentReceiptFactory extends Factory
 
     public function enAttente(): static
     {
-        return $this->state(fn (array $attributes) => [
+        return $this->state(fn(array $attributes) => [
             'statut_verification' => StatutVerificationPaiement::EN_ATTENTE,
             'verified_at' => null,
             'verified_by' => null,

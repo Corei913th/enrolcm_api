@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Enums\TypeUtilisateur;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -21,9 +22,28 @@ class CheckRole
         }
 
         $user = $request->user();
+
+        // SUPER_ADMIN a accès à tout
+        if ($user->type_utilisateur === TypeUtilisateur::SUPER_ADMIN) {
+            return $next($request);
+        }
+
+        // Vérifier d'abord le type_utilisateur (pour CANDIDAT notamment)
+        $userTypeValue = $user->type_utilisateur instanceof TypeUtilisateur
+            ? $user->type_utilisateur->value
+            : $user->type_utilisateur;
+
+        if (in_array($userTypeValue, $roles)) {
+            return $next($request);
+        }
+
+        // Vérifier ensuite les rôles de la table roles (pour ADMIN, RESPONSABLE, etc.)
         $userRoles = $user->roles->pluck('libelle_role')->toArray();
 
-        // Vérifier si l'utilisateur a au moins un des rôles requis
+        if (in_array(\App\Enums\TypeUtilisateur::SUPER_ADMIN->value, $userRoles)) {
+            return $next($request);
+        }
+
         $hasRole = !empty(array_intersect($roles, $userRoles));
 
         if (!$hasRole) {

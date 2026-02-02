@@ -8,7 +8,7 @@ use App\Enums\StatutSession;
 use App\Models\Concours;
 use App\Models\Session;
 use App\Models\SpecConcours;
-use App\Services\Concours\ConcoursService;
+use App\Services\Domain\Concours\ConcoursService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\WithFaker;
@@ -541,7 +541,7 @@ class ConcoursWorkflowTest extends TestCase
         $this->expectExceptionMessage("ne peut pas être inférieure à {$currentYear}");
 
         // Cette validation est faite lors du parsing, donc on la teste indirectement
-        $service = new \ReflectionClass(\App\Services\Concours\ConcoursService::class);
+        $service = new \ReflectionClass(ConcoursService::class);
         $instance = $service->newInstanceWithoutConstructor();
 
         // Appel direct de la méthode privée pour test

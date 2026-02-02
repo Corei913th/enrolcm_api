@@ -9,7 +9,7 @@ use App\Models\Admin;
 use App\Models\Correcteur;
 use App\Models\ResponsableCentre;
 use App\Enums\TypeUtilisateur;
-use App\Services\Roles\RoleService;
+use App\Services\Domain\User\RoleService;
 
 class UserSeeder extends Seeder
 {
@@ -21,6 +21,22 @@ class UserSeeder extends Seeder
     public function run(): void
     {
         $roleService = app(RoleService::class);
+
+        // === Admins ===
+        $admin0 = Utilisateur::create([
+            'user_name' => 'mbargajean@gmail.com',
+            'email' => 'mbargajean@gmail.com',
+            'mot_de_passe' => Hash::make('mbargajean123!'),
+            'telephone' => '674470583',
+            'type_utilisateur' => TypeUtilisateur::SUPER_ADMIN,
+            'est_actif' => true,
+            'email_verifie' => true,
+        ]);
+        Admin::create([
+            'utilisateur_id' => $admin0->id,
+            'matricule' => 'ADM000',
+        ]);
+        $roleService->assignRole($admin0, TypeUtilisateur::SUPER_ADMIN);
 
         // === Admins ===
         $admin1 = Utilisateur::create([

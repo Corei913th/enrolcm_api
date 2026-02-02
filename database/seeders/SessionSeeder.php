@@ -2,9 +2,8 @@
 
 namespace Database\Seeders;
 
-use App\Enums\EtatSession;
+use App\Enums\StatutSession;
 use Illuminate\Database\Seeder;
-use App\Models\EtatSession as EtatSessionModel;
 use App\Models\Session;
 
 class SessionSeeder extends Seeder
@@ -16,32 +15,15 @@ class SessionSeeder extends Seeder
      */
     public function run(): void
     {
-        
-        
-        Session::create([
-            'libelle_session' => '2025-2026',
-            'est_actif' => true,
-        ]);
+        // Session 2026-2027 OUVERTE
+        Session::updateOrCreate(
+            ['libelle_session' => '2026-2027'],
+            [
+                'est_actif' => true,
+                'statut_session' => StatutSession::OUVERT
+            ]
+        );
 
-
-        EtatSessionModel::create([
-            'libelle_etat' => EtatSession::OUVERTE,
-            'desc_etat' => 'La session est ouverte pour les inscriptions.',
-        ]);
-
-        EtatSessionModel::create([
-            'libelle_etat' => EtatSession::FERMEE,
-            'desc_etat' => 'La session est fermée pour les inscriptions.',
-        ]);
-
-
-        Session::create([
-            'libelle_session' => '2026-2027',
-            'est_actif' => true,
-        ]);
-
-
-
-        // Ajoutez d'autres sessions si nécessaire
+        $this->command->info("✅ Session 2026-2027 créée/mise à jour (OUVERTE)");
     }
 }

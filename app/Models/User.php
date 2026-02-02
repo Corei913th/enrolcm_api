@@ -5,6 +5,8 @@ namespace App\Models;
 /**
  * Alias pour le modèle Utilisateur
  * Permet la compatibilité avec les packages Laravel qui attendent App\Models\User
+ *
+ * @mixin IdeHelperUser
  */
 class User extends Utilisateur
 {

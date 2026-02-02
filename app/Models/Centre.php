@@ -7,6 +7,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
+/**
+ * @mixin IdeHelperCentre
+ */
 class Centre extends Model
 {
     use HasFactory, HasUuids;
@@ -61,6 +64,13 @@ class Centre extends Model
     public function affectations()
     {
         return $this->hasMany(CandidatureSalle::class, 'centre_id');
+    }
+
+    public function concours()
+    {
+        return $this->belongsToMany(Concours::class, 'concours_centre')
+            ->withPivot('id', 'est_actif')
+            ->withTimestamps();
     }
 
     // Scopes
@@ -148,37 +158,7 @@ class Centre extends Model
         return $this->getCapaciteDisponible() >= $nombreCandidats;
     }
 
-    // GÉOGRAPHIE
-    public function getAdresseComplete()
-    {
-        $adresse = [];
-
-        if ($this->arrondissement) $adresse[] = $this->arrondissement;
-        if ($this->departement) $adresse[] = $this->departement;
-        if ($this->region && $this->region->libelle) {
-            $adresse[] = $this->region->libelle->label();
-        }
-        if ($this->ville_centre) $adresse[] = $this->ville_centre;
-
-        return implode(', ', $adresse);
-    }
-
-    public function estDansLaRegion($region)
-    {
-        // Accepte soit un RegionCameroun enum, soit un Region model, soit un region_id
-        if (!$this->region) {
-            return false;
-        }
-
-        if ($region instanceof RegionCameroun) {
-            return $this->region->libelle === $region;
-        } elseif ($region instanceof Region) {
-            return $this->region_id === $region->id;
-        } else {
-            return $this->region_id === $region;
-        }
-    }
-
+  
     // STATISTIQUES
     public function getNombreCandidatsInscrits()
     {

@@ -8,6 +8,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
+/**
+ * @mixin IdeHelperRegion
+ */
 class Region extends Model
 {
     use HasFactory, HasUuids;

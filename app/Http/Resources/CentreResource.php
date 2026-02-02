@@ -20,7 +20,7 @@ class CentreResource extends JsonResource
             'nombre_salles' => $this->getNombreSalles(),
             'est_actif' => $this->est_actif,
             'created_at' => $this->created_at?->format('Y-m-d H:i:s'),
-            'region' => new RegionRessource($this->whenLoaded('region')),
+            'region' => new RegionResource($this->whenLoaded('region')),
             'salles' => SalleExamenResource::collection($this->whenLoaded('salles')),
         ];
     }

@@ -1,4 +1,9 @@
-<div style="margin-top: 40px;">
+<!-- En-tête officielle de l'école -->
+@if (isset($ecoleHeader))
+    @include('pdf.includes.header')
+@endif
+
+<div style="margin-top: 50px;">
     <p style="text-align: center; margin-bottom: 30px;">
         <strong>N° {{ $numero ?? 'ATT-' . date('Y') . '-XXX' }}</strong>
     </p>
@@ -17,7 +22,7 @@
     </p>
 
     <p style="margin-bottom: 20px;">
-        {{ $contenu ?? 'a été régulièrement inscrit(e) et a suivi avec assiduité les cours de l\'année académique ' . (date('Y')-1) . '-' . date('Y') . '.' }}
+        {{ $contenu ?? 'a été régulièrement inscrit(e) et a suivi avec assiduité les cours de l\'année académique ' . (date('Y') - 1) . '-' . date('Y') . '.' }}
     </p>
 
     <p style="margin-bottom: 40px;">

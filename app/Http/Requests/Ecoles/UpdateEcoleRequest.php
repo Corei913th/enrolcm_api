@@ -18,6 +18,23 @@ class UpdateEcoleRequest extends FormRequest
         return true;
     }
 
+    /**
+     * Prepare the data for validation.
+     * Convert string booleans from multipart/form-data to actual booleans
+     */
+    protected function prepareForValidation(): void
+    {
+        // Convert string booleans to actual booleans for multipart/form-data
+        if ($this->has('est_actif')) {
+            $value = $this->input('est_actif');
+            if (is_string($value)) {
+                $this->merge([
+                    'est_actif' => filter_var($value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE)
+                ]);
+            }
+        }
+    }
+
 
     public function rules(): array
     {

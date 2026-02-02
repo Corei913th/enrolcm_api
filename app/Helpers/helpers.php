@@ -1,7 +1,115 @@
 <?php
 
+use App\Helpers\DatabaseHelper;
+use App\Helpers\AuthHelper;
 use App\Helpers\ResponseHelper;
 use Illuminate\Http\JsonResponse;
+
+if (!function_exists('runTransaction')) {
+    /**
+     * Exécuter une opération dans une transaction
+     * 
+     * @param callable $callback
+     * @param string|null $context
+     * @return mixed
+     */
+    function runTransaction(callable $callback, ?string $context = null)
+    {
+        return DatabaseHelper::runTransaction($callback, $context);
+    }
+}
+
+if (!function_exists('logServiceError')) {
+    /**
+     * Logger une erreur de service avec contexte
+     * 
+     * @param string $message
+     * @param \Exception $exception
+     * @param array $context
+     * @return void
+     */
+    function logServiceError(string $message, \Exception $exception, array $context = []): void
+    {
+        DatabaseHelper::logServiceError($message, $exception, $context);
+    }
+}
+
+if (!function_exists('codeExists')) {
+    /**
+     * Vérifier si un code existe
+     * 
+     * @param string $modelClass
+     * @param string $column
+     * @param mixed $value
+     * @param string|null $excludeId
+     * @return bool
+     */
+    function codeExists(string $modelClass, string $column, $value, ?string $excludeId = null): bool
+    {
+        return DatabaseHelper::codeExists($modelClass, $column, $value, $excludeId);
+    }
+}
+
+if (!function_exists('hasDependencies')) {
+    /**
+     * Vérifier si une entité a des dépendances
+     * 
+     * @param mixed $model
+     * @param string $relation
+     * @return bool
+     */
+    function hasDependencies($model, string $relation): bool
+    {
+        return DatabaseHelper::hasDependencies($model, $relation);
+    }
+}
+
+if (!function_exists('findOrFail')) {
+    /**
+     * Trouver par ID ou lever une exception personnalisée
+     * 
+     * @param string $modelClass
+     * @param string $id
+     * @param string $exceptionClass
+     * @return mixed
+     */
+    function findOrFail(string $modelClass, string $id, string $exceptionClass)
+    {
+        return DatabaseHelper::findOrFail($modelClass, $id, $exceptionClass);
+    }
+}
+
+
+if (!function_exists('verifyCandidateCredentials')) {
+    /**
+     * Vérifier les credentials d'un candidat
+     * 
+     * @param string $email
+     * @param string $password
+     * @return \App\Models\Utilisateur
+     * @throws \Illuminate\Validation\ValidationException
+     */
+    function verifyCandidateCredentials(string $email, string $password): \App\Models\Utilisateur
+    {
+        return AuthHelper::verifyCandidateCredentials($email, $password);
+    }
+}
+
+if (!function_exists('verifyStaffCredentials')) {
+    /**
+     * Vérifier les credentials d'un staff (non-candidat)
+     * 
+     * @param string $username
+     * @param string $password
+     * @return \App\Models\Utilisateur
+     * @throws \Illuminate\Validation\ValidationException
+     */
+    function verifyStaffCredentials(string $username, string $password): \App\Models\Utilisateur
+    {
+        return AuthHelper::verifyStaffCredentials($username, $password);
+    }
+}
+
 
 if (!function_exists('api_success')) {
     /**

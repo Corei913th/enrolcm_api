@@ -51,12 +51,10 @@ class SubmitDocumentRequest extends FormRequest
   public function withValidator($validator)
   {
     $validator->after(function ($validator) {
-      // Vérifications supplémentaires si nécessaire
       $documentRequisId = $this->input('document_requis_id');
       $candidatureId = $this->input('candidature_id');
 
       if ($documentRequisId && $candidatureId) {
-        // Vérifier que le document requis appartient au concours de la candidature
         $candidature = \App\Models\Candidature::find($candidatureId);
         $documentRequis = \App\Models\DocumentRequis::find($documentRequisId);
 

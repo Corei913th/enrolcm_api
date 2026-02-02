@@ -7,7 +7,7 @@ use App\Exceptions\Business\FiliereException;
 use App\Http\Requests\Filieres\StoreFiliereRequest;
 use App\Http\Requests\Filieres\UpdateFiliereRequest;
 use App\Http\Resources\FiliereResource;
-use App\Services\Filieres\FiliereService;
+use App\Services\Domain\Referentiel\FiliereService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -45,10 +45,10 @@ class FiliereController extends Controller
     {
         try {
             $filiere = $this->filiereService->getById($id);
-            
+
             return api_success(
+                new FiliereResource($filiere),
                 'Filière récupérée avec succès',
-                new FiliereResource($filiere)
             );
         } catch (FiliereException $e) {
             return api_error($e->getMessage(), null, $e->getCode());
@@ -62,10 +62,10 @@ class FiliereController extends Controller
     {
         try {
             $filiere = $this->filiereService->getByCode($code);
-            
+
             return api_success(
-                'Filière récupérée avec succès',
-                new FiliereResource($filiere)
+                new FiliereResource($filiere),
+                'Filière récupérée avec succès'
             );
         } catch (FiliereException $e) {
             return api_error($e->getMessage(), null, $e->getCode());
@@ -119,7 +119,7 @@ class FiliereController extends Controller
     {
         try {
             $this->filiereService->delete($id);
-            
+
             return api_deleted('Filière supprimée avec succès');
         } catch (FiliereException $e) {
             return api_error($e->getMessage(), null, $e->getCode());
@@ -133,7 +133,7 @@ class FiliereController extends Controller
     {
         try {
             $filiere = $this->filiereService->toggleStatus($id);
-            
+
             return api_updated(
                 new FiliereResource($filiere),
                 'Statut de la filière modifié avec succès'
@@ -150,10 +150,10 @@ class FiliereController extends Controller
     {
         try {
             $filieres = $this->filiereService->getActive();
-            
+
             return api_success(
-                'Filières actives récupérées avec succès',
-                FiliereResource::collection($filieres)
+                FiliereResource::collection($filieres),
+                'Filières actives récupérées avec succès'
             );
         } catch (FiliereException $e) {
             return api_error($e->getMessage(), null, $e->getCode());

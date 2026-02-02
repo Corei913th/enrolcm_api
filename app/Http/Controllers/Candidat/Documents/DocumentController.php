@@ -4,9 +4,9 @@ namespace App\Http\Controllers\Candidat\Documents;
 
 use App\DTOs\Documents\SubmitDocumentDTO;
 use App\Http\Controllers\Controller;
-use App\Services\Documents\DocumentService;
+use App\Services\Domain\Candidature\DocumentService;
 use App\Http\Requests\Documents\SubmitDocumentRequest;
-use App\Services\Candidature\CandidatureService;
+use App\Services\Domain\Candidature\CandidatureService;
 use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 

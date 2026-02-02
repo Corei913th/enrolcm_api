@@ -7,9 +7,13 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Enums\TypeUtilisateur;
 
-class Utilisateur extends Authenticatable
+/**
+ * @mixin IdeHelperUtilisateur
+ */
+class Utilisateur extends Authenticatable implements MustVerifyEmail
 {
     use HasFactory, HasUuids, Notifiable, HasApiTokens;
 
@@ -57,6 +61,7 @@ class Utilisateur extends Authenticatable
     {
         return $this->forceFill([
             'email_verifie' => true,
+            'email_verifie_at' => $this->freshTimestamp(),
         ])->save();
     }
 
@@ -108,9 +113,14 @@ class Utilisateur extends Authenticatable
     }
 
     // Helpers
+    public function isSuperAdmin(): bool
+    {
+        return $this->type_utilisateur === TypeUtilisateur::SUPER_ADMIN;
+    }
+
     public function isAdmin(): bool
     {
-        return $this->type_utilisateur === TypeUtilisateur::ADMIN;
+        return $this->type_utilisateur === TypeUtilisateur::ADMIN || $this->isSuperAdmin();
     }
 
     public function isCandidat(): bool
@@ -122,7 +132,7 @@ class Utilisateur extends Authenticatable
     {
         return $this->type_utilisateur === TypeUtilisateur::CORRECTEUR;
     }
-    
+
 
     public function isResponsableCentre(): bool
     {

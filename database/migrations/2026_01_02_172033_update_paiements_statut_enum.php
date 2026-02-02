@@ -16,6 +16,9 @@ return new class extends Migration
         // Changer temporairement en VARCHAR
         DB::statement("ALTER TABLE paiements ALTER COLUMN statut TYPE VARCHAR(50)");
 
+        // Supprimer l'ancien enum s'il existe
+        DB::statement("DROP TYPE IF EXISTS \"paiements_statut\"");
+
         // Créer le nouvel enum avec toutes les valeurs
         DB::statement("CREATE TYPE \"paiements_statut\" AS ENUM('PENDING', 'VERIFIED', 'REJECTED', 'OCR_VERIFIE', 'PENDING_MANUAL_REVIEW')");
 

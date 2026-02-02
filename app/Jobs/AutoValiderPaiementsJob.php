@@ -4,7 +4,7 @@ namespace App\Jobs;
 
 use App\Models\Paiement;
 use App\Enums\StatutPaiement;
-use App\Services\Payment\PaiementService;
+use App\Services\Domain\Paiement\PaiementService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -32,7 +32,7 @@ class AutoValiderPaiementsJob implements ShouldQueue
 
             foreach ($paiements as $paiement) {
                 try {
-                    if ($paiementService->autoValider($paiement)) {
+                    if ($paiementService->autoValidate($paiement)) {
                         $valides++;
                     } else {
                         $exceptions++;

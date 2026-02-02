@@ -21,11 +21,15 @@ class RolePermissionSeeder extends Seeder
         // ADMIN : Toutes les permissions
         $allPermissions = DB::table('permissions')->pluck('id');
         foreach ($allPermissions as $permissionId) {
-            DB::table('role_permission')->insert([
-                'role_id' => $adminRole->id,
-                'permission_id' => $permissionId,
-                'created_at' => now(),
-            ]);
+            DB::table('role_permission')->updateOrInsert(
+                [
+                    'role_id' => $adminRole->id,
+                    'permission_id' => $permissionId,
+                ],
+                [
+                    'created_at' => now(),
+                ]
+            );
         }
 
         // CANDIDAT : Permissions limitées
@@ -67,11 +71,15 @@ class RolePermissionSeeder extends Seeder
             ->pluck('id');
 
         foreach ($permissions as $permissionId) {
-            DB::table('role_permission')->insert([
-                'role_id' => $roleId,
-                'permission_id' => $permissionId,
-                'created_at' => now(),
-            ]);
+            DB::table('role_permission')->updateOrInsert(
+                [
+                    'role_id' => $roleId,
+                    'permission_id' => $permissionId,
+                ],
+                [
+                    'created_at' => now(),
+                ]
+            );
         }
     }
 }

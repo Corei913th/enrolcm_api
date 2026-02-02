@@ -6,7 +6,7 @@ use App\DTOs\Documents\{CreateDocumentRequisDTO, UpdateDocumentRequisDTO};
 use App\Http\Controllers\Controller;
 use App\Models\DocumentRequis;
 use App\Models\Concours;
-use App\Services\Documents\DocumentService;
+use App\Services\Domain\Candidature\DocumentService;
 use App\Http\Requests\Documents\CreateDocumentRequisRequest;
 use App\Http\Requests\Documents\UpdateDocumentRequisRequest;
 use Illuminate\Http\JsonResponse;
@@ -57,14 +57,14 @@ class DocumentRequisController extends Controller
    */
   public function show(string $concoursId, string $documentId): JsonResponse
   {
-     try {
-        $document = DocumentRequis::where('concours_id', $concoursId)
+    try {
+      $document = DocumentRequis::where('concours_id', $concoursId)
         ->findOrFail($documentId);
 
       return api_success($document, 'Document requis récupéré avec succès');
-     } catch (\Exception $e) {
-       return api_error($e->getMessage(), null, 400);
-     }
+    } catch (\Exception $e) {
+      return api_error($e->getMessage(), null, 400);
+    }
   }
 
   /**
@@ -76,17 +76,17 @@ class DocumentRequisController extends Controller
    */
   public function update(UpdateDocumentRequisRequest $request, string $concoursId, string $documentId): JsonResponse
   {
-     try {
-        $document = DocumentRequis::where('concours_id', $concoursId)
+    try {
+      $document = DocumentRequis::where('concours_id', $concoursId)
         ->findOrFail($documentId);
 
-        $dto = UpdateDocumentRequisDTO::fromRequest($request->validated());
-        $updatedDocument = $this->documentService->updateDocumentRequis($document, $dto);
+      $dto = UpdateDocumentRequisDTO::fromRequest($request->validated());
+      $updatedDocument = $this->documentService->updateDocumentRequis($document, $dto);
 
       return api_success($updatedDocument, 'Document requis mis à jour avec succès');
-     } catch (\Exception $e) {
-       return api_error($e->getMessage(), null, 400);
-     }
+    } catch (\Exception $e) {
+      return api_error($e->getMessage(), null, 400);
+    }
   }
 
   /**
@@ -94,14 +94,14 @@ class DocumentRequisController extends Controller
    */
   public function destroy(string $concoursId, string $documentId): JsonResponse
   {
-     try {
-        $document = $this->documentService->getDocumentRequisByIdAndConcours($documentId, $concoursId);
+    try {
+      $document = $this->documentService->getDocumentRequisByIdAndConcours($documentId, $concoursId);
 
-        $this->documentService->deleteDocumentRequis($document);
+      $this->documentService->deleteDocumentRequis($document);
 
-        return api_success(null, 'Document requis supprimé avec succès');
-     } catch (\Exception $e) {
-       return api_error($e->getMessage(), null, 400);
-     }
+      return api_success(null, 'Document requis supprimé avec succès');
+    } catch (\Exception $e) {
+      return api_error($e->getMessage(), null, 400);
+    }
   }
 }

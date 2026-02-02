@@ -6,10 +6,14 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use App\Enums\TypeEpreuve;
+use App\Traits\HasAdvancedSearch;
 
+/**
+ * @mixin IdeHelperEpreuve
+ */
 class Epreuve extends Model
 {
-    use HasFactory, HasUuids;
+    use HasFactory, HasUuids, HasAdvancedSearch;
 
     protected $table = 'epreuves';
     protected $primaryKey = 'id_epreuve';
@@ -22,11 +26,18 @@ class Epreuve extends Model
         'url_epreuve',
         'type_epreuve',
         'duree_en_minute',
+        'coefficient_defaut',
+        'note_eliminatoire',
+        'est_eliminatoire',
         'est_actif',
     ];
 
     protected $casts = [
+        'type_epreuve' => TypeEpreuve::class,
         'duree_en_minute' => 'integer',
+        'coefficient_defaut' => 'integer',
+        'note_eliminatoire' => 'decimal:2',
+        'est_eliminatoire' => 'boolean',
         'est_actif' => 'boolean',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
@@ -36,6 +47,11 @@ class Epreuve extends Model
     public function notes()
     {
         return $this->hasMany(Note::class, 'epreuve_id', 'id_epreuve');
+    }
+
+    public function plannings()
+    {
+        return $this->hasMany(PlanningEpreuve::class, 'epreuve_id', 'id_epreuve');
     }
 
     // Scopes
@@ -54,11 +70,6 @@ class Epreuve extends Model
         return $query->where('session', $session);
     }
 
-    // Helpers
-    public function getTypeLabel()
-    {
-        return $this->type_epreuve?->label();
-    }
 
     public function getDureeFormatee()
     {

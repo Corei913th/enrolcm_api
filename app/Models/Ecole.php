@@ -7,6 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use App\Enums\RegionCameroun;
 
+/**
+ * @mixin IdeHelperEcole
+ */
 class Ecole extends Model
 {
     use HasFactory, HasUuids;
@@ -48,6 +51,11 @@ class Ecole extends Model
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
+
+    public function concours()
+    {
+        return $this->hasMany(Concours::class, 'ecole_id');
+    }
 
     public function departements()
     {
@@ -107,17 +115,17 @@ class Ecole extends Model
         if (!$this->logo_path) {
             return null;
         }
-        
+
         $path = storage_path('app/public/' . $this->logo_path);
-        
+
         if (!file_exists($path)) {
             return null;
         }
-        
+
         // Convertir en base64 pour DomPDF
         $imageData = base64_encode(file_get_contents($path));
         $mimeType = mime_content_type($path);
-        
+
         return 'data:' . $mimeType . ';base64,' . $imageData;
     }
 
@@ -129,17 +137,17 @@ class Ecole extends Model
         if (!$this->embleme_path) {
             return null;
         }
-        
+
         $path = storage_path('app/public/' . $this->embleme_path);
-        
+
         if (!file_exists($path)) {
             return null;
         }
-        
+
         // Convertir en base64 pour DomPDF
         $imageData = base64_encode(file_get_contents($path));
         $mimeType = mime_content_type($path);
-        
+
         return 'data:' . $mimeType . ';base64,' . $imageData;
     }
 
@@ -151,17 +159,17 @@ class Ecole extends Model
         if (!$this->header_frame_path) {
             return null;
         }
-        
+
         $path = storage_path('app/public/' . $this->header_frame_path);
-        
+
         if (!file_exists($path)) {
             return null;
         }
-        
+
         // Convertir en base64 pour DomPDF
         $imageData = base64_encode(file_get_contents($path));
         $mimeType = mime_content_type($path);
-        
+
         return 'data:' . $mimeType . ';base64,' . $imageData;
     }
 

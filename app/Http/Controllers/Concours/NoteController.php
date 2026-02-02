@@ -3,23 +3,44 @@
 namespace App\Http\Controllers\Concours;
 
 use App\Http\Controllers\Controller;
-use App\Services\Concours\NoteService;
+use App\Services\Domain\Examen\NoteService;
 use App\Http\Requests\Concours\SaisirNoteRequest;
 use App\Http\Requests\Concours\ModifierNoteRequest;
-use App\Models\Note;
 use App\Exceptions\ConcoursException;
 use App\Http\Resources\NoteResource;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
-/**
- * Controller de gestion des notes d'examen.
- */
+
 class NoteController extends Controller
 {
   public function __construct(
     private readonly NoteService $noteService
   ) {}
+
+  /**
+   * Obtenir les candidats éligibles à la saisie de notes.
+   *
+   * Endpoint : GET /admin/concours/{concoursId}/sessions/{sessionId}/candidats-eligibles-notes
+   *
+   * @param string $concoursId ID du concours
+   * @param string $sessionId ID de la session
+   * @param \Illuminate\Http\Request $request
+   *
+   * @return JsonResponse Réponse avec les candidats éligibles
+   */
+  public function getCandidatsEligibles(string $concoursId, string $sessionId, Request $request): JsonResponse
+  {
+    try {
+      $filters = $request->only(['search']);
+      $perPage = $request->input('per_page', 100); // Increased from 20 to 100
+
+      $candidats = $this->noteService->getCandidatsEligiblesPourNotes($concoursId, $sessionId, $filters, $perPage);
+      return api_paginated($candidats, 'Candidats éligibles à la saisie de notes');
+    } catch (ConcoursException $e) {
+      return api_error($e->getMessage(), null, $e->getCode());
+    }
+  }
 
   /**
    * Saisir une note pour une épreuve.

@@ -6,7 +6,7 @@ use App\DTOs\Documents\ValidateDocumentDTO;
 use App\Enums\StatutVerificationDocument;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Documents\ValidateDocumentRequest;
-use App\Services\Documents\DocumentService;
+use App\Services\Domain\Candidature\DocumentService;
 use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
@@ -20,13 +20,77 @@ class DocumentValidationController extends Controller
    * Lister les documents en attente de validation
    * @return JsonResponse
    */
+  public function enAttente(): JsonResponse
+  {
+    $perPage = request()->input('per_page', 100);
+    $concoursId = request()->input('concours_id');
+
+    $documents = $this->documentService->getAllForValidation($perPage, $concoursId);
+
+    return api_paginated($documents, 'Documents en attente récupérés avec succès');
+  }
+
+  /**
+   * Get document validation statistics
+   * @return JsonResponse
+   */
+  public function stats(): JsonResponse
+  {
+    try {
+      $concoursId = request()->input('concours_id');
+      $stats = $this->documentService->getValidationStats($concoursId);
+
+      return api_success($stats, 'Statistiques des documents');
+    } catch (\Exception $e) {
+      return api_error($e->getMessage(), null, 500);
+    }
+  }
+
+  /**
+   * Valider un document
+   * @param string $documentId
+   * @return JsonResponse
+   */
+  public function valider(string $documentId): JsonResponse
+  {
+    $document = $this->documentService->getDocumentById($documentId);
+    $dto = ValidateDocumentDTO::fromRequest([
+      'statut' => StatutVerificationDocument::VALIDE->value,
+      'commentaire' => request()->input('commentaire')
+    ]);
+    $validatedDocument = $this->documentService->validateDocument($document, $dto, request()->user()->id);
+
+    return api_success($validatedDocument, 'Document validé avec succès');
+  }
+
+  /**
+   * Rejeter un document
+   * @param string $documentId
+   * @return JsonResponse
+   */
+  public function rejeter(string $documentId): JsonResponse
+  {
+    request()->validate([
+      'motif_rejet' => 'required|string|max:1000'
+    ]);
+
+    $document = $this->documentService->getDocumentById($documentId);
+    $dto = ValidateDocumentDTO::fromRequest([
+      'statut' => StatutVerificationDocument::REJETE->value,
+      'commentaire' => request()->input('motif_rejet')
+    ]);
+    $validatedDocument = $this->documentService->validateDocument($document, $dto, request()->user()->id);
+
+    return api_success($validatedDocument, 'Document rejeté');
+  }
+
+  /**
+   * Lister les documents en attente de validation (alias)
+   * @return JsonResponse
+   */
   public function index(): JsonResponse
   {
-    $documents = $this->documentService->getDocumentsEnAttente();
-
-    return api_success([
-      'documents' => $documents,
-    ], 'Documents en attente récupérés avec succès');
+    return $this->enAttente();
   }
 
   /**
@@ -57,11 +121,11 @@ class DocumentValidationController extends Controller
   {
     $document = $this->documentService->getDocumentById($documentId);
 
-      $filePath = storage_path('app/public/' . str_replace('storage/', '', $document->fichier_url));
+    $filePath = storage_path('app/public/' . str_replace('storage/', '', $document->fichier_url));
 
-      if (! file_exists($filePath)) {
-        abort(404, 'Fichier non trouvé');
-      }
+    if (! file_exists($filePath)) {
+      abort(404, 'Fichier non trouvé');
+    }
 
     return response()->download($filePath, $document->nom_original);
   }

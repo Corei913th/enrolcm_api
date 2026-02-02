@@ -7,6 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use App\Enums\StatutVerificationPaiement;
 
+/**
+ * @mixin IdeHelperPaymentReceipt
+ */
 class PaymentReceipt extends Model
 {
     use HasFactory, HasUuids;

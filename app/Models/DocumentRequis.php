@@ -3,14 +3,20 @@
 namespace App\Models;
 
 use App\Enums\TypeDocument;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @mixin IdeHelperDocumentRequis
+ */
 class DocumentRequis extends Model
 {
-  use HasFactory;
+  use HasFactory, HasUuids;
 
   protected $table = 'documents_requis';
+  public $incrementing = false;
+  protected $keyType = 'string';
 
   protected $fillable = [
     'concours_id',

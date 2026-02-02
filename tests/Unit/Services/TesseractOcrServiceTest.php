@@ -2,8 +2,8 @@
 
 namespace Tests\Unit\Services;
 
+use App\Services\Infrastructure\OCR\TesseractOcrService;
 use Tests\TestCase;
-use App\Services\OCR\TesseractOcrService;
 use Illuminate\Support\Facades\Storage;
 
 class TesseractOcrServiceTest extends TestCase

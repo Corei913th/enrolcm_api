@@ -4,7 +4,6 @@ namespace App\Enums;
 
 enum TypeDocument: string
 {
-    case FICHE_PAIEMENT = 'FICHE_PAIEMENT';
     case CNI = 'CNI';
     case ACTE_NAISSANCE = 'ACTE_NAISSANCE';
     case RELEVE_NOTE = 'RELEVE_NOTE';
@@ -27,7 +26,6 @@ enum TypeDocument: string
     public function label(): string
     {
         return match ($this) {
-            self::FICHE_PAIEMENT => 'Fiche de paiement',
             self::CNI => 'Carte Nationale d\'identité',
             self::ACTE_NAISSANCE => 'Acte de naissance',
             self::RELEVE_NOTE => 'Relevé de notes',

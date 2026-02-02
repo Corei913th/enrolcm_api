@@ -7,18 +7,17 @@ use App\Exceptions\Business\NiveauException;
 use App\Http\Requests\Niveaux\StoreNiveauRequest;
 use App\Http\Requests\Niveaux\UpdateNiveauRequest;
 use App\Http\Resources\NiveauResource;
-use App\Services\Niveaux\NiveauService;
+use App\Services\Domain\Referentiel\NiveauService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class NiveauController extends Controller
 {
-    protected NiveauService $niveauService;
 
-    public function __construct(NiveauService $niveauService)
-    {
-        $this->niveauService = $niveauService;
-    }
+
+    public function __construct(
+        private readonly NiveauService $niveauService
+    ) {}
 
     /**
      * Liste des niveaux avec filtres et pagination
@@ -30,7 +29,7 @@ class NiveauController extends Controller
             $niveaux = $this->niveauService->getAll($filters);
 
             return api_paginated(
-                NiveauResource::collection($niveaux)->resource,
+                new NiveauResource($niveaux),
                 'Liste des niveaux récupérée avec succès'
             );
         } catch (NiveauException $e) {
@@ -45,10 +44,10 @@ class NiveauController extends Controller
     {
         try {
             $niveau = $this->niveauService->getById($id);
-            
+
             return api_success(
-                'Niveau récupéré avec succès',
-                new NiveauResource($niveau)
+                new NiveauResource($niveau),
+                'Niveau récupéré avec succès'
             );
         } catch (NiveauException $e) {
             return api_error($e->getMessage(), null, $e->getCode());
@@ -62,10 +61,10 @@ class NiveauController extends Controller
     {
         try {
             $niveau = $this->niveauService->getByCode($code);
-            
+
             return api_success(
-                'Niveau récupéré avec succès',
-                new NiveauResource($niveau)
+                new NiveauResource($niveau),
+                'Niveau récupéré avec succès'
             );
         } catch (NiveauException $e) {
             return api_error($e->getMessage(), null, $e->getCode());
@@ -119,7 +118,7 @@ class NiveauController extends Controller
     {
         try {
             $this->niveauService->delete($id);
-            
+
             return api_deleted('Niveau supprimé avec succès');
         } catch (NiveauException $e) {
             return api_error($e->getMessage(), null, $e->getCode());
@@ -133,7 +132,7 @@ class NiveauController extends Controller
     {
         try {
             $niveau = $this->niveauService->toggleStatus($id);
-            
+
             return api_updated(
                 new NiveauResource($niveau),
                 'Statut du niveau modifié avec succès'
@@ -150,10 +149,10 @@ class NiveauController extends Controller
     {
         try {
             $niveaux = $this->niveauService->getActive();
-            
+
             return api_success(
+                NiveauResource::collection($niveaux)->resource,
                 'Niveaux actifs récupérés avec succès',
-                NiveauResource::collection($niveaux)
             );
         } catch (NiveauException $e) {
             return api_error($e->getMessage(), null, $e->getCode());

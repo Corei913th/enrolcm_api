@@ -5,6 +5,9 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 
 return Application::configure(basePath: dirname(__DIR__))
+    ->withProviders([
+        \App\Providers\PdfServiceProvider::class,
+    ])
     ->withRouting(
         web: __DIR__ . '/../routes/web.php',
         api: __DIR__ . '/../routes/api.php',
@@ -12,6 +15,8 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->trustProxies(at: '*');
+
         $middleware->api(prepend: [
             \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
         ]);
@@ -22,72 +27,67 @@ return Application::configure(basePath: dirname(__DIR__))
             'permission' => \App\Http\Middleware\CheckPermission::class,
         ]);
 
+        $middleware->redirectGuestsTo(fn() => null);
+
         //
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        // Gestion des exceptions métier (Business)
+        $exceptions->renderable(function (\App\Exceptions\Business\ResultatException $e, $request) {
+            if ($request->expectsJson()) {
+                $errorData = $e->toArray();
+                $httpCode = match ($e->getSeverity()) {
+                    'error' => 400,
+                    'warning' => 409,
+                    'info' => 200,
+                    default => 400
+                };
+
+                return response()->json([
+                    'success' => false,
+                    'error' => $errorData,
+                    'ui_notification' => [
+                        'type' => $e->getSeverity(),
+                        'title' => 'Erreur Gestion des Résultats',
+                        'message' => $e->getUserMessage(),
+                        'duration' => 7000,
+                    ]
+                ], $httpCode);
+            }
+        });
+
         // Gestion des exceptions de validation
         $exceptions->renderable(function (\Illuminate\Validation\ValidationException $e, $request) {
             if ($request->expectsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Erreur de validation.',
-                    'error_code' => 'VALIDATION_ERROR',
-                    'errors' => $e->errors(),
-                ], 422);
+                return api_validation_error($e->errors(), 'Erreur de validation.');
             }
         });
 
         // Gestion des exceptions d'authentification
         $exceptions->renderable(function (\Illuminate\Auth\AuthenticationException $e, $request) {
-            if ($request->expectsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Non authentifié.',
-                    'error_code' => 'UNAUTHENTICATED',
-                ], 401);
-            }
+            // Pour les requêtes API, toujours retourner du JSON
+            return api_unauthorized('Non authentifié.');
         });
 
         // Gestion des exceptions d'autorisation
         $exceptions->renderable(function (\Illuminate\Auth\Access\AuthorizationException $e, $request) {
             if ($request->expectsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => $e->getMessage() ?: 'Action non autorisée.',
-                    'error_code' => 'FORBIDDEN',
-                ], 403);
+                return api_forbidden($e->getMessage() ?: 'Action non autorisée.');
             }
         });
 
         // Gestion des erreurs 404
         $exceptions->renderable(function (\Symfony\Component\HttpKernel\Exception\NotFoundHttpException $e, $request) {
             if ($request->expectsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Ressource introuvable.',
-                    'error_code' => 'NOT_FOUND',
-                ], 404);
+                return api_not_found('Ressource introuvable.');
             }
         });
 
-        // Gestion des erreurs 405 (Method Not Allowed)
-        $exceptions->renderable(function (\Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException $e, $request) {
-            if ($request->expectsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Méthode HTTP non autorisée.',
-                    'error_code' => 'METHOD_NOT_ALLOWED',
-                ], 405);
-            }
-        });
-
-        // Gestion des erreurs de throttle (trop de requêtes)
+        // Gestion des erreurs de throttle (trop de requêtes) - Crucial pour la montée en charge
         $exceptions->renderable(function (\Illuminate\Http\Exceptions\ThrottleRequestsException $e, $request) {
             if ($request->expectsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Trop de tentatives. Veuillez réessayer plus tard.',
-                    'error_code' => 'TOO_MANY_REQUESTS',
+                return api_error('Trop de tentatives. Veuillez réessayer plus tard.', [
+                    'retry_after' => $e->getHeaders()['Retry-After'] ?? null
                 ], 429);
             }
         });
@@ -95,32 +95,20 @@ return Application::configure(basePath: dirname(__DIR__))
         // Gestion des erreurs de base de données
         $exceptions->renderable(function (\Illuminate\Database\QueryException $e, $request) {
             if ($request->expectsJson()) {
-                $message = config('app.debug') 
-                    ? $e->getMessage() 
-                    : 'Erreur de base de données.';
-                
-                return response()->json([
-                    'success' => false,
-                    'message' => $message,
-                    'error_code' => 'DATABASE_ERROR',
-                ], 500);
+                $message = config('app.debug') ? $e->getMessage() : 'Erreur de base de données.';
+                return api_error($message, null, 500);
             }
         });
 
         // Gestion des erreurs génériques
         $exceptions->renderable(function (\Throwable $e, $request) {
             if ($request->expectsJson() && !($e instanceof \Illuminate\Http\Exceptions\HttpResponseException)) {
-                $statusCode = method_exists($e, 'getStatusCode') ? $e->getStatusCode() : 500;
-                
-                $message = config('app.debug') 
-                    ? $e->getMessage() 
-                    : 'Une erreur est survenue.';
-                
-                return response()->json([
-                    'success' => false,
-                    'message' => $message,
-                    'error_code' => 'INTERNAL_SERVER_ERROR',
-                    'trace' => config('app.debug') ? $e->getTrace() : null,
+                $statusCode = method_exists($e, 'getStatusCode') ? $e->getCode() : (method_exists($e, 'getCode') && $e->getCode() >= 400 && $e->getCode() < 600 ? $e->getCode() : 500);
+                $message = config('app.debug') ? $e->getMessage() : 'Une erreur inattendue est survenue.';
+
+                return api_error($message, [
+                    'type' => get_class($e),
+                    'trace' => config('app.debug') ? array_slice($e->getTrace(), 0, 5) : null
                 ], $statusCode);
             }
         });

@@ -3,13 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\DTOs\Ecoles\CreateEcoleDTO;
+use App\DTOs\Ecoles\UpdateEcoleDTO;
 use App\Exceptions\Business\EcoleException;
 use App\Http\Requests\Ecoles\StoreEcoleRequest;
 use App\Http\Requests\Ecoles\UpdateEcoleRequest;
 use App\Http\Resources\EcoleResource;
-use App\Services\Ecoles\EcoleService;
-use App\Services\Ecoles\EcoleFileService;
-use App\Services\Ecoles\EcolePdfService;
+use App\Services\Domain\Referentiel\EcoleService;
+use App\Services\Infrastructure\Logger\ActivityLoggerService;
+use App\Services\Infrastructure\Storage\EcoleFileStorageService;
+use App\Services\Infrastructure\Pdf\EcoleDocumentPdfService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -18,8 +20,9 @@ class EcoleController extends Controller
 {
     public function __construct(
         private readonly EcoleService $ecoleService,
-        private readonly EcoleFileService $fileService,
-        private readonly EcolePdfService $pdfService
+        private readonly EcoleFileStorageService $fileService,
+        private readonly EcoleDocumentPdfService $pdfService,
+        private readonly ActivityLoggerService $logger
     ) {}
 
     /**
@@ -123,14 +126,32 @@ class EcoleController extends Controller
     public function update(UpdateEcoleRequest $request, string $id): JsonResponse
     {
         try {
+            // Log ALL request data for debugging
+            $this->logger->logOperation('EcoleController::update - Full request debug', 'preparing', [
+                'content_type' => $request->header('Content-Type'),
+                'method' => $request->method(),
+                'has_logo' => $request->hasFile('logo'),
+                'has_embleme' => $request->hasFile('embleme'),
+                'has_header_frame' => $request->hasFile('header_frame'),
+                'all_files' => $request->allFiles(),
+                'all_input_keys' => array_keys($request->all()),
+                'request_keys_with_file_in_name' => array_filter(
+                    array_keys($request->all()),
+                    fn($key) => str_contains(strtolower($key), 'logo') || str_contains(strtolower($key), 'file')
+                ),
+            ]);
 
-            $ecoleData = CreateEcoleDTO::from($request->except(['logo', 'embleme', 'header_frame']));
+            $ecoleData = UpdateEcoleDTO::from($request->except(['logo', 'embleme', 'header_frame', '_method']));
             $files = [];
 
             if ($request->hasFile('logo')) $files['logo'] = $request->file('logo');
             if ($request->hasFile('embleme')) $files['embleme'] = $request->file('embleme');
             if ($request->hasFile('header_frame')) $files['header_frame'] = $request->file('header_frame');
 
+            $this->logger->logOperation('EcoleController::update - Files array prepared', 'finished', [
+                'files_count' => count($files),
+                'file_keys' => array_keys($files),
+            ]);
 
             $ecole = $this->ecoleService->updateWithFiles($id, $ecoleData, $files);
 
@@ -303,12 +324,12 @@ class EcoleController extends Controller
      * Preview the PDF header for a school
      *
      * @param string $id School UUID
-     * @return mixed PDF stream or download response
+     * @return mixed PDF inline response for preview
      */
     public function previewHeader(string $id)
     {
         try {
-            $ecole = $this->ecoleService->getById($id);
+            $ecole = $this->ecoleService->getById($id, false);
 
             $pdf = $this->pdfService->generateDocument(
                 $ecole,
@@ -316,7 +337,7 @@ class EcoleController extends Controller
                 '<p style="text-align: center; margin-top: 50px;">Ceci est un aperçu de l\'entête officielle de l\'école.</p>'
             );
 
-            return $pdf->stream('preview_header.pdf');
+            return $pdf->inline('preview_header.pdf');
         } catch (\Exception $e) {
             return api_error($e->getMessage());
         }

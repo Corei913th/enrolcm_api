@@ -22,9 +22,14 @@ class UpdateMatiereRequest extends FormRequest
     public function rules(): array
     {
         $matiereId = $this->route('matiere');
-        
+
         return [
-            'code_matiere' => 'required|string|max:10|unique:matieres,code_matiere,' . $matiereId,
+            'code_matiere' => [
+                'required',
+                'string',
+                'max:10',
+                \Illuminate\Validation\Rule::unique('matieres', 'code_matiere')->ignore($matiereId)
+            ],
             'libelle_matiere' => 'required|string|max:200',
             'coefficient' => 'nullable|integer|min:1|max:10',
             'est_actif' => 'nullable|boolean',

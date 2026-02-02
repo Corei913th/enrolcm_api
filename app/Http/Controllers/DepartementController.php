@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\Departements\DepartementService;
+use App\Services\Domain\Referentiel\DepartementService;
 use App\Http\Requests\Departements\StoreDepartementRequest;
 use App\Http\Requests\Departements\UpdateDepartementRequest;
 use App\DTOs\Departements\CreateDepartementDTO;
@@ -29,10 +29,10 @@ class DepartementController extends Controller
   public function index(Request $request): JsonResponse
   {
     try {
-      $filters = $request->only(['est_actif', 'ecole_id', 'search']);
+      $filters = $request->only(['est_actif', 'ecole_id', 'search', 'per_page']);
       $departements = $this->departementService->getAll($filters);
 
-      return api_success(new DepartementResource($departements), 'Départements récupérés avec succès');
+      return api_paginated($departements, 'Départements récupérés avec succès', DepartementResource::class);
     } catch (\Exception $e) {
       return api_error('Erreur lors de la récupération des départements: ' . $e->getMessage(), null, 500);
     }

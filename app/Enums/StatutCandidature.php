@@ -37,6 +37,14 @@ enum StatutCandidature: string
   }
 
   /**
+   * Vérifie si la candidature est soumise
+   */
+  public function estSoumise(): bool
+  {
+    return $this === self::SOUMISE;
+  }
+
+  /**
    * Vérifie si la candidature est rejetée
    */
   public function estRejetee(): bool

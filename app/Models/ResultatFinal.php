@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\CategorieAdmission;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -9,6 +10,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Enums\DecisionAdmission;
 use App\Enums\Mention;
 
+/**
+ * @mixin IdeHelperResultatFinal
+ */
 class ResultatFinal extends Model
 {
     use HasFactory, HasUuids, SoftDeletes;
@@ -19,12 +23,15 @@ class ResultatFinal extends Model
 
     protected $fillable = [
         'candidature_id',
+        'session_id',
         'moyenne_generale',
         'total_point',
         'rang',
         'decision',
         'mention',
         'est_admis',
+        'categorie_admission',
+        'score_departage',
         'date_publication',
     ];
 
@@ -32,7 +39,11 @@ class ResultatFinal extends Model
         'moyenne_generale' => 'decimal:2',
         'total_point' => 'decimal:2',
         'rang' => 'integer',
+        'decision' => DecisionAdmission::class,
+        'mention' => Mention::class,
         'est_admis' => 'boolean',
+        'categorie_admission' => CategorieAdmission::class,
+        'score_departage' => 'decimal:4',
         'date_publication' => 'date',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
@@ -45,6 +56,11 @@ class ResultatFinal extends Model
         return $this->belongsTo(Candidature::class, 'candidature_id');
     }
 
+    public function session()
+    {
+        return $this->belongsTo(Session::class, 'session_id');
+    }
+
     // Scopes
     public function scopeAdmis($query)
     {
@@ -54,6 +70,11 @@ class ResultatFinal extends Model
     public function scopeByDecision($query, $decision)
     {
         return $query->where('decision', $decision);
+    }
+
+    public function scopeBySession($query, $sessionId)
+    {
+        return $query->where('session_id', $sessionId);
     }
 
     public function scopePublies($query)
@@ -77,21 +98,6 @@ class ResultatFinal extends Model
     public function getMentionLabel()
     {
         return $this->mention?->label();
-    }
-
-    public function calculerMention()
-    {
-        if ($this->moyenne_generale >= 16) {
-            return Mention::EXCELLENT;
-        } elseif ($this->moyenne_generale >= 14) {
-            return Mention::TRES_BIEN;
-        } elseif ($this->moyenne_generale >= 12) {
-            return Mention::BIEN;
-        } elseif ($this->moyenne_generale >= 10) {
-            return Mention::ASSEZ_BIEN;
-        } else {
-            return Mention::PASSABLE;
-        }
     }
 
     public function isAdmisDefinitif()

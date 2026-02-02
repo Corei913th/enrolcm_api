@@ -4,8 +4,8 @@
 namespace App\Http\Controllers\OCR;
 
 use App\Http\Controllers\Controller;
-use App\Services\OCR\TesseractOcrService;
-use App\Services\Payment\ConcoursPaiementService;
+use App\Services\Infrastructure\OCR\TesseractOcrService;
+use App\Services\Domain\Paiement\ConcoursPaiementService;
 use App\Models\ConcoursPaiement;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;

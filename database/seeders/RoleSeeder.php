@@ -15,31 +15,33 @@ class RoleSeeder extends Seeder
     {
         $roles = [
             [
-                'id' => Str::uuid(),
                 'libelle_role' => 'ADMIN',
                 'desc_role' => 'Administrateur système avec tous les droits',
-                'created_at' => now(),
             ],
             [
-                'id' => Str::uuid(),
                 'libelle_role' => 'CANDIDAT',
                 'desc_role' => 'Candidat aux concours',
-                'created_at' => now(),
             ],
             [
-                'id' => Str::uuid(),
                 'libelle_role' => 'CORRECTEUR',
                 'desc_role' => 'Correcteur des épreuves',
-                'created_at' => now(),
             ],
             [
-                'id' => Str::uuid(),
                 'libelle_role' => 'RESPONSABLE_CENTRE',
                 'desc_role' => 'Responsable d\'un centre d\'examen',
-                'created_at' => now(),
             ],
         ];
 
-        DB::table('roles')->insert($roles);
+        foreach ($roles as $role) {
+            DB::table('roles')->updateOrInsert(
+                ['libelle_role' => $role['libelle_role']],
+                [
+                    'id' => (string) Str::uuid(),
+                    'desc_role' => $role['desc_role'],
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]
+            );
+        }
     }
 }

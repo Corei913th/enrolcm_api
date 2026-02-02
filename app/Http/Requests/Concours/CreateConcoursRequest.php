@@ -45,6 +45,7 @@ class CreateConcoursRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'ecole_id' => ['required', 'uuid', 'exists:ecoles,id'],
             'spec_concours_id' => ['sometimes', 'uuid', 'exists:specs_concours,id'],
             'libelle_concours' => [
                 'required',
@@ -53,8 +54,8 @@ class CreateConcoursRequest extends FormRequest
                 'min:3',
                 'regex:/^[\p{L}\p{N}\s\-\'&,()]+$/u' // Lettres, chiffres, espaces, caractères spéciaux sûrs
             ],
-            'date_debut' => ['nullable', 'date', 'after:today', 'before:+2 years'],
-            'date_limite_depot' => ['nullable', 'date', 'after:today', 'before:+2 years', 'before:date_debut'],
+            // date_examen removed - use planning_epreuves as single source of truth
+            'date_limite_depot' => ['nullable', 'date', 'after:today', 'before:+2 years'],
             'nombre_places' => ['nullable', 'integer', 'min:1', 'max:100000'],
             'description' => ['nullable', 'string', 'max:1000'],
             'session_id' => ['sometimes', 'uuid', 'exists:sessions,id'],
@@ -65,14 +66,15 @@ class CreateConcoursRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'ecole_id.required' => 'L\'identifiant de l\'école est obligatoire',
+            'ecole_id.uuid' => 'L\'identifiant de l\'école est invalide',
+            'ecole_id.exists' => 'L\'école spécifiée n\'existe pas',
             'spec_concours_id.uuid' => 'L\'identifiant de la spécification est invalide',
             'spec_concours_id.exists' => 'La spécification spécifiée n\'existe pas',
             'libelle_concours.required' => 'Le libellé du concours est obligatoire',
             'libelle_concours.min' => 'Le libellé doit contenir au moins 3 caractères',
             'libelle_concours.max' => 'Le libellé ne peut pas dépasser 255 caractères',
             'libelle_concours.regex' => 'Le libellé contient des caractères non autorisés',
-            'date_debut.after' => 'La date d\'examen doit être dans le futur',
-            'date_debut.before' => 'La date d\'examen ne peut pas être dans plus de 2 ans',
             'date_limite_depot.after' => 'La date limite de dépôt doit être dans le futur',
             'date_limite_depot.before' => 'La date limite de dépôt doit être antérieure à la date d\'examen et ne peut pas être dans plus de 2 ans',
             'nombre_places.min' => 'Le nombre de places doit être au moins 1',
@@ -91,14 +93,11 @@ class CreateConcoursRequest extends FormRequest
         $validator->after(function ($validator) {
             $data = $this->all();
 
-            // WORKFLOW SIMPLIFIÉ :
-            // - spec_concours_id seul : concours template
-            // - session_id seul : concours avec session (dates/places optionnelles)
-            // - spec + session : concours complet
 
-            // Valider cohérence dates : date_limite_depot doit être AVANT date_debut (date d'examen)
-            if (!empty($data['date_limite_depot']) && !empty($data['date_debut'])) {
-                if ($data['date_limite_depot'] >= $data['date_debut']) {
+
+            // Valider cohérence dates : date_limite_depot doit être AVANT date_examen (date d'examen)
+            if (!empty($data['date_limite_depot']) && !empty($data['date_examen'])) {
+                if ($data['date_limite_depot'] >= $data['date_examen']) {
                     $validator->errors()->add('date_limite_depot', 'La date limite de dépôt doit être antérieure à la date d\'examen');
                 }
             }

@@ -7,18 +7,16 @@ use App\Exceptions\Business\MatiereException;
 use App\Http\Requests\Matieres\StoreMatiereRequest;
 use App\Http\Requests\Matieres\UpdateMatiereRequest;
 use App\Http\Resources\MatiereResource;
-use App\Services\Matieres\MatiereService;
+use App\Services\Domain\Referentiel\MatiereService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class MatiereController extends Controller
 {
-    protected MatiereService $matiereService;
 
-    public function __construct(MatiereService $matiereService)
-    {
-        $this->matiereService = $matiereService;
-    }
+    public function __construct(
+        private readonly MatiereService $matiereService
+    ) {}
 
     /**
      * Liste des matières avec filtres et pagination
@@ -45,10 +43,10 @@ class MatiereController extends Controller
     {
         try {
             $matiere = $this->matiereService->getById($id);
-            
+
             return api_success(
-                'Matière récupérée avec succès',
-                new MatiereResource($matiere)
+                new MatiereResource($matiere),
+                'Matière récupérée avec succès'
             );
         } catch (MatiereException $e) {
             return api_error($e->getMessage(), null, $e->getCode());
@@ -62,10 +60,10 @@ class MatiereController extends Controller
     {
         try {
             $matiere = $this->matiereService->getByCode($code);
-            
+
             return api_success(
-                'Matière récupérée avec succès',
-                new MatiereResource($matiere)
+                new MatiereResource($matiere),
+                'Matière récupérée avec succès'
             );
         } catch (MatiereException $e) {
             return api_error($e->getMessage(), null, $e->getCode());
@@ -119,7 +117,7 @@ class MatiereController extends Controller
     {
         try {
             $this->matiereService->delete($id);
-            
+
             return api_deleted('Matière supprimée avec succès');
         } catch (MatiereException $e) {
             return api_error($e->getMessage(), null, $e->getCode());
@@ -133,7 +131,7 @@ class MatiereController extends Controller
     {
         try {
             $matiere = $this->matiereService->toggleStatus($id);
-            
+
             return api_updated(
                 new MatiereResource($matiere),
                 'Statut de la matière modifié avec succès'
@@ -150,10 +148,10 @@ class MatiereController extends Controller
     {
         try {
             $matieres = $this->matiereService->getActive();
-            
+
             return api_success(
-                'Matières actives récupérées avec succès',
-                MatiereResource::collection($matieres)
+                MatiereResource::collection($matieres),
+                'Matières actives récupérées avec succès'
             );
         } catch (MatiereException $e) {
             return api_error($e->getMessage(), null, $e->getCode());

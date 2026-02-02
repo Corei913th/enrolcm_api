@@ -6,6 +6,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
+/**
+ * @mixin IdeHelperSpecConcours
+ */
 class SpecConcours extends Model
 {
     use HasFactory, HasUuids;
@@ -23,6 +26,10 @@ class SpecConcours extends Model
         'age_maximum',
         'series_bac_acceptees',
         'nationalites_acceptees',
+        'diplomes_requis',
+        'criteres_admission_supplementaires',
+        'accepte_diplomes_equivalents',
+        'accepte_candidats_en_cours',
         'est_actif',
     ];
 
@@ -30,9 +37,12 @@ class SpecConcours extends Model
         'documents_requis' => 'array',
         'series_bac_acceptees' => 'array',
         'nationalites_acceptees' => 'array',
+        'diplomes_requis' => 'array',
         'montant_frais_depot' => 'decimal:2',
         'age_minimum' => 'integer',
         'age_maximum' => 'integer',
+        'accepte_diplomes_equivalents' => 'boolean',
+        'accepte_candidats_en_cours' => 'boolean',
         'est_actif' => 'boolean',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
@@ -82,11 +92,11 @@ class SpecConcours extends Model
         if ($this->age_minimum && $age < $this->age_minimum) {
             return false;
         }
-        
+
         if ($this->age_maximum && $age > $this->age_maximum) {
             return false;
         }
-        
+
         return true;
     }
 
@@ -95,7 +105,7 @@ class SpecConcours extends Model
         if (empty($this->series_bac_acceptees)) {
             return true; // Toutes les séries acceptées si non spécifié
         }
-        
+
         return in_array($serie, $this->series_bac_acceptees);
     }
 
@@ -104,29 +114,67 @@ class SpecConcours extends Model
         if (empty($this->nationalites_acceptees)) {
             return true; // Toutes les nationalités acceptées si non spécifié
         }
-        
+
         return in_array($nationalite, $this->nationalites_acceptees);
     }
 
     public function getCriteresEligibilite()
     {
         $criteres = [];
-        
+
         if ($this->hasAgeRestriction()) {
             $age = [];
             if ($this->age_minimum) $age[] = "minimum {$this->age_minimum} ans";
             if ($this->age_maximum) $age[] = "maximum {$this->age_maximum} ans";
             $criteres['age'] = implode(', ', $age);
         }
-        
+
         if (!empty($this->series_bac_acceptees)) {
             $criteres['series_bac'] = implode(', ', $this->series_bac_acceptees);
         }
-        
+
         if (!empty($this->nationalites_acceptees)) {
             $criteres['nationalites'] = implode(', ', $this->nationalites_acceptees);
         }
-        
+
         return $criteres;
+    }
+
+    public function isDiplomeEligible(?string $diplome): bool
+    {
+        if (empty($this->diplomes_requis)) {
+            return true; // Tous diplômes acceptés si non spécifié
+        }
+
+        if (!$diplome) {
+            return false;
+        }
+
+        // Vérification directe
+        if (in_array($diplome, $this->diplomes_requis)) {
+            return true;
+        }
+
+        // Si équivalents acceptés, on pourrait ajouter une logique plus complexe
+        return $this->accepte_diplomes_equivalents;
+    }
+
+    public function getDiplomesRequisFormatted(): string
+    {
+        if (empty($this->diplomes_requis)) {
+            return 'Tous diplômes acceptés';
+        }
+
+        $diplomes = implode(', ', $this->diplomes_requis);
+
+        if ($this->accepte_diplomes_equivalents) {
+            $diplomes .= ' (ou équivalents)';
+        }
+
+        if ($this->accepte_candidats_en_cours) {
+            $diplomes .= ' - Candidats en cours acceptés';
+        }
+
+        return $diplomes;
     }
 }

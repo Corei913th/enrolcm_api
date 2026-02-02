@@ -2,10 +2,19 @@
 
 namespace App\Models;
 
+use App\Enums\Langue;
 use App\Enums\RegionCameroun;
+use App\Enums\StatutMatrimonial;
+use App\Enums\Genre;
+use App\Enums\TypeDiplome;
+use App\Enums\SerieBac;
+use App\Enums\NiveauScolaire;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @mixin IdeHelperCandidat
+ */
 class Candidat extends Model
 {
     use HasFactory;
@@ -32,6 +41,7 @@ class Candidat extends Model
         'nom_parent',
         'telephone_parent',
         'code_cand',
+        'filiere_id',
         'niveau_scolaire',
         'filiere_origine',
         'etablissement_origine',
@@ -49,10 +59,12 @@ class Candidat extends Model
         'region',
         'departement',
         'arrondissement',
+        'premiere_langue',
+        'autre_langue',
     ];
 
     protected $hidden = [
-        'utilisateur_id', // Masquer la clé technique
+        'utilisateur_id',
     ];
 
     protected $casts = [
@@ -62,6 +74,12 @@ class Candidat extends Model
         'a_handicap' => 'boolean',
         'annee_obtention_bac' => 'integer',
         'region' => RegionCameroun::class,
+        'premiere_langue' => Langue::class,
+        'statut_matrimonial' => StatutMatrimonial::class,
+        'sexe_cand' => Genre::class,
+        'diplome_admission' => TypeDiplome::class,
+        'serie_bac' => SerieBac::class,
+        'niveau_scolaire' => NiveauScolaire::class,
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
@@ -76,7 +94,12 @@ class Candidat extends Model
         return $this->hasMany(Candidature::class, 'candidat_id', 'utilisateur_id');
     }
 
-    
+    public function filiere()
+    {
+        return $this->belongsTo(Filiere::class, 'filiere_id');
+    }
+
+
 
     public function paiements()
     {
@@ -113,5 +136,18 @@ class Candidat extends Model
     public function emailVerifie(): bool
     {
         return $this->utilisateur?->email_verifie ?? false;
+    }
+
+    public function getPremiereLangueLibelle(): string
+    {
+        if ($this->premiere_langue === Langue::AUTRE && $this->autre_langue) {
+            return $this->autre_langue;
+        }
+        return $this->premiere_langue?->label() ?? 'Non spécifié';
+    }
+
+    public function getStatutMatrimonialLibelle(): string
+    {
+        return $this->statut_matrimonial?->label() ?? 'Non spécifié';
     }
 }

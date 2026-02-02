@@ -38,8 +38,7 @@ return new class extends Migration
             CREATE OR REPLACE FUNCTION utilisateurs_search_vector_update() RETURNS trigger AS $$
             BEGIN
                 NEW.search_vector :=
-                    setweight(to_tsvector('french', coalesce(NEW.nom, '')), 'A') ||
-                    setweight(to_tsvector('french', coalesce(NEW.prenom, '')), 'A') ||
+                    setweight(to_tsvector('french', coalesce(NEW.user_name, '')), 'A') ||
                     setweight(to_tsvector('french', coalesce(NEW.email, '')), 'B') ||
                     setweight(to_tsvector('french', coalesce(NEW.telephone, '')), 'C');
                 RETURN NEW;

@@ -47,6 +47,17 @@ Routes de gestion des filières par concours :
 - ✅ Consulter les statistiques d'une filière
 - ✅ Modifier le nombre de places
 
+### 6. **paiement-manuel-workflow.postman_collection.json** 🆕
+Routes du workflow de paiement manuel :
+- ✅ Authentification candidat et admin
+- ✅ Saisie manuelle des informations de paiement
+- ✅ Gestion des alertes candidat
+- ✅ Validation/rejet des paiements par admin
+- ✅ Vérification d'éligibilité et téléchargement documents
+- ✅ Tests d'erreurs de validation
+
+📖 **[Guide complet d'utilisation](PAIEMENT_MANUEL_POSTMAN_README.md)**
+
 ## 🚀 Comment utiliser
 
 ### 1. **Importer dans Postman**

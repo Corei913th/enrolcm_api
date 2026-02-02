@@ -181,7 +181,7 @@ class EcoleSeeder extends Seeder
                 'est_actif' => true,
                 'mentions_legales' => 'Institut de formation des diplomates et cadres des relations internationales.',
             ],
-                [
+            [
                 // ENIEG - Génie Civil
                 'code_ecole' => 'ENIEG',
                 'libelle_ecole' => 'École Nationale Supérieure d\'Ingénierie et de Génie Civil',
@@ -216,7 +216,10 @@ class EcoleSeeder extends Seeder
         ];
 
         foreach ($ecoles as $ecole) {
-            Ecole::create($ecole);
+            Ecole::updateOrCreate(
+                ['code_ecole' => $ecole['code_ecole']],
+                $ecole
+            );
         }
     }
 }

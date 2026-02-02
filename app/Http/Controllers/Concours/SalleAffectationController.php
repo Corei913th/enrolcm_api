@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Concours;
 
 use App\Http\Controllers\Controller;
-use App\Services\Concours\SalleAffectationService;
+use App\Services\Domain\Examen\AffectationService;
 use App\Http\Requests\Concours\AffecterSallesRequest;
 use App\Http\Requests\Concours\ReaffecterCandidatRequest;
 use App\Http\Requests\Concours\MarquerPresentRequest;
@@ -16,7 +16,7 @@ use Illuminate\Http\JsonResponse;
 class SalleAffectationController extends Controller
 {
   public function __construct(
-    private readonly SalleAffectationService $affectationService
+    private readonly AffectationService $affectationService
   ) {}
 
   /**

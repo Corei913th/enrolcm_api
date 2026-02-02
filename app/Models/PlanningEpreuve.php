@@ -7,6 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Carbon\Carbon;
 
+/**
+ * @mixin IdeHelperPlanningEpreuve
+ */
 class PlanningEpreuve extends Model
 {
     use HasFactory, HasUuids;
@@ -19,6 +22,7 @@ class PlanningEpreuve extends Model
         'epreuve_id',
         'concours_id',
         'session_id',
+        'coefficient',
         'centre_id',
         'date_epreuve',
         'heure_debut',
@@ -28,6 +32,7 @@ class PlanningEpreuve extends Model
     ];
 
     protected $casts = [
+        'coefficient' => 'integer',
         'date_epreuve' => 'date',
         'heure_debut' => 'datetime:H:i',
         'heure_fin' => 'datetime:H:i',
@@ -50,6 +55,11 @@ class PlanningEpreuve extends Model
     public function session()
     {
         return $this->belongsTo(Session::class, 'session_id');
+    }
+
+    public function centre()
+    {
+        return $this->belongsTo(Centre::class, 'centre_id');
     }
 
     public function affectationsSalles()
@@ -99,5 +109,26 @@ class PlanningEpreuve extends Model
     public function getHeureFinFormatee()
     {
         return Carbon::parse($this->heure_fin)->format('H:i');
+    }
+
+    /**
+     * Get effective coefficient (specific to concours or default)
+     */
+    public function getCoefficientEffectif(): int
+    {
+        return $this->coefficient ?? $this->epreuve->coefficient_defaut ?? 1;
+    }
+
+    /**
+     * Boot method to add automatic validations
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::saving(function ($planning) {
+            $validator = app(\App\Services\Domain\Concours\Validators\PlanningEpreuveValidator::class);
+            $validator->validateBeforeSave($planning);
+        });
     }
 }

@@ -21,6 +21,11 @@ class CheckPermission
         }
 
         $user = $request->user();
+        
+        
+        if ($user->isSuperAdmin()) {
+            return $next($request);
+        }
 
         // Vérifier si l'utilisateur a au moins une des permissions requises
         $hasPermission = $user->roles()

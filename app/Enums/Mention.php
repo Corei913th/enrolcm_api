@@ -9,6 +9,7 @@ enum Mention: string
     case BIEN = 'BIEN';
     case TRES_BIEN = 'TRES_BIEN';
     case EXCELLENT = 'EXCELLENT';
+    case INSUFFISANT = 'INSUFFISANT';
 
     public static function values(): array
     {
@@ -23,6 +24,7 @@ enum Mention: string
             self::BIEN => 'Bien',
             self::TRES_BIEN => 'Très Bien',
             self::EXCELLENT => 'Excellent',
+            self::INSUFFISANT => 'Insuffisant',
         };
     }
 }

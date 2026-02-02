@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Services\Auth\AuthService;
+use App\Services\Domain\Auth\AuthService;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\ChangePasswordRequest;
 use App\DTOs\Auth\LoginDTO;
@@ -11,11 +11,13 @@ use App\DTOs\Auth\ChangePasswordDTO;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use App\Http\Resources\UtilisateurResource;
+use App\Services\Domain\Notification\NotificationService;
 
 class AuthController extends Controller
 {
     public function __construct(
-        private readonly AuthService $authService
+        private readonly AuthService $authService,
+        private readonly NotificationService $notificationService
     ) {}
 
     /**
@@ -35,6 +37,39 @@ class AuthController extends Controller
         try {
             $dto = LoginDTO::fromRequest($request);
             $result = $this->authService->login($dto);
+
+            return api_success([
+                'user' => new UtilisateurResource($result['user']),
+                'access_token' => $result['access_token'],
+                'refresh_token' => $result['refresh_token'],
+                'token_type' => $result['token_type'],
+                'expires_in' => $result['expires_in'],
+            ], 'Connexion réussie');
+        } catch (ValidationException $e) {
+            return api_validation_error($e->errors(), $e->getMessage());
+        } catch (\Exception $e) {
+            return api_error($e->getMessage(), null, 500);
+        }
+    }
+
+
+    /**
+     * Connexion d'un utilisateur.
+     *
+     * Endpoint : POST /api/auth/candidat/login
+     *
+     * @param LoginRequest $request Requête validée contenant email et mot_de_passe
+     *
+     * @return \Illuminate\Http\JsonResponse Réponse JSON avec utilisateur et tokens
+     *
+     * @throws ValidationException Si la requête est invalide
+     * @throws \Exception Si l'authentification échoue
+     */
+    public function loginCandidat(LoginRequest $request)
+    {
+        try {
+            $dto = LoginDTO::fromRequest($request);
+            $result = $this->authService->authenticateCandidate($dto);
 
             return api_success([
                 'user' => new UtilisateurResource($result['user']),
@@ -151,6 +186,75 @@ class AuthController extends Controller
             return api_updated(null, 'Mot de passe modifié avec succès');
         } catch (\Exception $e) {
             return api_error($e->getMessage(), null, 400);
+        }
+    }
+
+    /**
+     * Vérifier l'email d'un utilisateur.
+     *
+     * Endpoint : GET /api/auth/email/verify/{id}/{hash}
+     *
+     * @param Request $request Requête contenant l'utilisateur connecté
+     * @param string $id ID de l'utilisateur
+     * @param string $hash Hash de vérification
+     *
+     * @return \Illuminate\Http\JsonResponse Réponse JSON succès ou erreur
+     */
+    public function verifyEmail(Request $request, string $id, string $hash)
+    {
+        try {
+            $result = $this->authService->verifyEmail($id, $hash);
+            $frontendUrl = config('app.frontend_url');
+
+            // Determine if user is Candidate (dashboard) or Admin
+            // For now, default to dashboard.
+            // Ideally: $request->user()?->isCandidat() ... but request user might be null if not logged in?
+            // verifyEmail is often public (signed URL).
+
+            // We can detect if it's candidate/admin based on the user ID loaded in verifyEmail service?
+            // But authService->verifyEmail returns array.
+
+            // Simplified redirect to candidate login/dashboard
+            // Frontend route is /auth/login defined in app-routing.tsx
+            $redirectUrl = $frontendUrl . '/auth/login';
+
+            if ($result['success'] || $result['message'] === 'Email déjà vérifié') {
+                $msg = $result['success'] ? $result['message'] : 'Votre email est déjà vérifié.';
+                $url = $redirectUrl . '?verified=1&message=' . urlencode($msg);
+                return redirect($url);
+            }
+
+            $url = $redirectUrl . '?error=verification_failed&message=' . urlencode($result['message']);
+            return redirect($url);
+        } catch (\Exception $e) {
+            $frontendUrl = config('app.frontend_url');
+            return redirect($frontendUrl . '/auth/login?error=exception&message=' . urlencode($e->getMessage()));
+        }
+    }
+
+    /**
+     * Renvoyer l'email de vérification.
+     *
+     * Endpoint : POST /api/auth/email/resend
+     *
+     * @param Request $request Requête contenant l'utilisateur connecté
+     *
+     * @return \Illuminate\Http\JsonResponse Réponse JSON succès ou erreur
+     */
+    public function resendVerificationEmail(Request $request)
+    {
+        try {
+            $user = $request->user();
+
+            if ($user->hasVerifiedEmail()) {
+                return api_error('Email déjà vérifié', null, 400);
+            }
+
+            $this->notificationService->sendEmailVerification($user);
+
+            return api_success(null, 'Email de vérification envoyé avec succès');
+        } catch (\Exception $e) {
+            return api_error($e->getMessage(), null, 500);
         }
     }
 }

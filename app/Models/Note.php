@@ -8,6 +8,9 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Enums\StatutNote;
 
+/**
+ * @mixin IdeHelperNote
+ */
 class Note extends Model
 {
     use HasFactory, HasUuids, SoftDeletes;
@@ -31,6 +34,7 @@ class Note extends Model
         'date_saisie' => 'datetime',
         'est_definitive' => 'boolean',
         'est_eliminatoire' => 'boolean',
+        'statut' => StatutNote::class,
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',

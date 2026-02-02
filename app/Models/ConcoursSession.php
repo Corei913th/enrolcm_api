@@ -5,6 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 
+/**
+ * @mixin IdeHelperConcoursSession
+ */
 class ConcoursSession extends Pivot
 {
     use HasFactory;
@@ -58,6 +61,7 @@ class ConcoursSession extends Pivot
 
     public function isOuvert()
     {
-        return $this->concours->isOuvert() && $this->session->est_actif;
+        $statusChecker = app(\App\Services\Domain\Concours\Checkers\ConcoursStatusChecker::class);
+        return $statusChecker->isOpen($this->concours) && $this->session->est_actif;
     }
 }
