@@ -83,54 +83,12 @@ Pour un guide détaillé, consulter **[QUICK_START.md](QUICK_START.md)**
 ### ⭐ Nouveau : Emails Personnalisés EnrolCM
 
 Le système d'emails a été entièrement personnalisé avec :
+
 - ✅ Design avec couleur emerald-600 (pas de dégradés)
 - ✅ Email de bienvenue lors de l'inscription
 - ✅ Email de vérification avec lien sécurisé (24h)
 - ✅ Templates Blade modifiables
 - ✅ Documentation complète
-
-### 🚀 Démarrage Rapide
-
-```bash
-# Prévisualiser les emails
-php artisan serve
-# Visitez : http://localhost:8000/email-preview/welcome
-```
-
-### 📚 Documentation
-
-- **[INDEX_EMAILS.md](INDEX_EMAILS.md)** - 📍 Point d'entrée (COMMENCEZ ICI)
-- **[EMAILS_PERSONNALISES_README.md](EMAILS_PERSONNALISES_README.md)** - Guide rapide
-- **[TEST_EMAILS.md](TEST_EMAILS.md)** - Guide de test complet
-- **[docs/EMAIL_SYSTEM.md](docs/EMAIL_SYSTEM.md)** - Documentation technique
-- **[docs/EMAIL_PRODUCTION_SETUP.md](docs/EMAIL_PRODUCTION_SETUP.md)** - Configuration production
-
-### 🎯 Liens Rapides
-
-| Je veux... | Fichier à consulter |
-|------------|---------------------|
-| Voir le design | `php artisan serve` puis http://localhost:8000/email-preview/welcome |
-| Tester l'envoi | [TEST_EMAILS.md](TEST_EMAILS.md) |
-| Modifier le contenu | `resources/views/emails/welcome.blade.php` |
-| Configurer production | [docs/EMAIL_PRODUCTION_SETUP.md](docs/EMAIL_PRODUCTION_SETUP.md) |
-
-## 🔄 Migration des Services
-
-### ⚡ Migration Rapide (5 minutes)
-
-```powershell
-# Windows
-.\scripts\migrate-all.ps1
-
-# Linux/Mac
-./scripts/migrate-services.sh
-```
-
-### 📚 Documentation Complète
-
-- **[QUICK_MIGRATION.md](QUICK_MIGRATION.md)** - Migration en 5 minutes
-- **[MIGRATION_GUIDE.md](MIGRATION_GUIDE.md)** - Guide complet
-- **[scripts/README.md](scripts/README.md)** - Documentation des scripts
 
 ### Nouvelle Architecture
 
@@ -180,50 +138,7 @@ enrolcm-api/
 ├── routes/              # Routes API
 ├── scripts/             # Scripts de migration
 └── tests/               # Tests
-```
 
-### Principes Architecturaux
-
-- **Domain-Driven Design** : Organisation par domaines métier
-- **SOLID Principles** : Code maintenable et extensible
-- **Clean Architecture** : Séparation des responsabilités
-- **API RESTful** : Endpoints cohérents et documentés
-
-### Documentation Architecture
-
-- **[docs/architecture/SERVICE_ARCHITECTURE.md](docs/architecture/SERVICE_ARCHITECTURE.md)**
-- **[docs/architecture/SERVICE_MIGRATION_PLAN.md](docs/architecture/SERVICE_MIGRATION_PLAN.md)**
-- **[docs/architecture/ROUTES_REFACTORING.md](docs/architecture/ROUTES_REFACTORING.md)**
-
-## 📚 Documentation
-
-### Index Principal
-
-**[INDEX_DOCUMENTATION.md](INDEX_DOCUMENTATION.md)** - Point d'entrée de toute la documentation
-
-### Guides
-
-- **[QUICK_START.md](QUICK_START.md)** - Démarrage rapide
-- **[QUICK_MIGRATION.md](QUICK_MIGRATION.md)** - Migration rapide
-- **[MIGRATION_GUIDE.md](MIGRATION_GUIDE.md)** - Guide de migration complet
-- **[REFACTORING_SUMMARY.md](REFACTORING_SUMMARY.md)** - Résumé du refactoring
-- **[REFACTORING_COMPLETE_V2.md](REFACTORING_COMPLETE_V2.md)** - Refactoring complet V2
-
-### Documentation par Module
-
-- **[README_ECOLES.md](README_ECOLES.md)** - Module Écoles
-- **[README_DEPARTEMENTS.md](README_DEPARTEMENTS.md)** - Module Départements
-- **[README_FILIERES.md](README_FILIERES.md)** - Module Filières
-- **[README_NIVEAUX.md](README_NIVEAUX.md)** - Module Niveaux
-- **[README_MATIERES.md](README_MATIERES.md)** - Module Matières
-
-### Collections Postman
-
-- **[POSTMAN_COLLECTION_ECOLES.json](POSTMAN_COLLECTION_ECOLES.json)**
-- **[POSTMAN_COLLECTION_DEPARTEMENTS.json](POSTMAN_COLLECTION_DEPARTEMENTS.json)**
-- **[POSTMAN_COLLECTION_FILIERES.json](POSTMAN_COLLECTION_FILIERES.json)**
-- **[POSTMAN_COLLECTION_NIVEAUX.json](POSTMAN_COLLECTION_NIVEAUX.json)**
-- **[POSTMAN_COLLECTION_MATIERES.json](POSTMAN_COLLECTION_MATIERES.json)**
 
 ## 🧩 Modules
 
@@ -283,24 +198,6 @@ php artisan test --coverage
 - Tests d'intégration des contrôleurs
 - Tests de validation
 - Tests des relations Eloquent
-
-## 🛠️ Scripts Utiles
-
-### Migration des Services
-
-```powershell
-# Workflow complet automatique
-.\scripts\migrate-all.ps1
-
-# Migration seule
-.\scripts\migrate-services-complete.ps1
-
-# Vérification
-.\scripts\verify-migration.ps1
-
-# Nettoyage
-.\scripts\cleanup-old-services.ps1
-```
 
 ### Commandes Laravel
 
@@ -395,12 +292,14 @@ git push origin feature/nom-fonctionnalite
 ## 📝 Changelog
 
 ### Version 2.0 (Janvier 2026)
+
 - ✅ Migration vers architecture par domaines
 - ✅ Scripts de migration automatisés
 - ✅ Documentation complète
 - ✅ Nouvelle structure des services
 
 ### Version 1.0
+
 - ✅ Modules de base (Écoles, Départements, Filières, etc.)
 - ✅ Gestion des concours
 - ✅ Gestion des candidatures
@@ -415,35 +314,4 @@ Ce projet est sous licence MIT. Voir le fichier [LICENSE](LICENSE) pour plus de 
 
 - **Backend** : Laravel API
 - **Frontend** : React Dashboard (enrolcm-dashboard)
-- **Mobile** : React Native App (enrolcm-app)
-
-## 📞 Support
-
-Pour toute question ou problème :
-
-1. Consulter la [documentation](INDEX_DOCUMENTATION.md)
-2. Vérifier les [issues GitHub](GITHUB_LINKS.md)
-3. Contacter l'équipe de développement
-
-## 🎯 Roadmap
-
-### Court terme
-- [ ] Migration complète vers nouvelle architecture
-- [ ] Tests d'intégration complets
-- [ ] Documentation API avec Swagger
-
-### Moyen terme
-- [ ] Optimisation des performances
-- [ ] Mise en place du caching
-- [ ] CI/CD complet
-
-### Long terme
-- [ ] Microservices si nécessaire
-- [ ] Événements et listeners
-- [ ] Monitoring et alertes
-
----
-
-**Version** : 2.0  
-**Dernière mise à jour** : 13 janvier 2026  
-**Status** : ✅ Production Ready
+- **Web** : React  App (enrolcm-app)
