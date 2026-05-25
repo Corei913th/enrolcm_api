@@ -125,7 +125,7 @@ services:
       - enrolcm_network
 
   cadvisor:
-    image: zcube/cadvisor:latest
+    image: gcr.io/cadvisor/cadvisor:v0.47.0
     container_name: enrolcm_cadvisor
     restart: unless-stopped
     volumes:
