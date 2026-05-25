@@ -124,18 +124,6 @@ services:
     networks:
       - enrolcm_network
 
-  cadvisor:
-    image: zcube/cadvisor:latest
-    container_name: enrolcm_cadvisor
-    restart: unless-stopped
-    volumes:
-      - /:/rootfs:ro
-      - /var/run:/var/run:rw
-      - /sys:/sys:ro
-      - /var/lib/docker/:/var/lib/docker:ro
-    networks:
-      - enrolcm_network
-
   nginx-exporter:
     image: nginx/nginx-prometheus-exporter:latest
     container_name: enrolcm_nginx_exporter
