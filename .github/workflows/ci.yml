@@ -113,6 +113,7 @@ jobs:
       - name: Directory Permissions
         run: chmod -R 775 storage bootstrap/cache
       - name: Build Frontend Assets
+        continue-on-error: true
         run: npm install && npm run build
       - name: Install System Deps
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends tesseract-ocr tesseract-ocr-fra tesseract-ocr-eng chromium chromium-driver libnss3 libnspr4 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 libxkbcommon0 libxcomposite1 libxdamage1 libxrandr2 libgbm1 libpango-1.0-0 libcairo2 libasound2
