@@ -1,10 +1,10 @@
 <?php
 
+use App\Enums\DecisionAdmission;
+use App\Enums\Mention;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use App\Enums\DecisionAdmission;
-use App\Enums\Mention;
 
 return new class extends Migration
 {
@@ -22,7 +22,7 @@ return new class extends Migration
             $table->date('date_publication')->nullable();
             $table->timestamp('deleted_at')->nullable();
             $table->timestamps();
-            
+
             $table->foreign('candidature_id')->references('id')->on('candidatures')->onDelete('restrict');
             $table->index('candidature_id');
             $table->index('deleted_at');

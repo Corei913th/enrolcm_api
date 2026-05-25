@@ -2,13 +2,14 @@
 
 namespace App\Http\Resources;
 
+use App\Services\Domain\Concours\Checkers\ConcoursStatusChecker;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class ConcoursResource extends JsonResource
 {
     public function toArray($request)
     {
-        $statusChecker = app(\App\Services\Domain\Concours\Checkers\ConcoursStatusChecker::class);
+        $statusChecker = app(ConcoursStatusChecker::class);
 
         return [
             'id' => $this->id,

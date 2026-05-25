@@ -2,7 +2,6 @@
 
 use Illuminate\Support\Facades\Route;
 
-
 // Profil candidat
 Route::prefix('profile')->group(__DIR__ . '/profile.php');
 

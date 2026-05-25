@@ -2,13 +2,13 @@
 
 namespace App\Models;
 
-use App\Enums\Langue;
-use App\Enums\RegionCameroun;
-use App\Enums\StatutMatrimonial;
 use App\Enums\Genre;
-use App\Enums\TypeDiplome;
-use App\Enums\SerieBac;
+use App\Enums\Langue;
 use App\Enums\NiveauScolaire;
+use App\Enums\RegionCameroun;
+use App\Enums\SerieBac;
+use App\Enums\StatutMatrimonial;
+use App\Enums\TypeDiplome;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -20,7 +20,9 @@ class Candidat extends Model
     use HasFactory;
 
     protected $primaryKey = 'utilisateur_id';
+
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected $fillable = [
@@ -99,8 +101,6 @@ class Candidat extends Model
         return $this->belongsTo(Filiere::class, 'filiere_id');
     }
 
-
-
     public function paiements()
     {
         return $this->hasManyThrough(Paiement::class, Candidature::class, 'candidat_id', 'candidature_id', 'utilisateur_id', 'id');
@@ -143,6 +143,7 @@ class Candidat extends Model
         if ($this->premiere_langue === Langue::AUTRE && $this->autre_langue) {
             return $this->autre_langue;
         }
+
         return $this->premiere_langue?->label() ?? 'Non spécifié';
     }
 

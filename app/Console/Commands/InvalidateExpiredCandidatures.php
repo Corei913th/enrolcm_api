@@ -2,6 +2,10 @@
 
 namespace App\Console\Commands;
 
+use App\Enums\StatutCandidature;
+use App\Models\Candidature;
+use App\Services\Domain\Candidature\CandidatureService;
+use Carbon\Carbon;
 use Illuminate\Console\Command;
 
 class InvalidateExpiredCandidatures extends Command
@@ -23,16 +27,16 @@ class InvalidateExpiredCandidatures extends Command
     /**
      * Execute the console command.
      */
-    public function handle(\App\Services\Domain\Candidature\CandidatureService $candidatureService)
+    public function handle(CandidatureService $candidatureService)
     {
-        $now = \Carbon\Carbon::now();
+        $now = Carbon::now();
 
-        $candidatures = \App\Models\Candidature::query()
+        $candidatures = Candidature::query()
             ->whereIn('statut_candidature', [
-                \App\Enums\StatutCandidature::BROUILLON,
-                \App\Enums\StatutCandidature::SOUMISE,
-                \App\Enums\StatutCandidature::DOCUMENTS_VERIFIES,
-                \App\Enums\StatutCandidature::PAIEMENT_VERIFIE,
+                StatutCandidature::BROUILLON,
+                StatutCandidature::SOUMISE,
+                StatutCandidature::DOCUMENTS_VERIFIES,
+                StatutCandidature::PAIEMENT_VERIFIE,
             ])
             ->whereHas('concours', function ($query) use ($now) {
                 $query->where('date_limite_depot', '<', $now);
@@ -41,6 +45,7 @@ class InvalidateExpiredCandidatures extends Command
 
         if ($candidatures->isEmpty()) {
             $this->info('Aucune candidature expirée trouvée.');
+
             return 0;
         }
 
@@ -52,8 +57,8 @@ class InvalidateExpiredCandidatures extends Command
         foreach ($candidatures as $candidature) {
             $candidatureService->rejeter(
                 $candidature->id,
-                "Délai de dépôt des dossiers dépassé (Date limite : " .
-                    ($candidature->concours->date_limite_depot ? $candidature->concours->date_limite_depot->format('d/m/Y') : 'N/A') . ")"
+                'Délai de dépôt des dossiers dépassé (Date limite : ' .
+                    ($candidature->concours->date_limite_depot ? $candidature->concours->date_limite_depot->format('d/m/Y') : 'N/A') . ')'
             );
             $bar->advance();
         }

@@ -13,36 +13,36 @@ use Illuminate\Queue\SerializesModels;
 
 class PaymentVerifiedMail extends Mailable
 {
-  use Queueable, SerializesModels;
+    use Queueable, SerializesModels;
 
-  public function __construct(
-    public Utilisateur $utilisateur,
-    public Candidat $candidat,
-    public Paiement $paiement
-  ) {}
+    public function __construct(
+        public Utilisateur $utilisateur,
+        public Candidat $candidat,
+        public Paiement $paiement
+    ) {}
 
-  public function envelope(): Envelope
-  {
-    return new Envelope(
-      subject: 'Paiement validé - ' . $this->paiement->reference,
-    );
-  }
+    public function envelope(): Envelope
+    {
+        return new Envelope(
+            subject: 'Paiement validé - ' . $this->paiement->reference,
+        );
+    }
 
-  public function content(): Content
-  {
-    return new Content(
-      view: 'emails.payment-verified',
-      with: [
-        'utilisateur' => $this->utilisateur,
-        'candidat' => $this->candidat,
-        'paiement' => $this->paiement,
-        'concours' => $this->paiement->concours,
-      ]
-    );
-  }
+    public function content(): Content
+    {
+        return new Content(
+            view: 'emails.payment-verified',
+            with: [
+                'utilisateur' => $this->utilisateur,
+                'candidat' => $this->candidat,
+                'paiement' => $this->paiement,
+                'concours' => $this->paiement->concours,
+            ]
+        );
+    }
 
-  public function attachments(): array
-  {
-    return [];
-  }
+    public function attachments(): array
+    {
+        return [];
+    }
 }

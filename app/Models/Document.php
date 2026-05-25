@@ -4,9 +4,9 @@ namespace App\Models;
 
 use App\Enums\StatutVerificationDocument;
 use App\Enums\TypeDocument;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 /**
  * @mixin IdeHelperDocument
@@ -16,8 +16,11 @@ class Document extends Model
     use HasFactory, HasUuids;
 
     protected $table = 'documents';
+
     public $incrementing = false;
+
     protected $keyType = 'string';
+
     public $timestamps = false;
 
     protected $fillable = [
@@ -39,7 +42,6 @@ class Document extends Model
         'created_at' => 'datetime',
     ];
 
-
     public function candidature()
     {
         return $this->belongsTo(Candidature::class, 'candidature_id');
@@ -52,7 +54,7 @@ class Document extends Model
 
     public function validePar()
     {
-        return $this->belongsTo(\App\Models\Utilisateur::class, 'valide_par', 'id');
+        return $this->belongsTo(Utilisateur::class, 'valide_par', 'id');
     }
 
     // Scopes
@@ -97,6 +99,7 @@ class Document extends Model
         if (file_exists(storage_path('app/' . $this->fichier_url))) {
             return filesize(storage_path('app/' . $this->fichier_url));
         }
+
         return 0;
     }
 
@@ -121,6 +124,7 @@ class Document extends Model
     public function isImage()
     {
         $imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
+
         return in_array(strtolower($this->getExtension()), $imageExtensions);
     }
 

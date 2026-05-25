@@ -8,27 +8,41 @@ class ResultatException extends Exception
 {
     // Codes d'erreur pour le calcul des résultats
     public const AUCUNE_NOTE_TROUVEE = 'RESULTAT_001';
+
     public const NOTES_NON_VALIDEES = 'RESULTAT_002';
+
     public const CANDIDATURES_SANS_NOTES = 'RESULTAT_003';
+
     public const RESULTATS_DEJA_CALCULES = 'RESULTAT_004';
+
     public const EPREUVES_MANQUANTES = 'RESULTAT_005';
 
     // Codes d'erreur pour la détermination des admissions
     public const RESULTATS_NON_CALCULES = 'ADMISSION_001';
+
     public const PLACES_NON_DEFINIES = 'ADMISSION_002';
+
     public const ADMISSIONS_DEJA_DETERMINEES = 'ADMISSION_003';
+
     public const FILIERE_INTROUVABLE = 'ADMISSION_004';
 
     // Codes d'erreur pour la publication
     public const PUBLICATION_RESULTATS_NON_CALCULES = 'PUBLICATION_001';
+
     public const PUBLICATION_ADMISSIONS_NON_DETERMINEES = 'PUBLICATION_002';
+
     public const RESULTATS_DEJA_PUBLIES = 'PUBLICATION_003';
+
     public const CONCOURS_SESSION_INTROUVABLE = 'PUBLICATION_004';
 
     private string $errorCode;
+
     private string $userMessage;
+
     private string $severity;
+
     private array $details;
+
     private array $suggestedActions;
 
     public function __construct(
@@ -40,7 +54,7 @@ class ResultatException extends Exception
         array $suggestedActions = []
     ) {
         parent::__construct($technicalMessage);
-        
+
         $this->errorCode = $errorCode;
         $this->userMessage = $userMessage;
         $this->severity = $severity;
@@ -85,8 +99,6 @@ class ResultatException extends Exception
         ];
     }
 
-
-
     public static function aucuneNoteTrouvee(string $concoursId, string $sessionId): self
     {
         return new self(
@@ -98,7 +110,7 @@ class ResultatException extends Exception
             [
                 'Accéder à la page de saisie des notes',
                 'Saisir les notes des candidats',
-                'Réessayer le calcul des résultats'
+                'Réessayer le calcul des résultats',
             ]
         );
     }
@@ -113,12 +125,12 @@ class ResultatException extends Exception
             [
                 'notes_non_validees' => $notesNonValidees,
                 'total_notes' => $totalNotes,
-                'pourcentage_valide' => round((($totalNotes - $notesNonValidees) / $totalNotes) * 100, 2)
+                'pourcentage_valide' => round((($totalNotes - $notesNonValidees) / $totalNotes) * 100, 2),
             ],
             [
                 'Accéder à la page de validation des notes',
                 'Valider les notes en attente',
-                'Réessayer le calcul'
+                'Réessayer le calcul',
             ]
         );
     }
@@ -132,12 +144,12 @@ class ResultatException extends Exception
             'warning',
             [
                 'candidatures_sans_notes' => $candidaturesSansNotes,
-                'total_candidatures' => $totalCandidatures
+                'total_candidatures' => $totalCandidatures,
             ],
             [
                 'Vérifier la liste des candidats sans notes',
                 'Compléter la saisie des notes manquantes',
-                'Réessayer le calcul'
+                'Réessayer le calcul',
             ]
         );
     }
@@ -146,14 +158,14 @@ class ResultatException extends Exception
     {
         return new self(
             self::RESULTATS_DEJA_CALCULES,
-            "Les résultats ont déjà été calculés pour ce concours/session",
+            'Les résultats ont déjà été calculés pour ce concours/session',
             "Les résultats ont déjà été calculés. Si vous souhaitez recalculer, veuillez d'abord supprimer les résultats existants.",
             'warning',
             ['concours_id' => $concoursId, 'session_id' => $sessionId],
             [
                 'Consulter les résultats existants',
                 'Supprimer les résultats pour recalculer',
-                'Publier les résultats'
+                'Publier les résultats',
             ]
         );
     }
@@ -169,7 +181,7 @@ class ResultatException extends Exception
             [
                 'Consulter la liste des épreuves',
                 'Saisir les notes manquantes',
-                'Réessayer le calcul'
+                'Réessayer le calcul',
             ]
         );
     }
@@ -184,7 +196,7 @@ class ResultatException extends Exception
             ['concours_id' => $concoursId, 'session_id' => $sessionId],
             [
                 'Calculer les résultats',
-                'Réessayer la détermination des admissions'
+                'Réessayer la détermination des admissions',
             ]
         );
     }
@@ -200,7 +212,7 @@ class ResultatException extends Exception
             [
                 'Accéder à la configuration de la filière',
                 'Définir le nombre de places',
-                'Réessayer la détermination'
+                'Réessayer la détermination',
             ]
         );
     }
@@ -209,18 +221,18 @@ class ResultatException extends Exception
     {
         return new self(
             self::ADMISSIONS_DEJA_DETERMINEES,
-            "Les admissions ont déjà été déterminées pour cette filière",
+            'Les admissions ont déjà été déterminées pour cette filière',
             "Les admissions ont déjà été déterminées. Si vous souhaitez redéterminer, veuillez d'abord réinitialiser les admissions.",
             'warning',
             [
                 'concours_id' => $concoursId,
                 'session_id' => $sessionId,
-                'filiere_id' => $filiereId
+                'filiere_id' => $filiereId,
             ],
             [
                 'Consulter les admissions existantes',
                 'Réinitialiser les admissions pour redéterminer',
-                'Publier les résultats'
+                'Publier les résultats',
             ]
         );
     }
@@ -235,7 +247,7 @@ class ResultatException extends Exception
             ['filiere_id' => $filiereId],
             [
                 "Vérifier l'identifiant de la filière",
-                "Consulter la liste des filières disponibles"
+                'Consulter la liste des filières disponibles',
             ]
         );
     }
@@ -251,7 +263,7 @@ class ResultatException extends Exception
             [
                 'Calculer les résultats',
                 'Déterminer les admissions',
-                'Réessayer la publication'
+                'Réessayer la publication',
             ]
         );
     }
@@ -266,7 +278,7 @@ class ResultatException extends Exception
             [],
             [
                 'Déterminer les admissions',
-                'Réessayer la publication'
+                'Réessayer la publication',
             ]
         );
     }
@@ -275,13 +287,13 @@ class ResultatException extends Exception
     {
         return new self(
             self::RESULTATS_DEJA_PUBLIES,
-            "Les résultats ont déjà été publiés",
-            "Les résultats ont déjà été publiés. Vous ne pouvez pas les republier.",
+            'Les résultats ont déjà été publiés',
+            'Les résultats ont déjà été publiés. Vous ne pouvez pas les republier.',
             'warning',
             ['concours_id' => $concoursId, 'session_id' => $sessionId],
             [
                 'Consulter les résultats publiés',
-                'Dépublier pour modifier'
+                'Dépublier pour modifier',
             ]
         );
     }
@@ -291,12 +303,12 @@ class ResultatException extends Exception
         return new self(
             self::CONCOURS_SESSION_INTROUVABLE,
             "Concours/session introuvable: {$concoursId}/{$sessionId}",
-            "Le concours ou la session spécifiée est introuvable. Veuillez vérifier les identifiants.",
+            'Le concours ou la session spécifiée est introuvable. Veuillez vérifier les identifiants.',
             'error',
             ['concours_id' => $concoursId, 'session_id' => $sessionId],
             [
                 'Vérifier les identifiants',
-                'Consulter la liste des concours et sessions'
+                'Consulter la liste des concours et sessions',
             ]
         );
     }

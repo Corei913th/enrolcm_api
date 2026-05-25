@@ -2,36 +2,31 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use App\Models\Ecole;
-use App\Models\SpecConcours;
-use App\Models\Filiere;
-use App\Models\Centre;
-use App\Models\Epreuve;
-use App\Models\DocumentRequis;
-use App\Models\Utilisateur;
-use App\Models\Candidat;
-use App\Models\Candidature;
-use App\Models\Session;
-use App\Models\ConcoursPaiement;
-use App\Enums\StatutCandidature;
 use App\Enums\Genre;
+use App\Enums\NiveauScolaire;
 use App\Enums\RegionCameroun;
 use App\Enums\TypeDiplome;
-use App\Enums\NiveauScolaire;
+use App\Models\Candidat;
+use App\Models\Centre;
+use App\Models\DocumentRequis;
+use App\Models\Ecole;
+use App\Models\Epreuve;
+use App\Models\Filiere;
+use App\Models\Session;
+use App\Models\Utilisateur;
+use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 
 /**
  * Seeder complet pour simulation de workflow
- * 
+ *
  * Ce seeder crée tout le nécessaire SAUF:
  * - Le concours (doit être créé manuellement)
  * - La publication des résultats (doit être faite manuellement)
- * 
+ *
  * Usage:
  * php artisan db:seed --class=CompleteWorkflowSeeder
- * 
+ *
  * Workflow simulé:
  * 1. École avec configuration complète
  * 2. Session active
@@ -42,7 +37,7 @@ use Illuminate\Support\Str;
  * 7. Candidats avec profils complets
  * 8. Candidatures validées
  * 9. Configuration de paiement
- * 
+ *
  * Après ce seeder:
  * - Créer le concours via l'interface admin
  * - Associer filières, centres, épreuves, documents
@@ -54,11 +49,17 @@ use Illuminate\Support\Str;
 class CompleteWorkflowSeeder extends Seeder
 {
     private $session;
+
     private $ecole;
+
     private $filieres = [];
+
     private $centres = [];
+
     private $epreuves = [];
+
     private $documents = [];
+
     private $candidats = [];
 
     public function run(): void
@@ -269,7 +270,7 @@ class CompleteWorkflowSeeder extends Seeder
             }
         }
 
-        $this->command->info("   ✓ Total: " . count($this->candidats) . " candidats créés");
+        $this->command->info('   ✓ Total: ' . count($this->candidats) . ' candidats créés');
     }
 
     private function displaySummary(): void
@@ -278,11 +279,11 @@ class CompleteWorkflowSeeder extends Seeder
         $this->command->info('═══════════════════════════════════════');
         $this->command->info("École: {$this->ecole->nom_ecole}");
         $this->command->info("Session: {$this->session->libelle_session}");
-        $this->command->info("Filières: " . count($this->filieres));
-        $this->command->info("Centres: " . count($this->centres));
-        $this->command->info("Épreuves: " . count($this->epreuves));
-        $this->command->info("Documents: " . count($this->documents));
-        $this->command->info("Candidats: " . count($this->candidats));
+        $this->command->info('Filières: ' . count($this->filieres));
+        $this->command->info('Centres: ' . count($this->centres));
+        $this->command->info('Épreuves: ' . count($this->epreuves));
+        $this->command->info('Documents: ' . count($this->documents));
+        $this->command->info('Candidats: ' . count($this->candidats));
         $this->command->newLine();
         $this->command->info('🎯 PROCHAINES ÉTAPES POUR LA SIMULATION:');
         $this->command->info('═══════════════════════════════════════');

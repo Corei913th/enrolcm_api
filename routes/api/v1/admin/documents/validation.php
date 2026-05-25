@@ -1,7 +1,7 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\Documents\DocumentValidationController;
+use Illuminate\Support\Facades\Route;
 
 /**
  * Routes Admin - Validation des Documents

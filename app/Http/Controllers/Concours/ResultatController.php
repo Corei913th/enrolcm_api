@@ -3,17 +3,19 @@
 namespace App\Http\Controllers\Concours;
 
 use App\Http\Controllers\Controller;
-use App\Services\Domain\Examen\ResultatService;
 use App\Http\Requests\Resultats\CalculerResultatsRequest;
 use App\Http\Requests\Resultats\DeterminerAdmissionsRequest;
-use Illuminate\Http\Request;
+use App\Models\ResultatPublication;
+use App\Services\Domain\Examen\ResultatService;
+use App\Services\Infrastructure\Pdf\ResultatsPdfService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class ResultatController extends Controller
 {
     public function __construct(
         private readonly ResultatService $resultatService,
-        private readonly \App\Services\Infrastructure\Pdf\ResultatsPdfService $resultatsPdfService
+        private readonly ResultatsPdfService $resultatsPdfService
     ) {}
 
     /**
@@ -25,6 +27,7 @@ class ResultatController extends Controller
         $perPage = $request->query('per_page', 100); // Increased from 15 to 100
 
         $resultats = $this->resultatService->getResultats($concoursId, $sessionId, $filiereId, $perPage);
+
         return api_paginated($resultats, 'Résultats récupérés avec succès');
     }
 
@@ -101,6 +104,7 @@ class ResultatController extends Controller
     public function depublierResultats(string $concoursId, string $sessionId): JsonResponse
     {
         $result = $this->resultatService->depublierResultats($concoursId, $sessionId);
+
         return api_success($result['data'], $result['message']);
     }
 
@@ -110,15 +114,15 @@ class ResultatController extends Controller
     public function getDatePublication(string $concoursId, string $sessionId): JsonResponse
     {
         try {
-            $publication = \App\Models\ResultatPublication::where('concours_id', $concoursId)
+            $publication = ResultatPublication::where('concours_id', $concoursId)
                 ->where('session_id', $sessionId)
                 ->first();
 
-            if (!$publication) {
+            if (! $publication) {
                 return api_success([
                     'est_publie' => false,
                     'timer_actif' => false,
-                    'message' => 'Aucune publication configurée'
+                    'message' => 'Aucune publication configurée',
                 ]);
             }
 
@@ -130,7 +134,7 @@ class ResultatController extends Controller
                 'message_candidat' => $publication->message_candidat,
                 'temps_restant' => $publication->getTempsRestant(),
                 'temps_restant_format' => $publication->getTempsRestantFormat(),
-                'message' => $publication->est_publie ? 'Résultats publiés' : ($publication->timer_actif ? 'En attente de publication' : 'Non publié')
+                'message' => $publication->est_publie ? 'Résultats publiés' : ($publication->timer_actif ? 'En attente de publication' : 'Non publié'),
             ]);
         } catch (\Exception $e) {
             return api_error($e->getMessage(), null, 500);
@@ -144,12 +148,12 @@ class ResultatController extends Controller
     {
         $resultat = $this->resultatService->getResultatCandidat($candidatureId);
 
-        if (!$resultat) {
+        if (! $resultat) {
             return api_not_found('Résultat introuvable pour ce candidat');
         }
 
         // Vérifier si publié ou si admin
-        if (!$resultat->date_publication && !$request->user()->isAdmin()) {
+        if (! $resultat->date_publication && ! $request->user()->isAdmin()) {
             return api_forbidden('Les résultats n\'ont pas encore été publiés');
         }
 
@@ -161,7 +165,7 @@ class ResultatController extends Controller
      */
     private function formatTempsRestant($datePublication): string
     {
-        if (!$datePublication) {
+        if (! $datePublication) {
             return 'Non défini';
         }
 
@@ -191,7 +195,7 @@ class ResultatController extends Controller
         $sessionId = $request->query('session_id');
         $perPage = $request->input('per_page', 50);
 
-        if (!$concoursId || !$sessionId) {
+        if (! $concoursId || ! $sessionId) {
             return api_error('Paramètres requis: concours_id et session_id', null, 422);
         }
 
@@ -202,7 +206,7 @@ class ResultatController extends Controller
 
     /**
      * Télécharger la fiche des résultats en PDF.
-     * 
+     *
      * GET /api/v1/admin/concours/{concours}/sessions/{session}/resultats/pdf
      */
     public function telechargerFicheResultats(string $concoursId, string $sessionId)
@@ -220,7 +224,7 @@ class ResultatController extends Controller
 
     /**
      * Télécharger la fiche des résultats par filière en PDF.
-     * 
+     *
      * GET /api/v1/admin/concours/{concours}/sessions/{session}/filieres/{filiere}/resultats/pdf
      */
     public function telechargerFicheResultatsParFiliere(

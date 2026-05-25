@@ -2,12 +2,12 @@
 
 namespace App\Console\Commands;
 
-use App\Models\Paiement;
 use App\Models\Candidature;
+use App\Models\Paiement;
 use App\Models\Utilisateur;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 class MonitorSystemPerformance extends Command
 {
@@ -65,7 +65,7 @@ class MonitorSystemPerformance extends Command
 
         foreach ($metrics as $label => $value) {
             $status = $this->getVolumeStatus($label, $value);
-            if (!$alertsOnly || $status === '🔴') {
+            if (! $alertsOnly || $status === '🔴') {
                 $this->line("  {$status} {$label}: " . number_format($value));
             }
         }
@@ -82,20 +82,20 @@ class MonitorSystemPerformance extends Command
         $queryTime = (microtime(true) - $start) * 1000;
 
         $status = $queryTime > 500 ? '🔴' : ($queryTime > 100 ? '🟡' : '🟢');
-        if (!$alertsOnly || $status === '🔴') {
+        if (! $alertsOnly || $status === '🔴') {
             $this->line("  {$status} Temps requête paiements: {$queryTime}ms");
         }
 
         // Index manquants potentiels
-        $slowQueries = DB::select("
+        $slowQueries = DB::select('
             SELECT query, calls, total_time/calls as avg_time
             FROM pg_stat_statements
             WHERE total_time/calls > 100
             ORDER BY avg_time DESC
             LIMIT 5
-        ");
+        ');
 
-        if (!empty($slowQueries)) {
+        if (! empty($slowQueries)) {
             $this->line('  🟡 Requêtes lentes détectées:');
             foreach ($slowQueries as $query) {
                 $this->line("    - {$query->avg_time}ms (appels: {$query->calls})");
@@ -117,7 +117,7 @@ class MonitorSystemPerformance extends Command
 
         foreach ($cacheMetrics as $label => $value) {
             $status = $this->getCacheStatus($label, $value);
-            if (!$alertsOnly || $status === '🔴') {
+            if (! $alertsOnly || $status === '🔴') {
                 $this->line("  {$status} {$label}: {$value}");
             }
         }
@@ -129,20 +129,20 @@ class MonitorSystemPerformance extends Command
     {
         $this->info('🔍 UTILISATION DES INDEX');
 
-        $indexUsage = DB::select("
+        $indexUsage = DB::select('
             SELECT schemaname, tablename, indexname, idx_scan, idx_tup_read, idx_tup_fetch
             FROM pg_stat_user_indexes
             WHERE idx_scan = 0
             ORDER BY tablename
             LIMIT 10
-        ");
+        ');
 
         $unusedIndexes = count($indexUsage);
         $status = $unusedIndexes > 5 ? '🟡' : '🟢';
 
-        if (!$alertsOnly || $status === '🟡') {
+        if (! $alertsOnly || $status === '🟡') {
             $this->line("  {$status} Index non utilisés: {$unusedIndexes}");
-            if ($unusedIndexes > 0 && !$alertsOnly) {
+            if ($unusedIndexes > 0 && ! $alertsOnly) {
                 $this->line('    Considérer DROP INDEX pour:');
                 foreach (array_slice($indexUsage, 0, 3) as $index) {
                     $this->line("    - {$index->tablename}.{$index->indexname}");
@@ -195,8 +195,8 @@ class MonitorSystemPerformance extends Command
     {
         return match ($label) {
             'Taux de hit cache' => $value < 0.7 ? '🔴' : ($value < 0.85 ? '🟡' : '🟢'),
-            'Mémoire cache utilisée' => str_contains($value, 'MB') && (float)$value > 500 ? '🟡' : '🟢',
-            'Clés expirées' => (int)$value > 1000 ? '🟡' : '🟢',
+            'Mémoire cache utilisée' => str_contains($value, 'MB') && (float) $value > 500 ? '🟡' : '🟢',
+            'Clés expirées' => (int) $value > 1000 ? '🟡' : '🟢',
             default => '🟢'
         };
     }

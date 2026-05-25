@@ -47,7 +47,7 @@ class PaiementResource extends JsonResource
             // Relations - always include essential data for validation pages
             'candidature' => $this->when(
                 $this->relationLoaded('candidature') && $this->candidature,
-                fn() => [
+                fn () => [
                     'id' => $this->candidature->id,
                     'code_cand_temp' => $this->candidature->code_cand_temp,
                     'code_cand_def' => $this->candidature->code_cand_def,
@@ -57,13 +57,13 @@ class PaiementResource extends JsonResource
                     // Include essential candidat data
                     'candidat' => $this->when(
                         $this->candidature->relationLoaded('candidat') && $this->candidature->candidat,
-                        fn() => [
+                        fn () => [
                             'id' => $this->candidature->candidat->utilisateur_id,
                             'nom_cand' => $this->candidature->candidat->nom_cand,
                             'prenom_cand' => $this->candidature->candidat->prenom_cand,
                             'utilisateur' => $this->when(
                                 $this->candidature->candidat->relationLoaded('utilisateur') && $this->candidature->candidat->utilisateur,
-                                fn() => [
+                                fn () => [
                                     'id' => $this->candidature->candidat->utilisateur->id,
                                     'email' => $this->candidature->candidat->utilisateur->email,
                                 ]
@@ -73,7 +73,7 @@ class PaiementResource extends JsonResource
                     // Include essential concours data
                     'concours' => $this->when(
                         $this->candidature->relationLoaded('concours') && $this->candidature->concours,
-                        fn() => [
+                        fn () => [
                             'id' => $this->candidature->concours->id,
                             'libelle_concours' => $this->candidature->concours->libelle_concours,
                         ]
@@ -84,15 +84,15 @@ class PaiementResource extends JsonResource
             // Full resources - only when explicitly requested
             'candidat' => $this->when(
                 $this->relationLoaded('candidat') && $request->input('include_candidat'),
-                fn() => new CandidatResource($this->candidat)
+                fn () => new CandidatResource($this->candidat)
             ),
             'concours' => $this->when(
                 $this->relationLoaded('concours') && $request->input('include_concours'),
-                fn() => new ConcoursResource($this->concours)
+                fn () => new ConcoursResource($this->concours)
             ),
             'validateur' => $this->when(
                 $this->relationLoaded('validatedBy') && $request->input('include_validateur'),
-                fn() => new UtilisateurResource($this->validatedBy)
+                fn () => new UtilisateurResource($this->validatedBy)
             ),
         ];
     }

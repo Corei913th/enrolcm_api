@@ -27,7 +27,7 @@ class CreateConcoursRequest extends FormRequest
      */
     private function sanitizeString(?string $value): ?string
     {
-        if (!$value) {
+        if (! $value) {
             return $value;
         }
 
@@ -52,7 +52,7 @@ class CreateConcoursRequest extends FormRequest
                 'string',
                 'max:255',
                 'min:3',
-                'regex:/^[\p{L}\p{N}\s\-\'&,()]+$/u' // Lettres, chiffres, espaces, caractères spéciaux sûrs
+                'regex:/^[\p{L}\p{N}\s\-\'&,()]+$/u', // Lettres, chiffres, espaces, caractères spéciaux sûrs
             ],
             // date_examen removed - use planning_epreuves as single source of truth
             'date_limite_depot' => ['nullable', 'date', 'after:today', 'before:+2 years'],
@@ -93,10 +93,8 @@ class CreateConcoursRequest extends FormRequest
         $validator->after(function ($validator) {
             $data = $this->all();
 
-
-
             // Valider cohérence dates : date_limite_depot doit être AVANT date_examen (date d'examen)
-            if (!empty($data['date_limite_depot']) && !empty($data['date_examen'])) {
+            if (! empty($data['date_limite_depot']) && ! empty($data['date_examen'])) {
                 if ($data['date_limite_depot'] >= $data['date_examen']) {
                     $validator->errors()->add('date_limite_depot', 'La date limite de dépôt doit être antérieure à la date d\'examen');
                 }

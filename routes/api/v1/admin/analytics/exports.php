@@ -1,9 +1,9 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Export\ExportController;
 use App\Http\Controllers\Export\PaiementExportController;
 use App\Http\Controllers\Export\ResultatExportController;
+use Illuminate\Support\Facades\Route;
 
 /**
  * Routes Admin - Exports (Excel & PDF)

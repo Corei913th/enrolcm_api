@@ -26,8 +26,6 @@ return new class extends Migration
             $table->integer('ordre_affichage')->default(0);
             $table->timestamps();
 
-
-
             $table->index(['concours_id', 'est_actif']);
             $table->index('ordre_affichage');
         });

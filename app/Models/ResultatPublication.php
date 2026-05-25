@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 /**
  * @mixin IdeHelperResultatPublication
@@ -14,7 +14,9 @@ class ResultatPublication extends Model
     use HasFactory, HasUuids;
 
     protected $table = 'resultat_publications';
+
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected $fillable = [
@@ -66,7 +68,7 @@ class ResultatPublication extends Model
     // Helpers
     public function getTempsRestant(): ?int
     {
-        if ($this->est_publie || !$this->timer_actif) {
+        if ($this->est_publie || ! $this->timer_actif) {
             return null;
         }
 
@@ -91,6 +93,7 @@ class ResultatPublication extends Model
         if ($hours > 24) {
             $days = floor($hours / 24);
             $hours = $hours % 24;
+
             return "{$days}j {$hours}h {$minutes}min";
         }
 
@@ -99,11 +102,11 @@ class ResultatPublication extends Model
 
     public function estEnAttente(): bool
     {
-        return !$this->est_publie && $this->timer_actif && $this->date_publication_prevue->isFuture();
+        return ! $this->est_publie && $this->timer_actif && $this->date_publication_prevue->isFuture();
     }
 
     public function peutAfficherTimer(): bool
     {
-        return $this->timer_actif && !$this->est_publie;
+        return $this->timer_actif && ! $this->est_publie;
     }
 }

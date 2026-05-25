@@ -5,15 +5,10 @@ namespace App\Services\Domain\AdmissionRules\Repositories;
 use App\Models\AdmissionRule;
 use Illuminate\Support\Facades\DB;
 
-
 class AdmissionRuleRepository
 {
     /**
      * Récupérer la règle active pour un concours/session
-     * 
-     * @param string $concoursId
-     * @param string $sessionId
-     * @return AdmissionRule|null
      */
     public function getActiveRule(string $concoursId, string $sessionId): ?AdmissionRule
     {
@@ -25,9 +20,7 @@ class AdmissionRuleRepository
 
     /**
      * Désactiver toutes les règles pour un concours/session
-     * 
-     * @param string $concoursId
-     * @param string $sessionId
+     *
      * @return int Nombre de règles désactivées
      */
     public function deactivateRules(string $concoursId, string $sessionId): int
@@ -40,9 +33,6 @@ class AdmissionRuleRepository
 
     /**
      * Créer une nouvelle règle d'admission
-     * 
-     * @param array $data
-     * @return AdmissionRule
      */
     public function create(array $data): AdmissionRule
     {
@@ -51,9 +41,7 @@ class AdmissionRuleRepository
 
     /**
      * Supprimer les règles pour un concours/session
-     * 
-     * @param string $concoursId
-     * @param string $sessionId
+     *
      * @return int Nombre de règles supprimées
      */
     public function deleteRules(string $concoursId, string $sessionId): int
@@ -66,10 +54,6 @@ class AdmissionRuleRepository
 
     /**
      * Vérifier si une règle existe pour un concours/session
-     * 
-     * @param string $concoursId
-     * @param string $sessionId
-     * @return bool
      */
     public function exists(string $concoursId, string $sessionId): bool
     {

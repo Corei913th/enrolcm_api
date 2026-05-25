@@ -36,9 +36,9 @@ class DatabaseSeeder extends Seeder
         // 7. Matières (dépend de NiveauSeeder)
         $this->call(MatiereSeeder::class);
 
-        //8. Sessions (pas de dépendances)
+        // 8. Sessions (pas de dépendances)
         $this->call([
-            SessionSeeder::class
+            SessionSeeder::class,
         ]);
 
         // 9. Concours (dépend de EcoleSeeder et SessionSeeder)

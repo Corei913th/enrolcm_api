@@ -1,8 +1,8 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Concours\ResultatController;
 use App\Http\Controllers\Admin\AdmissionRuleController;
+use App\Http\Controllers\Concours\ResultatController;
+use Illuminate\Support\Facades\Route;
 
 /**
  * Routes Admin - Résultats

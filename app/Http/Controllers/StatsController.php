@@ -17,6 +17,7 @@ class StatsController extends Controller
     public function filieres(): JsonResponse
     {
         $data = $this->statsService->getFilieresStats();
+
         return api_success($data, 'Statistiques des filières récupérées');
     }
 
@@ -26,6 +27,7 @@ class StatsController extends Controller
     public function niveaux(): JsonResponse
     {
         $data = $this->statsService->getNiveauxStats();
+
         return api_success($data, 'Statistiques des niveaux récupérées');
     }
 
@@ -35,6 +37,7 @@ class StatsController extends Controller
     public function departements(): JsonResponse
     {
         $data = $this->statsService->getDepartementsStats();
+
         return api_success($data, 'Statistiques des départements récupérées');
     }
 
@@ -44,6 +47,7 @@ class StatsController extends Controller
     public function ecoles(): JsonResponse
     {
         $data = $this->statsService->getEcolesStats();
+
         return api_success($data, 'Statistiques des écoles récupérées');
     }
 
@@ -53,6 +57,7 @@ class StatsController extends Controller
     public function centres(): JsonResponse
     {
         $data = $this->statsService->getCentresStats();
+
         return api_success($data, 'Statistiques par centre récupérées');
     }
 }

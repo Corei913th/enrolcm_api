@@ -48,7 +48,7 @@ class UpdateCandidatDTO extends Data
     public static function fromRequest(UpdateCandidatProfileRequest $request): self
     {
         $validated = $request->validated();
-        
+
         return new self(
             utilisateur_id: $request->user()->id,
             adresse_cand: $validated['adresse_cand'] ?? null,
@@ -90,11 +90,9 @@ class UpdateCandidatDTO extends Data
 
     /**
      * Convertir en tableau en excluant les valeurs null
-     *
-     * @return array
      */
     public function toArray(): array
     {
-        return array_filter(parent::toArray(), fn($value) => $value !== null);
+        return array_filter(parent::toArray(), fn ($value) => $value !== null);
     }
 }

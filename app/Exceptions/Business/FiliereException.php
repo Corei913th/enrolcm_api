@@ -8,7 +8,7 @@ class FiliereException extends Exception
 {
     protected $code;
 
-    public function __construct(string $message = "Erreur liée aux filières", int $code = 500)
+    public function __construct(string $message = 'Erreur liée aux filières', int $code = 500)
     {
         parent::__construct($message);
         $this->code = $code;

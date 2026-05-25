@@ -11,20 +11,20 @@ return new class extends Migration
         Schema::table('specs_concours', function (Blueprint $table) {
             // Ajouter nom pour identifier la spec
             $table->string('nom_spec', 100)->after('id');
-            
+
             // Remplacer les booléens par un JSON flexible
             $table->json('documents_requis')->nullable()->after('photo');
-            
+
             // Ajouter critères d'éligibilité
             $table->integer('age_minimum')->nullable()->after('montant_frais_depot');
             $table->integer('age_maximum')->nullable()->after('age_minimum');
             $table->json('series_bac_acceptees')->nullable()->after('age_maximum');
             $table->json('nationalites_acceptees')->nullable()->after('series_bac_acceptees');
-                             
+
             // Statut actif
             $table->boolean('est_actif')->default(true)->after('updated_at');
         });
-        
+
         // Supprimer les anciens champs booléens (remplacés par documents_requis JSON)
         Schema::table('specs_concours', function (Blueprint $table) {
             $table->dropColumn([
@@ -48,7 +48,7 @@ return new class extends Migration
             $table->boolean('releve_notes')->default(true);
             $table->boolean('acte_naissance')->default(true);
             $table->boolean('photo')->default(true);
-            
+
             // Supprimer les nouveaux champs
             $table->dropColumn([
                 'nom_spec',

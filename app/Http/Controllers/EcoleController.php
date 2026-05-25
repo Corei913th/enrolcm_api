@@ -10,11 +10,10 @@ use App\Http\Requests\Ecoles\UpdateEcoleRequest;
 use App\Http\Resources\EcoleResource;
 use App\Services\Domain\Referentiel\EcoleService;
 use App\Services\Infrastructure\Logger\ActivityLoggerService;
-use App\Services\Infrastructure\Storage\EcoleFileStorageService;
 use App\Services\Infrastructure\Pdf\EcoleDocumentPdfService;
+use App\Services\Infrastructure\Storage\EcoleFileStorageService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-
 
 class EcoleController extends Controller
 {
@@ -28,7 +27,7 @@ class EcoleController extends Controller
     /**
      * Get paginated list of schools with optional filters
      *
-     * @param Request $request Available query params: est_actif, region, search, per_page
+     * @param  Request  $request  Available query params: est_actif, region, search, per_page
      * @return JsonResponse Paginated schools with EcoleResource
      */
     public function index(Request $request): JsonResponse
@@ -50,7 +49,7 @@ class EcoleController extends Controller
     /**
      * Get a specific school by ID with relationships loaded
      *
-     * @param string $id School UUID
+     * @param  string  $id  School UUID
      * @return JsonResponse School data with EcoleResource
      */
     public function show(string $id): JsonResponse
@@ -70,7 +69,7 @@ class EcoleController extends Controller
     /**
      * Get a school by its unique code
      *
-     * @param string $code School code (unique identifier)
+     * @param  string  $code  School code (unique identifier)
      * @return JsonResponse School data with EcoleResource
      */
     public function showByCode(string $code): JsonResponse
@@ -90,7 +89,7 @@ class EcoleController extends Controller
     /**
      * Create a new school with optional file uploads
      *
-     * @param StoreEcoleRequest $request Validated request with school data and optional files
+     * @param  StoreEcoleRequest  $request  Validated request with school data and optional files
      * @return JsonResponse Created school with EcoleResource
      */
     public function store(StoreEcoleRequest $request): JsonResponse
@@ -99,9 +98,15 @@ class EcoleController extends Controller
             $ecoleData = CreateEcoleDTO::from($request->except(['logo', 'embleme', 'header_frame']));
             $files = [];
 
-            if ($request->hasFile('logo')) $files['logo'] = $request->file('logo');
-            if ($request->hasFile('embleme')) $files['embleme'] = $request->file('embleme');
-            if ($request->hasFile('header_frame')) $files['header_frame'] = $request->file('header_frame');
+            if ($request->hasFile('logo')) {
+                $files['logo'] = $request->file('logo');
+            }
+            if ($request->hasFile('embleme')) {
+                $files['embleme'] = $request->file('embleme');
+            }
+            if ($request->hasFile('header_frame')) {
+                $files['header_frame'] = $request->file('header_frame');
+            }
 
             $ecole = $this->ecoleService->createWithFiles($ecoleData, $files);
 
@@ -119,8 +124,8 @@ class EcoleController extends Controller
     /**
      * Update an existing school with optional file uploads
      *
-     * @param UpdateEcoleRequest $request Validated request with updated data and optional files
-     * @param string $id School UUID to update
+     * @param  UpdateEcoleRequest  $request  Validated request with updated data and optional files
+     * @param  string  $id  School UUID to update
      * @return JsonResponse Updated school with EcoleResource
      */
     public function update(UpdateEcoleRequest $request, string $id): JsonResponse
@@ -137,16 +142,22 @@ class EcoleController extends Controller
                 'all_input_keys' => array_keys($request->all()),
                 'request_keys_with_file_in_name' => array_filter(
                     array_keys($request->all()),
-                    fn($key) => str_contains(strtolower($key), 'logo') || str_contains(strtolower($key), 'file')
+                    fn ($key) => str_contains(strtolower($key), 'logo') || str_contains(strtolower($key), 'file')
                 ),
             ]);
 
             $ecoleData = UpdateEcoleDTO::from($request->except(['logo', 'embleme', 'header_frame', '_method']));
             $files = [];
 
-            if ($request->hasFile('logo')) $files['logo'] = $request->file('logo');
-            if ($request->hasFile('embleme')) $files['embleme'] = $request->file('embleme');
-            if ($request->hasFile('header_frame')) $files['header_frame'] = $request->file('header_frame');
+            if ($request->hasFile('logo')) {
+                $files['logo'] = $request->file('logo');
+            }
+            if ($request->hasFile('embleme')) {
+                $files['embleme'] = $request->file('embleme');
+            }
+            if ($request->hasFile('header_frame')) {
+                $files['header_frame'] = $request->file('header_frame');
+            }
 
             $this->logger->logOperation('EcoleController::update - Files array prepared', 'finished', [
                 'files_count' => count($files),
@@ -169,7 +180,7 @@ class EcoleController extends Controller
     /**
      * Delete a school and all its associated files
      *
-     * @param string $id School UUID to delete
+     * @param  string  $id  School UUID to delete
      * @return JsonResponse Success message
      */
     public function destroy(string $id): JsonResponse
@@ -187,7 +198,7 @@ class EcoleController extends Controller
     /**
      * Toggle the active status of a school
      *
-     * @param string $id School UUID
+     * @param  string  $id  School UUID
      * @return JsonResponse Updated school with EcoleResource
      */
     public function toggleStatus(string $id): JsonResponse
@@ -226,8 +237,8 @@ class EcoleController extends Controller
     /**
      * Upload a file (logo, embleme, header_frame) for a school
      *
-     * @param Request $request Must contain 'type' and 'file' fields
-     * @param string $id School UUID
+     * @param  Request  $request  Must contain 'type' and 'file' fields
+     * @param  string  $id  School UUID
      * @return JsonResponse Updated school with EcoleResource
      */
     public function uploadFile(Request $request, string $id): JsonResponse
@@ -264,8 +275,8 @@ class EcoleController extends Controller
     /**
      * Delete a file (logo, embleme, header_frame) for a school
      *
-     * @param Request $request Must contain 'type' field
-     * @param string $id School UUID
+     * @param  Request  $request  Must contain 'type' field
+     * @param  string  $id  School UUID
      * @return JsonResponse Updated school with EcoleResource
      */
     public function deleteFile(Request $request, string $id): JsonResponse
@@ -277,7 +288,6 @@ class EcoleController extends Controller
         try {
             $ecole = $this->ecoleService->getById($id);
             $this->fileService->deleteFile($ecole, $request->input('type'));
-
 
             $ecole = $this->ecoleService->clearFileInfo(
                 $ecole->id,
@@ -296,8 +306,8 @@ class EcoleController extends Controller
     /**
      * Generate and download a PDF attestation document for a student
      *
-     * @param Request $request Must contain student info fields
-     * @param string $id School UUID
+     * @param  Request  $request  Must contain student info fields
+     * @param  string  $id  School UUID
      * @return mixed PDF download response
      */
     public function generateAttestation(Request $request, string $id)
@@ -323,7 +333,7 @@ class EcoleController extends Controller
     /**
      * Preview the PDF header for a school
      *
-     * @param string $id School UUID
+     * @param  string  $id  School UUID
      * @return mixed PDF inline response for preview
      */
     public function previewHeader(string $id)

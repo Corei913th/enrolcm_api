@@ -2,11 +2,12 @@
 
 namespace App\Http\Requests\Candidats;
 
-use Illuminate\Foundation\Http\FormRequest;
 use App\Enums\Genre;
 use App\Enums\RegionCameroun;
 use App\Enums\SerieBac;
 use App\Enums\StatutMatrimonial;
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateCandidatProfileRequest extends FormRequest
 {
@@ -35,7 +36,6 @@ class UpdateCandidatProfileRequest extends FormRequest
             'a_handicap' => 'nullable|boolean',
             'type_handicap' => 'nullable|string|max:255|required_if:a_handicap,true',
 
-
             'nom_tuteur_cand' => 'sometimes|required|string|max:100',
             'telephone_tuteur_cand' => [
                 'sometimes',
@@ -47,7 +47,6 @@ class UpdateCandidatProfileRequest extends FormRequest
 
             'sexe_cand' => 'sometimes|required|in:' . implode(',', Genre::values()),
             'ethnie_cand' => 'sometimes|required|string|max:100',
-
 
             'nom_parent' => 'sometimes|required|string|max:100',
             'telephone_parent' => [
@@ -83,13 +82,12 @@ class UpdateCandidatProfileRequest extends FormRequest
             // Choix de filière
             'filiere_id' => 'nullable|uuid|exists:filieres,id',
 
-
             'numero_cni' => [
                 'sometimes',
                 'required',
                 'string',
                 'regex:/^[A-Z0-9]{7,17}$/',
-                \Illuminate\Validation\Rule::unique('candidats', 'numero_cni')->ignore($candidatId, 'utilisateur_id'),
+                Rule::unique('candidats', 'numero_cni')->ignore($candidatId, 'utilisateur_id'),
             ],
             'date_delivrance_cni' => [
                 'sometimes',
@@ -105,9 +103,8 @@ class UpdateCandidatProfileRequest extends FormRequest
                 'required',
                 'string',
                 'regex:/^(6[5-9]\d{7}|2[2-3]\d{7})$/',
-                \Illuminate\Validation\Rule::unique('utilisateurs', 'telephone')->ignore($candidatId, 'id'),
+                Rule::unique('utilisateurs', 'telephone')->ignore($candidatId, 'id'),
             ],
-
 
             'nom_pere' => 'sometimes|required|string|max:100',
             'telephone_pere' => [

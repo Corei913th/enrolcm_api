@@ -5,12 +5,12 @@ namespace App\Services\Domain\Referentiel;
 use App\DTOs\Niveaux\CreateNiveauDTO;
 use App\Exceptions\Business\NiveauException;
 use App\Models\Niveau;
+use App\Services\Infrastructure\Logger\ActivityLoggerService;
+use App\Traits\HasActivityLogger;
 use App\Traits\HasAdvancedSearch;
-use App\Traits\HasSmartCache;
 use App\Traits\HasOptimizedUpdate;
 use App\Traits\HasServiceFinders;
-use App\Traits\HasActivityLogger;
-use App\Services\Infrastructure\Logger\ActivityLoggerService;
+use App\Traits\HasSmartCache;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
@@ -18,9 +18,10 @@ use Illuminate\Support\Facades\Log;
 
 class NiveauService
 {
-    use HasAdvancedSearch, HasSmartCache, HasOptimizedUpdate, HasServiceFinders, HasActivityLogger;
+    use HasActivityLogger, HasAdvancedSearch, HasOptimizedUpdate, HasServiceFinders, HasSmartCache;
 
     protected string $exceptionClass = NiveauException::class;
+
     protected string $codeColumn = 'code_niveau';
 
     public function __construct(ActivityLoggerService $logger)
@@ -49,22 +50,22 @@ class NiveauService
                     'ordre',
                     'est_actif',
                     'created_at',
-                    'updated_at'
+                    'updated_at',
                 ])
                 ->with(['filiere:id,libelle_filiere,code_filiere']);
 
             // Recherche optimisée
-            if (!empty($filters['search'])) {
+            if (! empty($filters['search'])) {
                 $this->applySearch(
                     $query,
                     $filters['search'],
                     [
                         'libelle_niveau' => 'words',
                         'code_niveau' => 'start',
-                        'desc_niveau' => 'partial'
+                        'desc_niveau' => 'partial',
                     ],
                     [
-                        'filiere.libelle_filiere' => 'partial'
+                        'filiere.libelle_filiere' => 'partial',
                     ]
                 );
             }
@@ -112,6 +113,7 @@ class NiveauService
     {
         $defaultRelations = ['filiere', 'matieres'];
         $allRelations = array_unique(array_merge($defaultRelations, $relations));
+
         return $this->getBy('id', $id, $allRelations);
     }
 
@@ -123,6 +125,7 @@ class NiveauService
     {
         $defaultRelations = ['filiere', 'matieres'];
         $allRelations = array_unique(array_merge($defaultRelations, $relations));
+
         return $this->getBy($this->codeColumn, $code, $allRelations);
     }
 
@@ -210,12 +213,12 @@ class NiveauService
                 $niveau = $this->getById($id);
 
                 $niveau->update([
-                    'est_actif' => !$niveau->est_actif
+                    'est_actif' => ! $niveau->est_actif,
                 ]);
 
                 Log::info('Statut du niveau modifié', [
                     'niveau_id' => $niveau->id,
-                    'nouveau_statut' => $niveau->est_actif
+                    'nouveau_statut' => $niveau->est_actif,
                 ]);
 
                 return $niveau->fresh(['filiere', 'matieres']);

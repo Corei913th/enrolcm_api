@@ -2,9 +2,9 @@
 
 namespace App\Http\Requests\Concours;
 
+use App\Enums\SerieBac;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
-use App\Enums\SerieBac;
 
 class CreateSpecConcoursRequest extends FormRequest
 {

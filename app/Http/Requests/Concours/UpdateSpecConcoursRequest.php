@@ -2,9 +2,9 @@
 
 namespace App\Http\Requests\Concours;
 
+use App\Enums\SerieBac;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
-use App\Enums\SerieBac;
 
 class UpdateSpecConcoursRequest extends FormRequest
 {
@@ -19,10 +19,10 @@ class UpdateSpecConcoursRequest extends FormRequest
 
         return [
             'nom_spec' => [
-                'sometimes', 
-                'string', 
-                'max:255', 
-                Rule::unique('specs_concours', 'nom_spec')->ignore($id)
+                'sometimes',
+                'string',
+                'max:255',
+                Rule::unique('specs_concours', 'nom_spec')->ignore($id),
             ],
             'desc_infos_concours' => 'nullable|string',
             'documents_requis' => 'nullable|array',
@@ -46,11 +46,11 @@ class UpdateSpecConcoursRequest extends FormRequest
             'series_bac_acceptees.*.in' => 'La série de baccalauréat sélectionnée est invalide.',
         ];
     }
-    
+
     public function withValidator($validator)
     {
         $validator->after(function ($validator) {
-           // Validation conditionnelle avancée si nécessaire pour age_max > age_min quand un seul change
+            // Validation conditionnelle avancée si nécessaire pour age_max > age_min quand un seul change
         });
     }
 }

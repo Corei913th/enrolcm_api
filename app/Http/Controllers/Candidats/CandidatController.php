@@ -2,18 +2,18 @@
 
 namespace App\Http\Controllers\Candidats;
 
-use App\Http\Controllers\Controller;
-use App\Services\Domain\Candidat\CandidatService;
-use App\Http\Requests\Candidats\VerifyPRURequest;
-use App\Http\Requests\Candidats\RegisterCandidatRequest;
-use App\Http\Requests\Candidats\LoginCandidatRequest;
-use App\Http\Requests\Candidats\UpdateCandidatProfileRequest;
-use App\DTOs\Candidats\VerifyPRUDTO;
-use App\DTOs\Candidats\RegisterCandidatDTO;
 use App\DTOs\Candidats\LoginCandidatDTO;
+use App\DTOs\Candidats\RegisterCandidatDTO;
 use App\DTOs\Candidats\UpdateCandidatProfileDTO;
-use Illuminate\Http\Request;
+use App\DTOs\Candidats\VerifyPRUDTO;
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Candidats\LoginCandidatRequest;
+use App\Http\Requests\Candidats\RegisterCandidatRequest;
+use App\Http\Requests\Candidats\UpdateCandidatProfileRequest;
+use App\Http\Requests\Candidats\VerifyPRURequest;
+use App\Services\Domain\Candidat\CandidatService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class CandidatController extends Controller
 {
@@ -64,6 +64,7 @@ class CandidatController extends Controller
     public function me(Request $request): JsonResponse
     {
         $candidat = $this->candidatService->getByUserId($request->user()->id);
+
         return api_success($candidat);
     }
 
@@ -97,6 +98,7 @@ class CandidatController extends Controller
     public function show(string $id): JsonResponse
     {
         $candidat = $this->candidatService->getByUserId($id);
+
         return api_success($candidat);
     }
 
@@ -106,6 +108,7 @@ class CandidatController extends Controller
     public function stats(): JsonResponse
     {
         $stats = $this->candidatService->getStats();
+
         return api_success($stats);
     }
 
@@ -115,6 +118,7 @@ class CandidatController extends Controller
     public function deactivate(string $id): JsonResponse
     {
         $this->candidatService->deactivate($id);
+
         return api_success(null, 'Candidat désactivé avec succès');
     }
 
@@ -124,6 +128,7 @@ class CandidatController extends Controller
     public function activate(string $id): JsonResponse
     {
         $this->candidatService->activate($id);
+
         return api_success(null, 'Candidat activé avec succès');
     }
 
@@ -133,6 +138,7 @@ class CandidatController extends Controller
     public function getByPRU(string $pru): JsonResponse
     {
         $candidat = $this->candidatService->getByPRU($pru);
+
         return api_success($candidat);
     }
 }

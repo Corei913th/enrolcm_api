@@ -3,7 +3,6 @@
 namespace App\Jobs;
 
 use App\Models\Paiement;
-use App\Enums\StatutPaiement;
 use App\Services\Domain\Paiement\PaiementService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;

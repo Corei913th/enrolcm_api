@@ -7,7 +7,6 @@ use App\Http\Requests\Candidats\CreateCandidatAccountRequest;
 use Illuminate\Support\Facades\Hash;
 use Spatie\LaravelData\Data;
 
-
 class CreateCandidatAccountDTO extends Data
 {
     public function __construct(

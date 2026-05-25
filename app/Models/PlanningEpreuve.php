@@ -2,10 +2,11 @@
 
 namespace App\Models;
 
+use App\Services\Domain\Concours\Validators\PlanningEpreuveValidator;
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
-use Carbon\Carbon;
 
 /**
  * @mixin IdeHelperPlanningEpreuve
@@ -15,7 +16,9 @@ class PlanningEpreuve extends Model
     use HasFactory, HasUuids;
 
     protected $table = 'planning_epreuves';
+
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected $fillable = [
@@ -98,6 +101,7 @@ class PlanningEpreuve extends Model
     {
         $debut = Carbon::parse($this->heure_debut);
         $fin = Carbon::parse($this->heure_fin);
+
         return $debut->diffInMinutes($fin);
     }
 
@@ -127,7 +131,7 @@ class PlanningEpreuve extends Model
         parent::boot();
 
         static::saving(function ($planning) {
-            $validator = app(\App\Services\Domain\Concours\Validators\PlanningEpreuveValidator::class);
+            $validator = app(PlanningEpreuveValidator::class);
             $validator->validateBeforeSave($planning);
         });
     }

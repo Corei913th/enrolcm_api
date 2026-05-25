@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 /**
  * @mixin IdeHelperEtatCandidature
@@ -14,8 +14,11 @@ class EtatCandidature extends Model
     use HasFactory, HasUuids;
 
     protected $table = 'etat_candidature';
+
     public $incrementing = false;
+
     protected $keyType = 'string';
+
     public $timestamps = false;
 
     protected $fillable = [
@@ -29,7 +32,6 @@ class EtatCandidature extends Model
         'created_at' => 'datetime',
     ];
 
-    
     public function candidature()
     {
         return $this->belongsTo(Candidature::class, 'candidature_id');

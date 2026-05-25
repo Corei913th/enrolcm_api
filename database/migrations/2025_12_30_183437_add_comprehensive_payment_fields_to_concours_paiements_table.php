@@ -62,7 +62,7 @@ return new class extends Migration
                 'minimum_confiance_ocr',
                 'validation_auto',
                 'commentaires',
-                'date_derniere_modification'
+                'date_derniere_modification',
             ]);
         });
     }

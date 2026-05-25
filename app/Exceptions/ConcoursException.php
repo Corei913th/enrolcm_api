@@ -38,12 +38,12 @@ class ConcoursException extends Exception
 
     public static function invalidMontant(): self
     {
-        return new self("Le montant du paiement doit être supérieur à 0.", 400);
+        return new self('Le montant du paiement doit être supérieur à 0.', 400);
     }
 
     public static function invalidDateLimite(): self
     {
-        return new self("La date limite de paiement doit être antérieure à la date de fin du concours.", 400);
+        return new self('La date limite de paiement doit être antérieure à la date de fin du concours.', 400);
     }
 
     public static function banqueNotAccepted(string $banque): self
@@ -68,7 +68,7 @@ class ConcoursException extends Exception
 
     public static function paymentExpired(): self
     {
-        return new self("La période de paiement est expirée.", 400);
+        return new self('La période de paiement est expirée.', 400);
     }
 
     public static function hasActiveInscriptions(string $id): self
@@ -81,18 +81,19 @@ class ConcoursException extends Exception
         return new self("Filière avec l'ID {$id} introuvable.", 404);
     }
 
-    public static function filiereNotAttached(string $filiereId, string $concoursId, string $sessionId = null): self
+    public static function filiereNotAttached(string $filiereId, string $concoursId, ?string $sessionId = null): self
     {
         $message = "La filière {$filiereId} n'est pas attachée au concours {$concoursId}";
         if ($sessionId) {
             $message .= " pour la session {$sessionId}";
         }
-        return new self($message . ".", 400);
+
+        return new self($message . '.', 400);
     }
 
     public static function invalidNombrePlaces(): self
     {
-        return new self("Le nombre de places doit être supérieur à 0.", 400);
+        return new self('Le nombre de places doit être supérieur à 0.', 400);
     }
 
     public static function concoursNotAttachedToSession(string $concoursId, string $sessionId): self

@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers\Concours;
 
+use App\Enums\SerieBac;
+use App\Enums\TypeDocument;
 use App\Http\Controllers\Controller;
-use App\Services\Domain\Concours\SpecService;
 use App\Http\Requests\Concours\CreateSpecConcoursRequest;
-use Illuminate\Http\Request;
+use App\Http\Resources\SpecConcoursResource;
+use App\Services\Domain\Concours\SpecService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class SpecConcoursController extends Controller
 {
@@ -23,7 +26,7 @@ class SpecConcoursController extends Controller
         $perPage = $request->input('per_page', 20);
         $specs = $this->specService->getAll($filters, $perPage);
 
-        return api_paginated($specs, 'Liste des spécialités de concours', \App\Http\Resources\SpecConcoursResource::class);
+        return api_paginated($specs, 'Liste des spécialités de concours', SpecConcoursResource::class);
     }
 
     /**
@@ -32,6 +35,7 @@ class SpecConcoursController extends Controller
     public function show(string $id): JsonResponse
     {
         $spec = $this->specService->getById($id);
+
         return api_success($spec);
     }
 
@@ -41,6 +45,7 @@ class SpecConcoursController extends Controller
     public function store(CreateSpecConcoursRequest $request): JsonResponse
     {
         $spec = $this->specService->create($request->validated());
+
         return api_created($spec, 'Spécialité de concours créée avec succès');
     }
 
@@ -51,6 +56,7 @@ class SpecConcoursController extends Controller
     {
 
         $spec = $this->specService->update($id, $request->all());
+
         return api_success($spec, 'Spécialité de concours mise à jour avec succès');
     }
 
@@ -60,6 +66,7 @@ class SpecConcoursController extends Controller
     public function destroy(string $id): JsonResponse
     {
         $this->specService->delete($id);
+
         return api_deleted('Spécialité de concours supprimée avec succès');
     }
 
@@ -70,16 +77,18 @@ class SpecConcoursController extends Controller
     {
         $spec = $this->specService->toggleStatus($id);
         $message = $spec->est_actif ? 'Spécialité activée' : 'Spécialité désactivée';
+
         return api_success($spec, $message);
     }
+
     /**
      * Récupérer les données de formulaire (Enums, etc.).
      */
     public function formData(): JsonResponse
     {
         return api_success([
-            'series_bac' => \App\Enums\SerieBac::cases(),
-            'types_document' => \App\Enums\TypeDocument::cases(),
+            'series_bac' => SerieBac::cases(),
+            'types_document' => TypeDocument::cases(),
         ]);
     }
 }

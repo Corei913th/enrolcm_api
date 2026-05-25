@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 /**
  * @mixin IdeHelperSpecConcours
@@ -14,7 +14,9 @@ class SpecConcours extends Model
     use HasFactory, HasUuids;
 
     protected $table = 'specs_concours';
+
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected $fillable = [
@@ -53,7 +55,6 @@ class SpecConcours extends Model
     {
         return $this->hasMany(Concours::class, 'spec_concours_id');
     }
-
 
     // Scopes
     public function scopeActif($query)
@@ -124,16 +125,20 @@ class SpecConcours extends Model
 
         if ($this->hasAgeRestriction()) {
             $age = [];
-            if ($this->age_minimum) $age[] = "minimum {$this->age_minimum} ans";
-            if ($this->age_maximum) $age[] = "maximum {$this->age_maximum} ans";
+            if ($this->age_minimum) {
+                $age[] = "minimum {$this->age_minimum} ans";
+            }
+            if ($this->age_maximum) {
+                $age[] = "maximum {$this->age_maximum} ans";
+            }
             $criteres['age'] = implode(', ', $age);
         }
 
-        if (!empty($this->series_bac_acceptees)) {
+        if (! empty($this->series_bac_acceptees)) {
             $criteres['series_bac'] = implode(', ', $this->series_bac_acceptees);
         }
 
-        if (!empty($this->nationalites_acceptees)) {
+        if (! empty($this->nationalites_acceptees)) {
             $criteres['nationalites'] = implode(', ', $this->nationalites_acceptees);
         }
 
@@ -146,7 +151,7 @@ class SpecConcours extends Model
             return true; // Tous diplômes acceptés si non spécifié
         }
 
-        if (!$diplome) {
+        if (! $diplome) {
             return false;
         }
 

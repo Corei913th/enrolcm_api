@@ -3,12 +3,12 @@
 namespace App\Models;
 
 use App\Enums\CategorieAdmission;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Enums\DecisionAdmission;
 use App\Enums\Mention;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * @mixin IdeHelperResultatFinal
@@ -18,7 +18,9 @@ class ResultatFinal extends Model
     use HasFactory, HasUuids, SoftDeletes;
 
     protected $table = 'resultats_finaux';
+
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected $fillable = [
@@ -49,7 +51,6 @@ class ResultatFinal extends Model
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',
     ];
-
 
     public function candidature()
     {

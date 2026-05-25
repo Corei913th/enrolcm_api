@@ -18,11 +18,11 @@ return new class extends Migration
             $table->timestamp('heure_arrivee')->nullable();
             $table->text('observations')->nullable();
             $table->timestamps();
-            
+
             $table->foreign('candidature_id')->references('id')->on('candidatures')->onDelete('cascade');
             $table->foreign('salle_id')->references('id')->on('salles_examen')->onDelete('set null');
             $table->foreign('planning_epreuve_id')->references('id')->on('planning_epreuves')->onDelete('set null');
-            
+
             // Pas de contrainte unique - l'admin peut réaffecter manuellement
             $table->index('candidature_id');
             $table->index('salle_id');

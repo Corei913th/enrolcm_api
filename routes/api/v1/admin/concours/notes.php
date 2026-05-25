@@ -1,7 +1,7 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Concours\NoteController;
+use Illuminate\Support\Facades\Route;
 
 /**
  * Routes Admin - Gestion des Notes

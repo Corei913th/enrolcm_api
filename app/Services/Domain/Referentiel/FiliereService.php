@@ -5,22 +5,24 @@ namespace App\Services\Domain\Referentiel;
 use App\DTOs\Filieres\CreateFiliereDTO;
 use App\Exceptions\Business\FiliereException;
 use App\Models\Filiere;
+use App\Services\Infrastructure\Logger\ActivityLoggerService;
+use App\Traits\HasActivityLogger;
 use App\Traits\HasAdvancedSearch;
-use App\Traits\HasSmartCache;
 use App\Traits\HasOptimizedUpdate;
 use App\Traits\HasServiceFinders;
-use App\Traits\HasActivityLogger;
-use App\Services\Infrastructure\Logger\ActivityLoggerService;
+use App\Traits\HasSmartCache;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\QueryException;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class FiliereService
 {
-    use HasAdvancedSearch, HasSmartCache, HasOptimizedUpdate, HasServiceFinders, HasActivityLogger;
+    use HasActivityLogger, HasAdvancedSearch, HasOptimizedUpdate, HasServiceFinders, HasSmartCache;
 
     protected string $exceptionClass = FiliereException::class;
+
     protected string $codeColumn = 'code_filiere';
 
     public function __construct(ActivityLoggerService $logger)
@@ -32,6 +34,7 @@ class FiliereService
     {
         return ['filieres', 'lists'];
     }
+
     /**
      * Récupérer toutes les filières avec filtres optimisés
      */
@@ -47,26 +50,26 @@ class FiliereService
                     'desc_filiere',
                     'est_actif',
                     'created_at',
-                    'updated_at'
+                    'updated_at',
                 ])
                 ->with([
                     'departement:id,libelle_departement,code_departement,ecole_id',
-                    'departement.ecole:id,libelle_ecole,code_ecole'
+                    'departement.ecole:id,libelle_ecole,code_ecole',
                 ]);
 
             // Recherche optimisée multi-colonnes
-            if (!empty($filters['search'])) {
+            if (! empty($filters['search'])) {
                 $this->applySearch(
                     $query,
                     $filters['search'],
                     [
                         'libelle_filiere' => 'words',
                         'code_filiere' => 'start',
-                        'desc_filiere' => 'partial'
+                        'desc_filiere' => 'partial',
                     ],
                     [
                         'departement.libelle_departement' => 'partial',
-                        'departement.ecole.libelle_ecole' => 'partial'
+                        'departement.ecole.libelle_ecole' => 'partial',
                     ]
                 );
             }
@@ -109,6 +112,7 @@ class FiliereService
     {
         $defaultRelations = ['departement', 'niveaux'];
         $allRelations = array_unique(array_merge($defaultRelations, $relations));
+
         return $this->getBy('id', $id, $allRelations);
     }
 
@@ -120,6 +124,7 @@ class FiliereService
     {
         $defaultRelations = ['departement', 'niveaux'];
         $allRelations = array_unique(array_merge($defaultRelations, $relations));
+
         return $this->getBy($this->codeColumn, $code, $allRelations);
     }
 
@@ -133,8 +138,8 @@ class FiliereService
 
                 if (
                     Filiere::where('departement_id', $data->departement_id)
-                    ->where('code_filiere', $data->code_filiere)
-                    ->exists()
+                        ->where('code_filiere', $data->code_filiere)
+                        ->exists()
                 ) {
                     throw new FiliereException(
                         'Cette filière existe déjà dans ce département',
@@ -147,7 +152,7 @@ class FiliereService
 
                 return $filiere->load(['departement', 'niveaux']);
             }, 'FiliereService::create');
-        } catch (\Illuminate\Database\QueryException $e) {
+        } catch (QueryException $e) {
             logServiceError('Erreur lors de la création de la filière', $e, ['data' => $data->toArray()]);
             if ($e->getCode() === '23000') {
                 throw new FiliereException(
@@ -158,7 +163,6 @@ class FiliereService
             throw $e;
         }
     }
-
 
     /**
      * Mettre à jour une filière
@@ -174,9 +178,9 @@ class FiliereService
 
                 if (
                     Filiere::where('departement_id', $departementId)
-                    ->where('code_filiere', $code)
-                    ->where('id', '!=', $id)
-                    ->exists()
+                        ->where('code_filiere', $code)
+                        ->where('id', '!=', $id)
+                        ->exists()
                 ) {
                     throw new FiliereException(
                         'Cette filière existe déjà dans ce département',
@@ -189,7 +193,7 @@ class FiliereService
 
                 return $filiere->fresh(['departement', 'niveaux']);
             }, 'FiliereService::update');
-        } catch (\Illuminate\Database\QueryException $e) {
+        } catch (QueryException $e) {
             if ($e->getCode() === '23000') {
                 throw new FiliereException(
                     'Cette filière existe déjà dans ce département',
@@ -199,7 +203,6 @@ class FiliereService
             throw $e;
         }
     }
-
 
     /**
      * Supprimer une filière
@@ -237,12 +240,12 @@ class FiliereService
                 $filiere = $this->getById($id);
 
                 $filiere->update([
-                    'est_actif' => !$filiere->est_actif
+                    'est_actif' => ! $filiere->est_actif,
                 ]);
 
                 Log::info('Statut de la filière modifié', [
                     'filiere_id' => $filiere->id,
-                    'nouveau_statut' => $filiere->est_actif
+                    'nouveau_statut' => $filiere->est_actif,
                 ]);
 
                 return $filiere->fresh(['departement', 'niveaux']);

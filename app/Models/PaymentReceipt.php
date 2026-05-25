@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
+use App\Enums\StatutVerificationPaiement;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
-use App\Enums\StatutVerificationPaiement;
 
 /**
  * @mixin IdeHelperPaymentReceipt
@@ -15,7 +15,9 @@ class PaymentReceipt extends Model
     use HasFactory, HasUuids;
 
     protected $table = 'payment_receipts';
+
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected $fillable = [

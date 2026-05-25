@@ -6,7 +6,6 @@ use Illuminate\Support\Facades\Route;
  * Routes Admin - Référentiel
  * Middleware appliqué : auth:sanctum + role:ADMIN
  */
-
 Route::prefix('centres')->group(base_path('routes/api/v1/admin/referentiel/centres.php'));
 Route::prefix('departements')->group(base_path('routes/api/v1/admin/referentiel/departements.php'));
 Route::prefix('ecoles')->group(base_path('routes/api/v1/admin/referentiel/ecoles.php'));

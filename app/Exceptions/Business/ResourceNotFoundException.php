@@ -11,10 +11,10 @@ class ResourceNotFoundException extends Exception
 
     public function __construct(string $resource = 'Ressource', ?string $identifier = null)
     {
-        $message = $identifier 
+        $message = $identifier
             ? "{$resource} avec l'identifiant '{$identifier}' introuvable."
             : "{$resource} introuvable.";
-        
+
         parent::__construct($message, $this->code);
     }
 

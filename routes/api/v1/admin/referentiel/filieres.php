@@ -1,7 +1,7 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\FiliereController;
+use Illuminate\Support\Facades\Route;
 
 /**
  * Routes Admin - Référentiel Filières

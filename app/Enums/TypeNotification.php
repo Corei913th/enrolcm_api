@@ -10,30 +10,29 @@ enum TypeNotification: string
     case CANDIDATURE_REJETEE = 'CANDIDATURE_REJETEE';
     case DOSSIER_INCOMPLET = 'DOSSIER_INCOMPLET';
 
-        // Convocation
+    // Convocation
     case CONVOCATION_DISPONIBLE = 'CONVOCATION_DISPONIBLE';
     case RAPPEL_EXAMEN = 'RAPPEL_EXAMEN';
 
-        // Résultats
+    // Résultats
     case RESULTATS_DISPONIBLES = 'RESULTATS_DISPONIBLES';
     case ADMISSION = 'ADMISSION';
     case ECHEC = 'ECHEC';
     case LISTE_ATTENTE = 'LISTE_ATTENTE';
 
-        // Paiement
+    // Paiement
     case PAIEMENT_RECU = 'PAIEMENT_RECU';
     case PAIEMENT_VALIDE = 'PAIEMENT_VALIDE';
     case PAIEMENT_REJETE = 'PAIEMENT_REJETE';
 
-        // Documents
+    // Documents
     case DOCUMENT_VALIDE = 'DOCUMENT_VALIDE';
     case DOCUMENT_REJETE = 'DOCUMENT_REJETE';
 
-        // Système
+    // Système
     case INFORMATION_GENERALE = 'INFORMATION_GENERALE';
     case ALERTE = 'ALERTE';
     case RAPPEL = 'RAPPEL';
-
 
     public static function values(): array
     {

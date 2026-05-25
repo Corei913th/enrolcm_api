@@ -2,9 +2,9 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use App\Models\Region;
 use App\Enums\RegionCameroun;
+use App\Models\Region;
+use Illuminate\Database\Seeder;
 
 class RegionSeeder extends Seeder
 {

@@ -15,7 +15,7 @@ class AdmissionHelper
 
         // Score: 18 years = 100 points, 25 years = 30 points
         $score = max(0, 100 - ($age - 18) * 10);
-        
+
         return ($score / 100) * $weight;
     }
 
@@ -41,7 +41,7 @@ class AdmissionHelper
      */
     public static function getRegion($candidature): string
     {
-        if (!$candidature) {
+        if (! $candidature) {
             return 'UNKNOWN';
         }
 

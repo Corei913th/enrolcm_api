@@ -2,23 +2,25 @@
 
 namespace Tests\Feature;
 
-use Tests\TestCase;
-use App\Models\Utilisateur;
+use App\Enums\StatutVerificationPaiement;
+use App\Enums\TypeUtilisateur;
 use App\Models\Candidat;
 use App\Models\PaymentReceipt;
-use App\Enums\TypeUtilisateur;
-use App\Enums\StatutVerificationPaiement;
+use App\Models\Utilisateur;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\Sanctum;
+use Tests\TestCase;
 
 class PaymentReceiptTest extends TestCase
 {
     use RefreshDatabase;
 
     protected Utilisateur $candidatUser;
+
     protected Candidat $candidat;
+
     protected Utilisateur $adminUser;
 
     protected function setUp(): void

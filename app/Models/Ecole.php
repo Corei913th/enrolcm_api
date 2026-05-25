@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
+use App\Enums\RegionCameroun;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
-use App\Enums\RegionCameroun;
 
 /**
  * @mixin IdeHelperEcole
@@ -112,14 +112,14 @@ class Ecole extends Model
      */
     public function getLogoFullPathAttribute()
     {
-        if (!$this->logo_path) {
-            return null;
+        if (! $this->logo_path) {
+            return;
         }
 
         $path = storage_path('app/public/' . $this->logo_path);
 
-        if (!file_exists($path)) {
-            return null;
+        if (! file_exists($path)) {
+            return;
         }
 
         // Convertir en base64 pour DomPDF
@@ -134,14 +134,14 @@ class Ecole extends Model
      */
     public function getEmblemeFullPathAttribute()
     {
-        if (!$this->embleme_path) {
-            return null;
+        if (! $this->embleme_path) {
+            return;
         }
 
         $path = storage_path('app/public/' . $this->embleme_path);
 
-        if (!file_exists($path)) {
-            return null;
+        if (! file_exists($path)) {
+            return;
         }
 
         // Convertir en base64 pour DomPDF
@@ -156,14 +156,14 @@ class Ecole extends Model
      */
     public function getHeaderFrameFullPathAttribute()
     {
-        if (!$this->header_frame_path) {
-            return null;
+        if (! $this->header_frame_path) {
+            return;
         }
 
         $path = storage_path('app/public/' . $this->header_frame_path);
 
-        if (!file_exists($path)) {
-            return null;
+        if (! file_exists($path)) {
+            return;
         }
 
         // Convertir en base64 pour DomPDF

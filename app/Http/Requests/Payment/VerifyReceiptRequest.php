@@ -2,8 +2,8 @@
 
 namespace App\Http\Requests\Payment;
 
-use Illuminate\Foundation\Http\FormRequest;
 use App\Enums\StatutVerificationPaiement;
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class VerifyReceiptRequest extends FormRequest

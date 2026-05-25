@@ -2,16 +2,18 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 class AdmissionRule extends Model
 {
     use HasFactory, HasUuids;
 
     protected $table = 'admission_rules';
+
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected $fillable = [
@@ -58,7 +60,7 @@ class AdmissionRule extends Model
      */
     public static function getDefault(): self
     {
-        $rule = new self();
+        $rule = new self;
         $rule->seuil_admission_standard = 12.00;
         $rule->seuil_admission_minimum = 10.00;
         $rule->permet_admission_conditionnelle = true;

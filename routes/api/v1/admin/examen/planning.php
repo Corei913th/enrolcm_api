@@ -1,7 +1,7 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Planning\PlanningEpreuveController;
+use Illuminate\Support\Facades\Route;
 
 /**
  * Routes Admin - Planning des Épreuves

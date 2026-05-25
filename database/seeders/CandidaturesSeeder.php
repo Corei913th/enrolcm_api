@@ -2,20 +2,20 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
+use App\Enums\StatutCandidature;
 use App\Models\Candidat;
 use App\Models\Candidature;
+use App\Models\Centre;
 use App\Models\Concours;
 use App\Models\Session;
-use App\Models\Centre;
-use App\Enums\StatutCandidature;
+use Illuminate\Database\Seeder;
 
 /**
  * Seeder pour créer des candidatures pour un concours existant
- * 
+ *
  * Usage:
  * php artisan db:seed --class=CandidaturesSeeder
- * 
+ *
  * Ce seeder:
  * - Prend tous les candidats existants
  * - Les inscrit au concours spécifié
@@ -32,13 +32,15 @@ class CandidaturesSeeder extends Seeder
         $concours = Concours::where('est_actif', true)->first();
         $session = Session::where('est_active', true)->first();
 
-        if (!$concours) {
+        if (! $concours) {
             $this->command->error('❌ Aucun concours actif trouvé. Créez d\'abord un concours.');
+
             return;
         }
 
-        if (!$session) {
+        if (! $session) {
             $this->command->error('❌ Aucune session active trouvée.');
+
             return;
         }
 
@@ -49,6 +51,7 @@ class CandidaturesSeeder extends Seeder
         $centres = Centre::where('est_actif', true)->get();
         if ($centres->isEmpty()) {
             $this->command->error('❌ Aucun centre d\'examen trouvé.');
+
             return;
         }
 
@@ -56,6 +59,7 @@ class CandidaturesSeeder extends Seeder
         $candidats = Candidat::all();
         if ($candidats->isEmpty()) {
             $this->command->error('❌ Aucun candidat trouvé. Exécutez d\'abord CompleteWorkflowSeeder.');
+
             return;
         }
 

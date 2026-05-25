@@ -12,12 +12,11 @@ class CheckRole
     /**
      * Handle an incoming request.
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
-     * @param  string  ...$roles
+     * @param  Closure(Request): (Response)  $next
      */
     public function handle(Request $request, Closure $next, string ...$roles): Response
     {
-        if (!$request->user()) {
+        if (! $request->user()) {
             return api_error('Non authentifié', 'UNAUTHENTICATED', 401);
         }
 
@@ -40,13 +39,13 @@ class CheckRole
         // Vérifier ensuite les rôles de la table roles (pour ADMIN, RESPONSABLE, etc.)
         $userRoles = $user->roles->pluck('libelle_role')->toArray();
 
-        if (in_array(\App\Enums\TypeUtilisateur::SUPER_ADMIN->value, $userRoles)) {
+        if (in_array(TypeUtilisateur::SUPER_ADMIN->value, $userRoles)) {
             return $next($request);
         }
 
-        $hasRole = !empty(array_intersect($roles, $userRoles));
+        $hasRole = ! empty(array_intersect($roles, $userRoles));
 
-        if (!$hasRole) {
+        if (! $hasRole) {
             return api_error(
                 'Accès refusé. Rôle requis: ' . implode(' ou ', $roles),
                 'FORBIDDEN',

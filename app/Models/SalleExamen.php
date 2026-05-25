@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 /**
  * @mixin IdeHelperSalleExamen
@@ -14,7 +14,9 @@ class SalleExamen extends Model
     use HasFactory, HasUuids;
 
     protected $table = 'salles_examen';
+
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected $fillable = [
@@ -31,7 +33,6 @@ class SalleExamen extends Model
         'updated_at' => 'datetime',
     ];
 
-    
     public function centre()
     {
         return $this->belongsTo(Centre::class, 'centre_id');
@@ -51,8 +52,8 @@ class SalleExamen extends Model
     // Helpers
     public function getIdentifiantComplet()
     {
-        return $this->centre ? 
-            "{$this->centre->libelle_centre} - Salle {$this->numero_salle}" : 
+        return $this->centre ?
+            "{$this->centre->libelle_centre} - Salle {$this->numero_salle}" :
             "Salle {$this->numero_salle}";
     }
 }

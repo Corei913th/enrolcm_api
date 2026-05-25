@@ -6,9 +6,9 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-        public function up()
-        {
-            Schema::create('niveaux', function (Blueprint $table) {
+    public function up()
+    {
+        Schema::create('niveaux', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('code_niveau', 10);
             $table->string('libelle_niveau', 100);
@@ -23,7 +23,7 @@ return new class extends Migration
 
             // Unique par filière
             $table->unique(['filiere_id', 'code_niveau'], 'niveaux_filiere_code_unique');
-    });
+        });
 
     }
 

@@ -10,7 +10,7 @@ enum StatutVerificationPaiement: string
     case OCR_VERIFIE = 'OCR_VERIFIE';
     case PENDING_MANUAL_REVIEW = 'PENDING_MANUAL_REVIEW';
 
-        // Legacy cases for backward compatibility
+    // Legacy cases for backward compatibility
     case EN_ATTENTE = 'en_attente';
     case VERIFIE = 'verifie';
     case REJETE = 'rejete';

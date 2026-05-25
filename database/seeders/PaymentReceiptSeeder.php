@@ -2,11 +2,11 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use App\Models\PaymentReceipt;
-use App\Models\Candidat;
-use App\Models\Utilisateur;
 use App\Enums\StatutVerificationPaiement;
+use App\Models\Candidat;
+use App\Models\PaymentReceipt;
+use App\Models\Utilisateur;
+use Illuminate\Database\Seeder;
 
 class PaymentReceiptSeeder extends Seeder
 {
@@ -17,6 +17,7 @@ class PaymentReceiptSeeder extends Seeder
 
         if ($candidats->isEmpty()) {
             $this->command->warn('Aucun candidat trouvé. Créez des candidats d\'abord.');
+
             return;
         }
 

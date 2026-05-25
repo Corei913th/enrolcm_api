@@ -13,38 +13,38 @@ use Illuminate\Queue\SerializesModels;
 
 class CandidatureRejectedMail extends Mailable
 {
-  use Queueable, SerializesModels;
+    use Queueable, SerializesModels;
 
-  public function __construct(
-    public Utilisateur $utilisateur,
-    public Candidat $candidat,
-    public Candidature $candidature,
-    public string $motif
-  ) {}
+    public function __construct(
+        public Utilisateur $utilisateur,
+        public Candidat $candidat,
+        public Candidature $candidature,
+        public string $motif
+    ) {}
 
-  public function envelope(): Envelope
-  {
-    return new Envelope(
-      subject: 'Candidature Rejetée - ' . ($this->candidature->concours->libelle_concours ?? 'Concours'),
-    );
-  }
+    public function envelope(): Envelope
+    {
+        return new Envelope(
+            subject: 'Candidature Rejetée - ' . ($this->candidature->concours->libelle_concours ?? 'Concours'),
+        );
+    }
 
-  public function content(): Content
-  {
-    return new Content(
-      view: 'emails.candidature-rejected',
-      with: [
-        'utilisateur' => $this->utilisateur,
-        'candidat' => $this->candidat,
-        'candidature' => $this->candidature,
-        'concours' => $this->candidature->concours,
-        'motif' => $this->motif,
-      ]
-    );
-  }
+    public function content(): Content
+    {
+        return new Content(
+            view: 'emails.candidature-rejected',
+            with: [
+                'utilisateur' => $this->utilisateur,
+                'candidat' => $this->candidat,
+                'candidature' => $this->candidature,
+                'concours' => $this->candidature->concours,
+                'motif' => $this->motif,
+            ]
+        );
+    }
 
-  public function attachments(): array
-  {
-    return [];
-  }
+    public function attachments(): array
+    {
+        return [];
+    }
 }

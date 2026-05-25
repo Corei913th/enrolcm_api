@@ -11,10 +11,13 @@ use Illuminate\Database\Eloquent\Model;
 class Correcteur extends Model
 {
     use HasFactory;
-    
+
     protected $table = 'correcteurs';
+
     protected $primaryKey = 'utilisateur_id';
+
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected $fillable = [

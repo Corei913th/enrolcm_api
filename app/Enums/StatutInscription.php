@@ -14,7 +14,7 @@ enum StatutInscription: string
 
     public function label(): string
     {
-        return match($this) {
+        return match ($this) {
             self::ACTIF => 'Actif',
             self::INVALIDE => 'Invalide',
         };
@@ -22,7 +22,7 @@ enum StatutInscription: string
 
     public function color(): string
     {
-        return match($this) {
+        return match ($this) {
             self::ACTIF => 'success',
             self::INVALIDE => 'danger',
         };

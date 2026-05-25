@@ -6,7 +6,7 @@ use Exception;
 
 class SpecConcoursException extends Exception
 {
-    public function __construct(string $message = "Erreur liée à la spécialité du concours", int $code = 400)
+    public function __construct(string $message = 'Erreur liée à la spécialité du concours', int $code = 400)
     {
         parent::__construct($message, $code);
     }

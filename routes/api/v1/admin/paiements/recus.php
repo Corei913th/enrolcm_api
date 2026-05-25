@@ -1,7 +1,7 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\OCR\OcrTestController;
+use Illuminate\Support\Facades\Route;
 
 /**
  * Routes Admin - Gestion des Reçus (OCR)
@@ -11,5 +11,5 @@ use App\Http\Controllers\OCR\OcrTestController;
 // Test OCR
 Route::post('ocr/test', [OcrTestController::class, 'testOcr']);
 Route::get('ocr/status', function () {
-  return response()->json(\App\Http\Controllers\OCR\OcrTestController::checkPdfSupport());
+    return response()->json(OcrTestController::checkPdfSupport());
 });

@@ -25,9 +25,9 @@ return new class extends Migration
             $table->json('metadata')->nullable();
             $table->enum('priorite', PrioriteNotification::values())->default(PrioriteNotification::NORMALE);
             $table->timestamps();
-            
+
             $table->foreign('utilisateur_id')->references('id')->on('utilisateurs')->onDelete('cascade');
-            
+
             $table->index('utilisateur_id');
             $table->index('type_notification');
             $table->index('est_lue');

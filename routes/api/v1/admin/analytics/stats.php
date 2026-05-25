@@ -8,7 +8,6 @@ use Illuminate\Support\Facades\Route;
  * Prefix: /admin/stats
  * Middleware appliqué : auth:sanctum + role:ADMIN
  */
-
 Route::get('global', [StatsController::class, 'global']);
 Route::get('dashboard', [StatsController::class, 'dashboard']);
 Route::get('widgets', [StatsController::class, 'widgets']);

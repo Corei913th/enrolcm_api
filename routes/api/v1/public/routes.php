@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Route;
 
 /**
  * Routes Publiques API v1
- * 
+ *
  * Routes accessibles sans authentification
  */
 

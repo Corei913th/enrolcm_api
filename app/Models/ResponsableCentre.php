@@ -11,10 +11,13 @@ use Illuminate\Database\Eloquent\Model;
 class ResponsableCentre extends Model
 {
     use HasFactory;
-    
+
     protected $table = 'responsables_centre';
+
     protected $primaryKey = 'utilisateur_id';
+
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected $fillable = [

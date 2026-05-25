@@ -4,7 +4,6 @@ namespace Tests\Unit\Services;
 
 use App\Services\Infrastructure\OCR\TesseractOcrService;
 use Tests\TestCase;
-use Illuminate\Support\Facades\Storage;
 
 class TesseractOcrServiceTest extends TestCase
 {
@@ -13,7 +12,7 @@ class TesseractOcrServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->ocrService = new TesseractOcrService();
+        $this->ocrService = new TesseractOcrService;
     }
 
     /** @test */

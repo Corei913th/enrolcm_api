@@ -2,20 +2,20 @@
 
 namespace App\Services\Domain\Referentiel;
 
-use App\Models\Centre;
-use App\Traits\HasAdvancedSearch;
-use App\Traits\HasSmartCache;
-use App\Traits\HasOptimizedUpdate;
-use App\Traits\HasActivityLogger;
-use App\Services\Infrastructure\Logger\ActivityLoggerService;
-use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Facades\DB;
 use App\Exceptions\Business\CentreException;
+use App\Models\Centre;
+use App\Services\Infrastructure\Logger\ActivityLoggerService;
+use App\Traits\HasActivityLogger;
+use App\Traits\HasAdvancedSearch;
+use App\Traits\HasOptimizedUpdate;
+use App\Traits\HasSmartCache;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class CentreService
 {
-    use HasAdvancedSearch, HasSmartCache, HasOptimizedUpdate, HasActivityLogger;
+    use HasActivityLogger, HasAdvancedSearch, HasOptimizedUpdate, HasSmartCache;
 
     public function __construct(ActivityLoggerService $logger)
     {
@@ -45,11 +45,11 @@ class CentreService
                 'capacite',
                 'est_actif',
                 'created_at',
-                'updated_at'
+                'updated_at',
             ])->with(['region:id,libelle,code']);
 
         // Recherche optimisée
-        if (!empty($filters['search'])) {
+        if (! empty($filters['search'])) {
             $this->applySearch(
                 $query,
                 $filters['search'],
@@ -57,7 +57,7 @@ class CentreService
                     'libelle_centre' => 'words',
                     'ville_centre' => 'partial',
                     'adresse_centre' => 'partial',
-                    'type_centre' => 'partial'
+                    'type_centre' => 'partial',
                 ]
             );
         }
@@ -93,7 +93,7 @@ class CentreService
     {
         try {
             return Centre::with(['region', 'responsable', 'salles'])->findOrFail($id);
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+        } catch (ModelNotFoundException $e) {
             throw CentreException::notFound($id);
         }
     }
@@ -107,9 +107,10 @@ class CentreService
             try {
                 $centre = Centre::create($data);
                 $this->logCreate('centre', $centre->id, ['libelle' => $centre->libelle_centre]);
+
                 return $centre;
             } catch (\Exception $e) {
-                throw new CentreException("Erreur lors de la création du centre : " . $e->getMessage(), 500);
+                throw new CentreException('Erreur lors de la création du centre : ' . $e->getMessage(), 500);
             }
         }, 'CentreService::create');
     }
@@ -124,11 +125,12 @@ class CentreService
                 $centre = $this->getById($id);
                 $this->updateWithCache($centre, $data);
                 $this->logUpdate('centre', $id);
+
                 return $centre->fresh();
             } catch (CentreException $e) {
                 throw $e;
             } catch (\Exception $e) {
-                throw new CentreException("Erreur lors de la mise à jour du centre : " . $e->getMessage(), 500);
+                throw new CentreException('Erreur lors de la mise à jour du centre : ' . $e->getMessage(), 500);
             }
         }, 'CentreService::update');
     }
@@ -146,11 +148,12 @@ class CentreService
                 }
                 $result = $centre->delete();
                 $this->logDelete('centre', $id);
+
                 return $result;
             } catch (CentreException $e) {
                 throw $e;
             } catch (\Exception $e) {
-                throw new CentreException("Erreur lors de la suppression du centre : " . $e->getMessage(), 500);
+                throw new CentreException('Erreur lors de la suppression du centre : ' . $e->getMessage(), 500);
             }
         }, 'CentreService::delete');
     }

@@ -1,7 +1,7 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Concours\SpecConcoursController;
+use Illuminate\Support\Facades\Route;
 
 /**
  * Routes Admin - Spécialités Concours

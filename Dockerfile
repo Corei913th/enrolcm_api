@@ -47,6 +47,10 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www
 
+ENV PUPPETEER_SKIP_DOWNLOAD=true \
+    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium \
+    BROWSERSHOT_CHROME_PATH=/usr/bin/chromium
+
 COPY . /var/www
 
 COPY docker/php/php.ini /usr/local/etc/php/conf.d/app.ini
@@ -54,7 +58,7 @@ COPY docker/php/php.ini /usr/local/etc/php/conf.d/app.ini
 RUN cp .env.example .env || true
 
 # Install npm deps (puppeteer for browsershot) and build assets
-RUN npm install puppeteer-core @spatie/browsershot && npm install && npm run build
+RUN npm install --omit=dev && npm run build --if-present
 
 # Composer install & Laravel caches
 RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts && \

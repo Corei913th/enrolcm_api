@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\Ecole;
-use App\Enums\RegionCameroun;
 use Illuminate\Database\Seeder;
 
 class EcoleSeeder extends Seeder

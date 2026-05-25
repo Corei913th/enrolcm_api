@@ -3,12 +3,13 @@
 namespace App\Http\Controllers\Payment;
 
 use App\Http\Controllers\Controller;
-use App\Services\Domain\Paiement\PaiementService;
 use App\Http\Requests\Payment\CreatePaiementRequest;
-use App\Http\Requests\Payment\ValiderPaiementRequest;
-use App\Http\Requests\Payment\RejeterPaiementRequest;
 use App\Http\Requests\Payment\FilterPaiementsRequest;
+use App\Http\Requests\Payment\RejeterPaiementRequest;
+use App\Http\Requests\Payment\ValiderPaiementRequest;
 use App\Http\Requests\Payment\VerifyPRURequest;
+use App\Models\Paiement;
+use App\Services\Domain\Paiement\PaiementService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -19,8 +20,9 @@ class PaiementController extends Controller
     ) {}
 
     /**
-     * Upload preuve de paiement 
-     * @param CreatePaiementRequest $request Requête validée contenant concours_id, reference, montant et preuve
+     * Upload preuve de paiement
+     *
+     * @param  CreatePaiementRequest  $request  Requête validée contenant concours_id, reference, montant et preuve
      * @return JsonResponse Réponse JSON avec paiement créé ou erreur
      */
     public function store(CreatePaiementRequest $request): JsonResponse
@@ -35,7 +37,7 @@ class PaiementController extends Controller
                 'success' => true,
                 'message' => $result['validation_info']['message'],
                 'data' => $result,
-                'alert_type' => $this->getAlertTypeFromCode($result['validation_info']['code'])
+                'alert_type' => $this->getAlertTypeFromCode($result['validation_info']['code']),
             ]);
         } catch (\Exception $e) {
             return api_error($e->getMessage(), null, 400);
@@ -44,7 +46,8 @@ class PaiementController extends Controller
 
     /**
      * Vérifier si un PRU est valide
-     * @param VerifyPRURequest $request Requête validée contenant pru et concours_id
+     *
+     * @param  VerifyPRURequest  $request  Requête validée contenant pru et concours_id
      * @return JsonResponse Réponse JSON indiquant validité du PRU
      */
     public function verifyPRU(VerifyPRURequest $request): JsonResponse
@@ -59,7 +62,7 @@ class PaiementController extends Controller
             $response = [
                 'valid' => $result['valid'],
                 'code' => $result['code'],
-                'message' => $result['message']
+                'message' => $result['message'],
             ];
 
             if ($result['valid']) {
@@ -75,8 +78,8 @@ class PaiementController extends Controller
     /**
      * Liste des paiements (Admin).
 
-     * @param FilterPaiementsRequest $request Requête validée avec filtres et pagination
      *
+     * @param  FilterPaiementsRequest  $request  Requête validée avec filtres et pagination
      * @return JsonResponse Réponse JSON paginée des paiements
      */
     public function index(FilterPaiementsRequest $request): JsonResponse
@@ -91,8 +94,8 @@ class PaiementController extends Controller
 
     /**
      * Paiements en attente (Admin).
-     * @param Request $request Requête avec pagination
      *
+     * @param  Request  $request  Requête avec pagination
      * @return JsonResponse Réponse JSON paginée des paiements en attente
      */
     public function pending(Request $request): JsonResponse
@@ -105,14 +108,15 @@ class PaiementController extends Controller
 
     /**
      * Détails d'un paiement.
-     * @param string $id ID du paiement
      *
+     * @param  string  $id  ID du paiement
      * @return JsonResponse Réponse JSON avec détails du paiement ou erreur 404
      */
     public function show(string $id): JsonResponse
     {
         try {
-            $paiement = \App\Models\Paiement::with(['candidat', 'concours'])->findOrFail($id);
+            $paiement = Paiement::with(['candidat', 'concours'])->findOrFail($id);
+
             return api_success($paiement);
         } catch (\Exception $e) {
             return api_error('Paiement introuvable', null, 404);
@@ -128,6 +132,7 @@ class PaiementController extends Controller
     {
         try {
             $paiement = $this->paiementService->manualValidate($id, $request->user()->id);
+
             return api_success($paiement, 'Paiement validé avec succès');
         } catch (\Exception $e) {
             return api_error($e->getMessage(), null, 400);
@@ -136,9 +141,9 @@ class PaiementController extends Controller
 
     /**
      * Rejet manuel d'un paiement (Admin).
-     * @param string $id ID du paiement
-     * @param RejeterPaiementRequest $request Requête validée contenant motif et utilisateur
      *
+     * @param  string  $id  ID du paiement
+     * @param  RejeterPaiementRequest  $request  Requête validée contenant motif et utilisateur
      * @return JsonResponse Réponse JSON avec paiement rejeté ou erreur
      */
     public function reject(string $id, RejeterPaiementRequest $request): JsonResponse
@@ -149,6 +154,7 @@ class PaiementController extends Controller
                 motif: $request->motif,
                 userId: $request->user()->id
             );
+
             return api_success($paiement, 'Paiement rejeté');
         } catch (\Exception $e) {
             return api_error($e->getMessage(), null, 400);

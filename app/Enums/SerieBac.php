@@ -2,7 +2,6 @@
 
 namespace App\Enums;
 
-
 enum SerieBac: string
 {
     case A = 'A';

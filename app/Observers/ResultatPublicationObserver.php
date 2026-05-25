@@ -2,8 +2,8 @@
 
 namespace App\Observers;
 
-use App\Models\ResultatPublication;
 use App\Models\ResultatFinal;
+use App\Models\ResultatPublication;
 use App\Services\Domain\Notification\NotificationService;
 use App\Services\Infrastructure\Logger\ActivityLoggerService;
 
@@ -34,7 +34,7 @@ class ResultatPublicationObserver
     public function updated(ResultatPublication $publication): void
     {
         // Vérifier si est_publie vient de passer à true
-        if (!$publication->isDirty('est_publie') || !$publication->est_publie) {
+        if (! $publication->isDirty('est_publie') || ! $publication->est_publie) {
             return;
         }
 
@@ -48,10 +48,10 @@ class ResultatPublicationObserver
         // Récupérer TOUS les résultats pour ce concours/session
         $resultats = ResultatFinal::whereHas('candidature', function ($q) use ($publication) {
             $q->where('concours_id', $publication->concours_id)
-              ->where('session_id', $publication->session_id);
+                ->where('session_id', $publication->session_id);
         })
-        ->with(['candidature.candidat', 'candidature.concours'])
-        ->get();
+            ->with(['candidature.candidat', 'candidature.concours'])
+            ->get();
 
         // Notifier chaque candidat
         foreach ($resultats as $resultat) {

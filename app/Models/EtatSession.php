@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
+use App\Enums\EtatSession as EtatSessionEnum;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
-use App\Enums\EtatSession as EtatSessionEnum;
 
 /**
  * @mixin IdeHelperEtatSession
@@ -15,8 +15,11 @@ class EtatSession extends Model
     use HasFactory, HasUuids;
 
     protected $table = 'etat_session';
+
     public $incrementing = false;
+
     protected $keyType = 'string';
+
     public $timestamps = false;
 
     protected $fillable = [
@@ -27,7 +30,6 @@ class EtatSession extends Model
     protected $casts = [
         'created_at' => 'datetime',
     ];
-
 
     public function getLibelleLabel()
     {

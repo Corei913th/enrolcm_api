@@ -2,8 +2,8 @@
 
 namespace App\Http\Requests\Matieres;
 
-use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
 class StoreMatiereRequest extends FormRequest

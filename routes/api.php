@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Route;
 
 /**
  * Point d'entrée principal de l'API
- * 
+ *
  * Toutes les routes sont versionnées et organisées par domaine métier
  * Structure : /api/v1/{role}/{domaine}/{ressource}
  */

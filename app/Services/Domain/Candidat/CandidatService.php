@@ -2,23 +2,24 @@
 
 namespace App\Services\Domain\Candidat;
 
-use App\Models\Candidat;
-use App\DTOs\Candidats\VerifyPRUDTO;
 use App\DTOs\Candidats\UpdateCandidatProfileDTO;
-use App\Services\Domain\User\UserService;
+use App\DTOs\Candidats\VerifyPRUDTO;
+use App\Models\Candidat;
 use App\Services\Domain\Candidature\CandidatureService;
 use App\Services\Domain\Paiement\PaiementService;
 use App\Services\Domain\User\TokenService;
+use App\Services\Domain\User\UserService;
+use App\Services\Infrastructure\Logger\ActivityLoggerService;
+use App\Traits\HasActivityLogger;
 use App\Traits\HasAdvancedSearch;
 use App\Traits\HasSmartCache;
-use App\Traits\HasActivityLogger;
-use App\Services\Infrastructure\Logger\ActivityLoggerService;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Cache;
-
 
 class CandidatService
 {
-    use HasAdvancedSearch, HasSmartCache, HasActivityLogger;
+    use HasActivityLogger, HasAdvancedSearch, HasSmartCache;
 
     protected function getModelTags(): array
     {
@@ -37,11 +38,8 @@ class CandidatService
 
     /**
      * Créer un candidat pour le workflow d'inscription
-     * 
-     * @param string $utilisateurId
-     * @param array $eligibilityData ['date_naissance', 'serie_bac', 'nationalite']
-     * @param string|null $filiereId
-     * @return Candidat
+     *
+     * @param  array  $eligibilityData  ['date_naissance', 'serie_bac', 'nationalite']
      */
     public function createCandidatForRegistration(string $utilisateurId, array $eligibilityData, ?string $filiereId): Candidat
     {
@@ -51,7 +49,7 @@ class CandidatService
             'serie_bac' => $eligibilityData['serie_bac'] ?? null,
             'nationalite_cand' => $eligibilityData['nationalite'] ?? 'Camerounaise',
             'sexe_cand' => $eligibilityData['sexe'] ?? null,
-            'filiere_id' => $filiereId
+            'filiere_id' => $filiereId,
         ];
 
         $candidat = Candidat::create($data);
@@ -63,9 +61,9 @@ class CandidatService
 
     /**
      * Vérifier si un numéro CNI est unique
-     * 
-     * @param string $cni Numéro de CNI à vérifier
-     * @param string|null $excludeId ID utilisateur à exclure de la vérification
+     *
+     * @param  string  $cni  Numéro de CNI à vérifier
+     * @param  string|null  $excludeId  ID utilisateur à exclure de la vérification
      * @return bool True si le CNI est unique, false sinon
      */
     public function verifyCNIUnique(string $cni, ?string $excludeId = null): bool
@@ -76,14 +74,13 @@ class CandidatService
             $query->where('utilisateur_id', '!=', $excludeId);
         }
 
-        return !$query->exists();
+        return ! $query->exists();
     }
 
     /**
      * Vérifier si un PRU est valide et disponible pour création de compte.
      *
-     * @param VerifyPRUDTO $dto DTO contenant le PRU et l'ID du concours
-     *
+     * @param  VerifyPRUDTO  $dto  DTO contenant le PRU et l'ID du concours
      * @return array Résultat de la validation (valid, message, concours, montant)
      */
     public function verifyPRU(VerifyPRUDTO $dto): array
@@ -91,15 +88,11 @@ class CandidatService
         return $this->paiementService->isPRUValid($dto->pru, $dto->concoursId);
     }
 
-
-
-
     /**
      * Mettre à jour le profil candidat.
      *
-     * @param string $utilisateurId ID de l'utilisateur lié au candidat
-     * @param UpdateCandidatProfileDTO $dto DTO contenant les nouvelles données du profil
-     *
+     * @param  string  $utilisateurId  ID de l'utilisateur lié au candidat
+     * @param  UpdateCandidatProfileDTO  $dto  DTO contenant les nouvelles données du profil
      * @return Candidat Candidat mis à jour
      */
     public function updateProfile(string $utilisateurId, UpdateCandidatProfileDTO $dto): Candidat
@@ -108,6 +101,7 @@ class CandidatService
             $candidat = Candidat::where('utilisateur_id', $utilisateurId)->firstOrFail();
             $candidat->update($dto->toArray());
             $this->logUpdate('candidat', $utilisateurId);
+
             return $candidat->fresh();
         }, 'CandidatService::updateProfile');
     }
@@ -115,13 +109,13 @@ class CandidatService
     /**
      * Récupérer un candidat par ID utilisateur.
      *
-     * @param string $utilisateurId ID de l'utilisateur
-     *
+     * @param  string  $utilisateurId  ID de l'utilisateur
      * @return Candidat Candidat avec relations utilisateur, concours et session
      */
     public function getByUserId(string $utilisateurId): Candidat
     {
         $relations = ['utilisateur:id,email,telephone', 'candidatures.concours:id, libelle_concours', 'candidatures.session:id, libelle_session'];
+
         return Candidat::with($relations)
             ->where('utilisateur_id', $utilisateurId)
             ->firstOrFail();
@@ -130,8 +124,7 @@ class CandidatService
     /**
      * Récupérer un candidat par PRU.
      *
-     * @param string $pru PRU du candidat
-     *
+     * @param  string  $pru  PRU du candidat
      * @return Candidat Candidat avec relations utilisateur et candidatures
      */
     public function getByPRU(string $pru): Candidat
@@ -144,10 +137,9 @@ class CandidatService
     /**
      * Liste des candidats avec filtres optimisée (Admin).
      *
-     * @param array $filters Filtres disponibles : search, region, est_actif
-     * @param int $perPage Nombre d'éléments par page
-     *
-     * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator Liste paginée des candidats
+     * @param  array  $filters  Filtres disponibles : search, region, est_actif
+     * @param  int  $perPage  Nombre d'éléments par page
+     * @return LengthAwarePaginator Liste paginée des candidats
      */
     public function getAll(array $filters = [], int $perPage = 20)
     {
@@ -166,12 +158,11 @@ class CandidatService
                 'region',
                 'serie_bac',
                 'created_at',
-                'updated_at'
+                'updated_at',
             ])
             ->with(['utilisateur:id,user_name,email,telephone,est_actif', 'candidatures:id,code_cand_def']);
 
-
-        if (!empty($filters['search'])) {
+        if (! empty($filters['search'])) {
             $this->applySearch(
                 $query,
                 $filters['search'],
@@ -184,7 +175,7 @@ class CandidatService
                 [
                     'utilisateur.email' => 'partial',
                     'utilisateur.telephone' => 'start',
-                    'utilisateur.user_name' => 'partial'
+                    'utilisateur.user_name' => 'partial',
                 ]
             );
         }
@@ -222,9 +213,7 @@ class CandidatService
     /**
      * Get all candidats with relations for export
      *
-     * @param array $filters
-     * @param int $limit
-     * @return \Illuminate\Database\Eloquent\Collection
+     * @return Collection
      */
     public function getAllForExport(array $filters = [], int $limit = 10000)
     {
@@ -232,7 +221,7 @@ class CandidatService
             ->with(['utilisateur', 'candidatures.paiement']);
 
         // Apply same filters as getAll
-        if (!empty($filters['search'])) {
+        if (! empty($filters['search'])) {
             $this->applySearch(
                 $query,
                 $filters['search'],
@@ -245,7 +234,7 @@ class CandidatService
                 [
                     'utilisateur.email' => 'partial',
                     'utilisateur.telephone' => 'start',
-                    'utilisateur.user_name' => 'partial'
+                    'utilisateur.user_name' => 'partial',
                 ]
             );
         }
@@ -270,13 +259,11 @@ class CandidatService
 
     /**
      * Statistiques sur les candidats.
-     *
-     * @return array 
      */
     public function getStats(): array
     {
         $total = Candidat::count();
-        $actifs = Candidat::whereHas('utilisateur', fn($q) => $q->where('est_actif', true))->count();
+        $actifs = Candidat::whereHas('utilisateur', fn ($q) => $q->where('est_actif', true))->count();
 
         return [
             'total' => $total,
@@ -298,8 +285,7 @@ class CandidatService
     /**
      * Désactiver un candidat.
      *
-     * @param string $utilisateurId ID de l'utilisateur lié au candidat
-     *
+     * @param  string  $utilisateurId  ID de l'utilisateur lié au candidat
      * @return bool True si désactivation réussie
      */
     public function deactivate(string $utilisateurId): bool
@@ -310,8 +296,7 @@ class CandidatService
     /**
      * Activer un candidat.
      *
-     * @param string $utilisateurId ID de l'utilisateur lié au candidat
-     *
+     * @param  string  $utilisateurId  ID de l'utilisateur lié au candidat
      * @return bool True si activation réussie
      */
     public function activate(string $utilisateurId): bool
@@ -322,8 +307,7 @@ class CandidatService
     /**
      * Récupérer la session active pour un concours (avec cache).
      *
-     * @param mixed $concours Instance du modèle Concours
-     *
+     * @param  mixed  $concours  Instance du modèle Concours
      * @return mixed Session active ou null
      */
     private function getActiveSessionForConcours($concours)

@@ -7,8 +7,8 @@ use App\Enums\StatutPaiement;
 use App\Enums\StatutVerificationDocument;
 use App\Models\Candidature;
 use App\Models\Paiement;
-use App\Services\Domain\Candidature\DocumentService;
 use App\Services\Domain\Candidature\Checkers\EligibilityChecker;
+use App\Services\Domain\Candidature\DocumentService;
 use Tests\TestCase;
 
 // DocumentStatutDTO is in the global namespace
@@ -16,342 +16,343 @@ require_once __DIR__ . '/../../../app/DTOs/Documents/DocumentStatutDTO.php';
 
 class EligibilityCheckerServiceFullTest extends TestCase
 {
-  private EligibilityChecker $service;
-  private DocumentService $documentService;
+    private EligibilityChecker $service;
 
-  protected function setUp(): void
-  {
-    parent::setUp();
-    $this->documentService = $this->createMock(DocumentService::class);
-    $this->service = new EligibilityChecker($this->documentService);
-  }
+    private DocumentService $documentService;
 
-  /** @test */
-  public function checkPaymentStatus_returns_valid_for_verified_payment()
-  {
-    $paiement = new Paiement(['statut' => StatutPaiement::VERIFIED]);
-    $candidature = new Candidature();
-    $candidature->setRelation('paiement', $paiement);
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->documentService = $this->createMock(DocumentService::class);
+        $this->service = new EligibilityChecker($this->documentService);
+    }
 
-    $result = $this->service->checkPaymentStatus($candidature);
+    /** @test */
+    public function check_payment_status_returns_valid_for_verified_payment()
+    {
+        $paiement = new Paiement(['statut' => StatutPaiement::VERIFIED]);
+        $candidature = new Candidature;
+        $candidature->setRelation('paiement', $paiement);
 
-    $this->assertTrue($result['valid']);
-    $this->assertEquals(StatutPaiement::VERIFIED->value, $result['status']);
-    $this->assertEmpty($result['reason']);
-  }
+        $result = $this->service->checkPaymentStatus($candidature);
 
-  /** @test */
-  public function checkPaymentStatus_returns_invalid_for_pending_payment()
-  {
-    $paiement = new Paiement(['statut' => StatutPaiement::PENDING]);
-    $candidature = new Candidature();
-    $candidature->setRelation('paiement', $paiement);
+        $this->assertTrue($result['valid']);
+        $this->assertEquals(StatutPaiement::VERIFIED->value, $result['status']);
+        $this->assertEmpty($result['reason']);
+    }
 
-    $result = $this->service->checkPaymentStatus($candidature);
+    /** @test */
+    public function check_payment_status_returns_invalid_for_pending_payment()
+    {
+        $paiement = new Paiement(['statut' => StatutPaiement::PENDING]);
+        $candidature = new Candidature;
+        $candidature->setRelation('paiement', $paiement);
 
-    $this->assertFalse($result['valid']);
-    $this->assertEquals(StatutPaiement::PENDING->value, $result['status']);
-    $this->assertStringContainsString('en attente', $result['reason']);
-  }
+        $result = $this->service->checkPaymentStatus($candidature);
 
-  /** @test */
-  public function checkPaymentStatus_returns_invalid_for_pending_manual_review()
-  {
-    $paiement = new Paiement(['statut' => StatutPaiement::PENDING_MANUAL_REVIEW]);
-    $candidature = new Candidature();
-    $candidature->setRelation('paiement', $paiement);
+        $this->assertFalse($result['valid']);
+        $this->assertEquals(StatutPaiement::PENDING->value, $result['status']);
+        $this->assertStringContainsString('en attente', $result['reason']);
+    }
 
-    $result = $this->service->checkPaymentStatus($candidature);
+    /** @test */
+    public function check_payment_status_returns_invalid_for_pending_manual_review()
+    {
+        $paiement = new Paiement(['statut' => StatutPaiement::PENDING_MANUAL_REVIEW]);
+        $candidature = new Candidature;
+        $candidature->setRelation('paiement', $paiement);
 
-    $this->assertFalse($result['valid']);
-    $this->assertEquals(StatutPaiement::PENDING_MANUAL_REVIEW->value, $result['status']);
-    $this->assertStringContainsString('en attente de validation manuelle', $result['reason']);
-  }
+        $result = $this->service->checkPaymentStatus($candidature);
 
-  /** @test */
-  public function checkPaymentStatus_returns_invalid_for_rejected_payment()
-  {
-    $paiement = new Paiement(['statut' => StatutPaiement::REJECTED]);
-    $candidature = new Candidature();
-    $candidature->setRelation('paiement', $paiement);
+        $this->assertFalse($result['valid']);
+        $this->assertEquals(StatutPaiement::PENDING_MANUAL_REVIEW->value, $result['status']);
+        $this->assertStringContainsString('en attente de validation manuelle', $result['reason']);
+    }
 
-    $result = $this->service->checkPaymentStatus($candidature);
+    /** @test */
+    public function check_payment_status_returns_invalid_for_rejected_payment()
+    {
+        $paiement = new Paiement(['statut' => StatutPaiement::REJECTED]);
+        $candidature = new Candidature;
+        $candidature->setRelation('paiement', $paiement);
 
-    $this->assertFalse($result['valid']);
-    $this->assertEquals(StatutPaiement::REJECTED->value, $result['status']);
-    $this->assertStringContainsString('rejeté', $result['reason']);
-  }
+        $result = $this->service->checkPaymentStatus($candidature);
 
-  /** @test */
-  public function checkPaymentStatus_returns_invalid_when_no_payment()
-  {
-    $candidature = new Candidature();
-    $candidature->setRelation('paiement', null);
+        $this->assertFalse($result['valid']);
+        $this->assertEquals(StatutPaiement::REJECTED->value, $result['status']);
+        $this->assertStringContainsString('rejeté', $result['reason']);
+    }
 
-    $result = $this->service->checkPaymentStatus($candidature);
+    /** @test */
+    public function check_payment_status_returns_invalid_when_no_payment()
+    {
+        $candidature = new Candidature;
+        $candidature->setRelation('paiement', null);
 
-    $this->assertFalse($result['valid']);
-    $this->assertEquals('MISSING', $result['status']);
-    $this->assertStringContainsString('Aucun paiement', $result['reason']);
-  }
+        $result = $this->service->checkPaymentStatus($candidature);
 
-  /** @test */
-  public function checkDocumentsStatus_returns_valid_when_documents_complete()
-  {
-    $candidature = new Candidature();
+        $this->assertFalse($result['valid']);
+        $this->assertEquals('MISSING', $result['status']);
+        $this->assertStringContainsString('Aucun paiement', $result['reason']);
+    }
 
-    $this->documentService
-      ->expects($this->once())
-      ->method('areDocumentsComplete')
-      ->with($candidature)
-      ->willReturn(true);
+    /** @test */
+    public function check_documents_status_returns_valid_when_documents_complete()
+    {
+        $candidature = new Candidature;
 
-    $result = $this->service->checkDocumentsStatus($candidature);
+        $this->documentService
+            ->expects($this->once())
+            ->method('areDocumentsComplete')
+            ->with($candidature)
+            ->willReturn(true);
 
-    $this->assertTrue($result['valid']);
-    $this->assertEmpty($result['missing']);
-    $this->assertEmpty($result['pending']);
-    $this->assertEmpty($result['rejected']);
-  }
+        $result = $this->service->checkDocumentsStatus($candidature);
 
-  /** @test */
-  public function checkDocumentsStatus_returns_invalid_with_missing_documents()
-  {
-    $candidature = new Candidature();
+        $this->assertTrue($result['valid']);
+        $this->assertEmpty($result['missing']);
+        $this->assertEmpty($result['pending']);
+        $this->assertEmpty($result['rejected']);
+    }
 
-    $this->documentService
-      ->expects($this->once())
-      ->method('areDocumentsComplete')
-      ->with($candidature)
-      ->willReturn(false);
+    /** @test */
+    public function check_documents_status_returns_invalid_with_missing_documents()
+    {
+        $candidature = new Candidature;
 
-    $this->documentService
-      ->expects($this->once())
-      ->method('getRequiredDocumentsStatusForCandidature')
-      ->with($candidature)
-      ->willReturn([
-        new \DocumentStatutDTO(
-          documentRequisId: '1',
-          nom: 'Carte d\'identité',
-          estObligatoire: true,
-          statut: StatutVerificationDocument::NON_SOUMIS,
-          commentaire: null
-        ),
-        new \DocumentStatutDTO(
-          documentRequisId: '2',
-          nom: 'Diplôme',
-          estObligatoire: true,
-          statut: StatutVerificationDocument::EN_ATTENTE,
-          commentaire: null
-        ),
-      ]);
+        $this->documentService
+            ->expects($this->once())
+            ->method('areDocumentsComplete')
+            ->with($candidature)
+            ->willReturn(false);
 
-    $result = $this->service->checkDocumentsStatus($candidature);
+        $this->documentService
+            ->expects($this->once())
+            ->method('getRequiredDocumentsStatusForCandidature')
+            ->with($candidature)
+            ->willReturn([
+                new \DocumentStatutDTO(
+                    documentRequisId: '1',
+                    nom: 'Carte d\'identité',
+                    estObligatoire: true,
+                    statut: StatutVerificationDocument::NON_SOUMIS,
+                    commentaire: null
+                ),
+                new \DocumentStatutDTO(
+                    documentRequisId: '2',
+                    nom: 'Diplôme',
+                    estObligatoire: true,
+                    statut: StatutVerificationDocument::EN_ATTENTE,
+                    commentaire: null
+                ),
+            ]);
 
-    $this->assertFalse($result['valid']);
-    $this->assertCount(1, $result['missing']);
-    $this->assertContains('Carte d\'identité', $result['missing']);
-    $this->assertCount(1, $result['pending']);
-    $this->assertContains('Diplôme', $result['pending']);
-    $this->assertEmpty($result['rejected']);
-  }
+        $result = $this->service->checkDocumentsStatus($candidature);
 
-  /** @test */
-  public function checkDocumentsStatus_returns_invalid_with_rejected_documents()
-  {
-    $candidature = new Candidature();
+        $this->assertFalse($result['valid']);
+        $this->assertCount(1, $result['missing']);
+        $this->assertContains('Carte d\'identité', $result['missing']);
+        $this->assertCount(1, $result['pending']);
+        $this->assertContains('Diplôme', $result['pending']);
+        $this->assertEmpty($result['rejected']);
+    }
 
-    $this->documentService
-      ->expects($this->once())
-      ->method('areDocumentsComplete')
-      ->with($candidature)
-      ->willReturn(false);
+    /** @test */
+    public function check_documents_status_returns_invalid_with_rejected_documents()
+    {
+        $candidature = new Candidature;
 
-    $this->documentService
-      ->expects($this->once())
-      ->method('getRequiredDocumentsStatusForCandidature')
-      ->with($candidature)
-      ->willReturn([
-        new \DocumentStatutDTO(
-          documentRequisId: '1',
-          nom: 'Photo',
-          estObligatoire: true,
-          statut: StatutVerificationDocument::REJETE,
-          commentaire: 'Photo floue'
-        ),
-      ]);
+        $this->documentService
+            ->expects($this->once())
+            ->method('areDocumentsComplete')
+            ->with($candidature)
+            ->willReturn(false);
 
-    $result = $this->service->checkDocumentsStatus($candidature);
+        $this->documentService
+            ->expects($this->once())
+            ->method('getRequiredDocumentsStatusForCandidature')
+            ->with($candidature)
+            ->willReturn([
+                new \DocumentStatutDTO(
+                    documentRequisId: '1',
+                    nom: 'Photo',
+                    estObligatoire: true,
+                    statut: StatutVerificationDocument::REJETE,
+                    commentaire: 'Photo floue'
+                ),
+            ]);
 
-    $this->assertFalse($result['valid']);
-    $this->assertEmpty($result['missing']);
-    $this->assertEmpty($result['pending']);
-    $this->assertCount(1, $result['rejected']);
-    $this->assertContains('Photo', $result['rejected']);
-  }
+        $result = $this->service->checkDocumentsStatus($candidature);
 
-  /** @test */
-  public function checkFullEligibility_returns_eligible_when_all_criteria_met()
-  {
-    $paiement = new Paiement(['statut' => StatutPaiement::VERIFIED]);
-    $candidature = new Candidature(['statut_candidature' => StatutCandidature::VALIDE]);
-    $candidature->setRelation('paiement', $paiement);
+        $this->assertFalse($result['valid']);
+        $this->assertEmpty($result['missing']);
+        $this->assertEmpty($result['pending']);
+        $this->assertCount(1, $result['rejected']);
+        $this->assertContains('Photo', $result['rejected']);
+    }
 
-    $this->documentService
-      ->expects($this->once())
-      ->method('areDocumentsComplete')
-      ->with($candidature)
-      ->willReturn(true);
+    /** @test */
+    public function check_full_eligibility_returns_eligible_when_all_criteria_met()
+    {
+        $paiement = new Paiement(['statut' => StatutPaiement::VERIFIED]);
+        $candidature = new Candidature(['statut_candidature' => StatutCandidature::VALIDE]);
+        $candidature->setRelation('paiement', $paiement);
 
-    $result = $this->service->checkFullEligibility($candidature);
+        $this->documentService
+            ->expects($this->once())
+            ->method('areDocumentsComplete')
+            ->with($candidature)
+            ->willReturn(true);
 
-    $this->assertTrue($result['eligible']);
-    $this->assertEmpty($result['reasons']);
-  }
+        $result = $this->service->checkFullEligibility($candidature);
 
-  /** @test */
-  public function checkFullEligibility_returns_ineligible_with_invalid_status()
-  {
-    $paiement = new Paiement(['statut' => StatutPaiement::VERIFIED]);
-    $candidature = new Candidature(['statut_candidature' => StatutCandidature::SOUMISE]);
-    $candidature->setRelation('paiement', $paiement);
+        $this->assertTrue($result['eligible']);
+        $this->assertEmpty($result['reasons']);
+    }
 
-    $this->documentService
-      ->expects($this->once())
-      ->method('areDocumentsComplete')
-      ->with($candidature)
-      ->willReturn(true);
+    /** @test */
+    public function check_full_eligibility_returns_ineligible_with_invalid_status()
+    {
+        $paiement = new Paiement(['statut' => StatutPaiement::VERIFIED]);
+        $candidature = new Candidature(['statut_candidature' => StatutCandidature::SOUMISE]);
+        $candidature->setRelation('paiement', $paiement);
 
-    $result = $this->service->checkFullEligibility($candidature);
+        $this->documentService
+            ->expects($this->once())
+            ->method('areDocumentsComplete')
+            ->with($candidature)
+            ->willReturn(true);
 
-    $this->assertFalse($result['eligible']);
-    $this->assertCount(1, $result['reasons']);
-    $this->assertStringContainsString('statut VALIDE', $result['reasons'][0]);
-  }
+        $result = $this->service->checkFullEligibility($candidature);
 
-  /** @test */
-  public function checkFullEligibility_returns_ineligible_with_unverified_payment()
-  {
-    $paiement = new Paiement(['statut' => StatutPaiement::PENDING_MANUAL_REVIEW]);
-    $candidature = new Candidature(['statut_candidature' => StatutCandidature::VALIDE]);
-    $candidature->setRelation('paiement', $paiement);
+        $this->assertFalse($result['eligible']);
+        $this->assertCount(1, $result['reasons']);
+        $this->assertStringContainsString('statut VALIDE', $result['reasons'][0]);
+    }
 
-    $this->documentService
-      ->expects($this->once())
-      ->method('areDocumentsComplete')
-      ->with($candidature)
-      ->willReturn(true);
+    /** @test */
+    public function check_full_eligibility_returns_ineligible_with_unverified_payment()
+    {
+        $paiement = new Paiement(['statut' => StatutPaiement::PENDING_MANUAL_REVIEW]);
+        $candidature = new Candidature(['statut_candidature' => StatutCandidature::VALIDE]);
+        $candidature->setRelation('paiement', $paiement);
 
-    $result = $this->service->checkFullEligibility($candidature);
+        $this->documentService
+            ->expects($this->once())
+            ->method('areDocumentsComplete')
+            ->with($candidature)
+            ->willReturn(true);
 
-    $this->assertFalse($result['eligible']);
-    $this->assertCount(1, $result['reasons']);
-    $this->assertStringContainsString('en attente de validation manuelle', $result['reasons'][0]);
-  }
+        $result = $this->service->checkFullEligibility($candidature);
 
-  /** @test */
-  public function checkFullEligibility_returns_ineligible_with_incomplete_documents()
-  {
-    $paiement = new Paiement(['statut' => StatutPaiement::VERIFIED]);
-    $candidature = new Candidature(['statut_candidature' => StatutCandidature::VALIDE]);
-    $candidature->setRelation('paiement', $paiement);
+        $this->assertFalse($result['eligible']);
+        $this->assertCount(1, $result['reasons']);
+        $this->assertStringContainsString('en attente de validation manuelle', $result['reasons'][0]);
+    }
 
-    $this->documentService
-      ->expects($this->once())
-      ->method('areDocumentsComplete')
-      ->with($candidature)
-      ->willReturn(false);
+    /** @test */
+    public function check_full_eligibility_returns_ineligible_with_incomplete_documents()
+    {
+        $paiement = new Paiement(['statut' => StatutPaiement::VERIFIED]);
+        $candidature = new Candidature(['statut_candidature' => StatutCandidature::VALIDE]);
+        $candidature->setRelation('paiement', $paiement);
 
-    $this->documentService
-      ->expects($this->once())
-      ->method('getRequiredDocumentsStatusForCandidature')
-      ->with($candidature)
-      ->willReturn([
-        new \DocumentStatutDTO(
-          documentRequisId: '1',
-          nom: 'Acte de naissance',
-          estObligatoire: true,
-          statut: StatutVerificationDocument::NON_SOUMIS,
-          commentaire: null
-        ),
-      ]);
+        $this->documentService
+            ->expects($this->once())
+            ->method('areDocumentsComplete')
+            ->with($candidature)
+            ->willReturn(false);
 
-    $result = $this->service->checkFullEligibility($candidature);
+        $this->documentService
+            ->expects($this->once())
+            ->method('getRequiredDocumentsStatusForCandidature')
+            ->with($candidature)
+            ->willReturn([
+                new \DocumentStatutDTO(
+                    documentRequisId: '1',
+                    nom: 'Acte de naissance',
+                    estObligatoire: true,
+                    statut: StatutVerificationDocument::NON_SOUMIS,
+                    commentaire: null
+                ),
+            ]);
 
-    $this->assertFalse($result['eligible']);
-    $this->assertCount(1, $result['reasons']);
-    $this->assertStringContainsString('Documents manquants', $result['reasons'][0]);
-    $this->assertStringContainsString('Acte de naissance', $result['reasons'][0]);
-  }
+        $result = $this->service->checkFullEligibility($candidature);
 
-  /** @test */
-  public function checkFullEligibility_returns_multiple_reasons_when_multiple_criteria_fail()
-  {
-    $paiement = new Paiement(['statut' => StatutPaiement::PENDING]);
-    $candidature = new Candidature(['statut_candidature' => StatutCandidature::SOUMISE]);
-    $candidature->setRelation('paiement', $paiement);
+        $this->assertFalse($result['eligible']);
+        $this->assertCount(1, $result['reasons']);
+        $this->assertStringContainsString('Documents manquants', $result['reasons'][0]);
+        $this->assertStringContainsString('Acte de naissance', $result['reasons'][0]);
+    }
 
-    $this->documentService
-      ->expects($this->once())
-      ->method('areDocumentsComplete')
-      ->with($candidature)
-      ->willReturn(false);
+    /** @test */
+    public function check_full_eligibility_returns_multiple_reasons_when_multiple_criteria_fail()
+    {
+        $paiement = new Paiement(['statut' => StatutPaiement::PENDING]);
+        $candidature = new Candidature(['statut_candidature' => StatutCandidature::SOUMISE]);
+        $candidature->setRelation('paiement', $paiement);
 
-    $this->documentService
-      ->expects($this->once())
-      ->method('getRequiredDocumentsStatusForCandidature')
-      ->with($candidature)
-      ->willReturn([
-        new \DocumentStatutDTO(
-          documentRequisId: '1',
-          nom: 'Relevé de notes',
-          estObligatoire: true,
-          statut: StatutVerificationDocument::REJETE,
-          commentaire: 'Illisible'
-        ),
-      ]);
+        $this->documentService
+            ->expects($this->once())
+            ->method('areDocumentsComplete')
+            ->with($candidature)
+            ->willReturn(false);
 
-    $result = $this->service->checkFullEligibility($candidature);
+        $this->documentService
+            ->expects($this->once())
+            ->method('getRequiredDocumentsStatusForCandidature')
+            ->with($candidature)
+            ->willReturn([
+                new \DocumentStatutDTO(
+                    documentRequisId: '1',
+                    nom: 'Relevé de notes',
+                    estObligatoire: true,
+                    statut: StatutVerificationDocument::REJETE,
+                    commentaire: 'Illisible'
+                ),
+            ]);
 
-    $this->assertFalse($result['eligible']);
-    $this->assertCount(3, $result['reasons']);
-  }
+        $result = $this->service->checkFullEligibility($candidature);
 
-  /** @test */
-  public function canGenerateConvocation_delegates_to_checkFullEligibility()
-  {
-    $paiement = new Paiement(['statut' => StatutPaiement::VERIFIED]);
-    $candidature = new Candidature(['statut_candidature' => StatutCandidature::VALIDE]);
-    $candidature->setRelation('paiement', $paiement);
+        $this->assertFalse($result['eligible']);
+        $this->assertCount(3, $result['reasons']);
+    }
 
-    $this->documentService
-      ->expects($this->once())
-      ->method('areDocumentsComplete')
-      ->with($candidature)
-      ->willReturn(true);
+    /** @test */
+    public function can_generate_convocation_delegates_to_check_full_eligibility()
+    {
+        $paiement = new Paiement(['statut' => StatutPaiement::VERIFIED]);
+        $candidature = new Candidature(['statut_candidature' => StatutCandidature::VALIDE]);
+        $candidature->setRelation('paiement', $paiement);
 
-    $result = $this->service->canGenerateConvocation($candidature);
+        $this->documentService
+            ->expects($this->once())
+            ->method('areDocumentsComplete')
+            ->with($candidature)
+            ->willReturn(true);
 
-    $this->assertTrue($result['eligible']);
-    $this->assertEmpty($result['reasons']);
-  }
+        $result = $this->service->canGenerateConvocation($candidature);
 
-  /** @test */
-  public function canGenerateFicheInscription_delegates_to_checkFullEligibility()
-  {
-    $paiement = new Paiement(['statut' => StatutPaiement::VERIFIED]);
-    $candidature = new Candidature(['statut_candidature' => StatutCandidature::VALIDE]);
-    $candidature->setRelation('paiement', $paiement);
+        $this->assertTrue($result['eligible']);
+        $this->assertEmpty($result['reasons']);
+    }
 
-    $this->documentService
-      ->expects($this->once())
-      ->method('areDocumentsComplete')
-      ->with($candidature)
-      ->willReturn(true);
+    /** @test */
+    public function can_generate_fiche_inscription_delegates_to_check_full_eligibility()
+    {
+        $paiement = new Paiement(['statut' => StatutPaiement::VERIFIED]);
+        $candidature = new Candidature(['statut_candidature' => StatutCandidature::VALIDE]);
+        $candidature->setRelation('paiement', $paiement);
 
-    $result = $this->service->canGenerateFicheInscription($candidature);
+        $this->documentService
+            ->expects($this->once())
+            ->method('areDocumentsComplete')
+            ->with($candidature)
+            ->willReturn(true);
 
-    $this->assertTrue($result['eligible']);
-    $this->assertEmpty($result['reasons']);
-  }
+        $result = $this->service->canGenerateFicheInscription($candidature);
+
+        $this->assertTrue($result['eligible']);
+        $this->assertEmpty($result['reasons']);
+    }
 }

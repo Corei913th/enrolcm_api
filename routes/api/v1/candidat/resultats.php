@@ -1,12 +1,11 @@
 <?php
 
-
 use App\Http\Controllers\Concours\ResultatController;
 use Illuminate\Support\Facades\Route;
 
 /**
  * Routes Candidat - Résultats et Timer
- * 
+ *
  * Routes pour la consultation des résultats et le timer d'attente
  */
 

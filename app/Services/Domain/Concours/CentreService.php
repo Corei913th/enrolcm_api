@@ -2,19 +2,18 @@
 
 namespace App\Services\Domain\Concours;
 
-use App\Models\Concours;
-use App\Models\Centre;
 use App\Exceptions\ConcoursException;
+use App\Models\Centre;
+use App\Models\Concours;
 use App\Services\Infrastructure\Logger\ActivityLoggerService;
-use App\Traits\HasSmartCache;
 use App\Traits\HasAdvancedSearch;
 use App\Traits\HasServiceFinders;
-use Illuminate\Support\Facades\DB;
+use App\Traits\HasSmartCache;
 use Illuminate\Support\Str;
 
 class CentreService
 {
-    use HasSmartCache, HasAdvancedSearch, HasServiceFinders;
+    use HasAdvancedSearch, HasServiceFinders, HasSmartCache;
 
     protected string $modelClass = Centre::class;
 
@@ -37,7 +36,7 @@ class CentreService
             Centre::findOrFail($centreId); // Vérifier que le centre existe
 
             if ($concours->centers()->where('centre_id', $centreId)->exists()) {
-                throw new ConcoursException("Le centre est déjà rattaché à ce concours.", 409);
+                throw new ConcoursException('Le centre est déjà rattaché à ce concours.', 409);
             }
 
             $concours->centers()->attach($centreId, [
@@ -49,14 +48,14 @@ class CentreService
 
             $this->logger->logActivity('attach_centre', 'concours', $concoursId, [
                 'centre_id' => $centreId,
-                'est_actif' => $estActif
+                'est_actif' => $estActif,
             ]);
 
             // Invalider le cache
             $this->flushModelCache();
 
             return $concours->centers()->where('centre_id', $centreId)->first();
-        }, "CentreService::attachCentre");
+        }, 'CentreService::attachCentre');
     }
 
     /**
@@ -67,21 +66,21 @@ class CentreService
         return runTransaction(function () use ($concoursId, $centreId) {
             $concours = Concours::findOrFail($concoursId);
 
-            if (!$concours->centers()->where('centre_id', $centreId)->exists()) {
+            if (! $concours->centers()->where('centre_id', $centreId)->exists()) {
                 throw new ConcoursException("Le centre n'est pas rattaché à ce concours.", 404);
             }
 
             $result = $concours->centers()->detach($centreId);
 
             $this->logger->logActivity('detach_centre', 'concours', $concoursId, [
-                'centre_id' => $centreId
+                'centre_id' => $centreId,
             ]);
 
             // Invalider le cache
             $this->flushModelCache();
 
             return $result;
-        }, "CentreService::detachCentre");
+        }, 'CentreService::detachCentre');
     }
 
     /**
@@ -102,10 +101,10 @@ class CentreService
                             'centres.arrondissement',
                             'centres.region_id',
                             'centres.est_actif',
-                            'centres.capacite'
+                            'centres.capacite',
                         ]);
                     },
-                    'centers.region:id,libelle,code'
+                    'centers.region:id,libelle,code',
                 ])
                 ->findOrFail($concoursId)
                 ->centers;
@@ -120,7 +119,7 @@ class CentreService
         return runTransaction(function () use ($concoursId, $centreId, $estActif) {
             $concours = Concours::findOrFail($concoursId);
 
-            if (!$concours->centers()->where('centre_id', $centreId)->exists()) {
+            if (! $concours->centers()->where('centre_id', $centreId)->exists()) {
                 throw new ConcoursException("Le centre n'est pas rattaché à ce concours.", 404);
             }
 
@@ -131,14 +130,14 @@ class CentreService
 
             $this->logger->logActivity('update_centre_status', 'concours', $concoursId, [
                 'centre_id' => $centreId,
-                'est_actif' => $estActif
+                'est_actif' => $estActif,
             ]);
 
             // Invalider le cache
             $this->flushModelCache();
 
             return $concours->centers()->where('centre_id', $centreId)->first();
-        }, "CentreService::updateCentreStatus");
+        }, 'CentreService::updateCentreStatus');
     }
 
     /**
@@ -164,14 +163,14 @@ class CentreService
             $this->logger->logActivity('sync_centres', 'concours', $concoursId, [
                 'centre_ids' => $centreIds,
                 'attached' => $result['attached'] ?? [],
-                'detached' => $result['detached'] ?? []
+                'detached' => $result['detached'] ?? [],
             ]);
 
             // Invalider le cache
             $this->flushModelCache();
 
             return $result;
-        }, "CentreService::syncCentres");
+        }, 'CentreService::syncCentres');
     }
 
     /**
@@ -191,10 +190,10 @@ class CentreService
                             'centres.departement',
                             'centres.capacite',
                             'centres.type_centre',
-                            //'centres.region_id'
+                            // 'centres.region_id'
                         ])
                             ->wherePivot('est_actif', true);
-                    }
+                    },
                 ])
                 ->findOrFail($concoursId)
                 ->centers;

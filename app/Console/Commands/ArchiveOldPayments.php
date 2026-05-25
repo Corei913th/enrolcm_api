@@ -33,7 +33,7 @@ class ArchiveOldPayments extends Command
         $cutoffDate = now()->subMonths($months);
 
         $this->info("Archivage des paiements antérieurs au {$cutoffDate->format('Y-m-d')}");
-        $this->info("Mode dry-run: " . ($dryRun ? 'OUI' : 'NON'));
+        $this->info('Mode dry-run: ' . ($dryRun ? 'OUI' : 'NON'));
 
         // Compter les paiements à archiver
         $count = Paiement::where('created_at', '<', $cutoffDate)
@@ -44,6 +44,7 @@ class ArchiveOldPayments extends Command
 
         if ($count === 0) {
             $this->info('Aucun paiement à archiver.');
+
             return;
         }
 
@@ -54,23 +55,24 @@ class ArchiveOldPayments extends Command
                     ->whereIn('statut', ['VERIFIED', 'REJECTED'])
                     ->limit(10)
                     ->get(['id', 'reference', 'statut', 'created_at'])
-                    ->map(fn($p) => [
+                    ->map(fn ($p) => [
                         $p->id,
                         $p->reference,
                         $p->statut->label(),
-                        $p->created_at->format('Y-m-d')
+                        $p->created_at->format('Y-m-d'),
                     ])
             );
+
             return;
         }
 
-        if (!$this->confirm("Archiver {$count} paiements ? Cette action est irréversible.")) {
+        if (! $this->confirm("Archiver {$count} paiements ? Cette action est irréversible.")) {
             return;
         }
 
         $this->info('Début de l\'archivage...');
 
-        DB::transaction(function () use ($cutoffDate, $count) {
+        DB::transaction(function () use ($cutoffDate) {
             // Créer un fichier d'archive JSON
             $archiveData = Paiement::with(['candidat.utilisateur', 'concours'])
                 ->where('created_at', '<', $cutoffDate)
@@ -91,7 +93,7 @@ class ArchiveOldPayments extends Command
                 });
 
             // Sauvegarder l'archive
-            $archiveFile = "archives/paiements_archive_" . now()->format('Y_m') . ".json";
+            $archiveFile = 'archives/paiements_archive_' . now()->format('Y_m') . '.json';
             Storage::put($archiveFile, $archiveData->toJson(JSON_PRETTY_PRINT));
 
             // Supprimer les paiements archivés

@@ -21,7 +21,7 @@ class EmailVerificationNotificationController extends Controller
         if ($request->user()->hasVerifiedEmail()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Votre email est déjà vérifié'
+                'message' => 'Votre email est déjà vérifié',
             ], 400);
         }
 
@@ -30,12 +30,12 @@ class EmailVerificationNotificationController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Email de vérification envoyé avec succès'
+                'message' => 'Email de vérification envoyé avec succès',
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur lors de l\'envoi de l\'email de vérification'
+                'message' => 'Erreur lors de l\'envoi de l\'email de vérification',
             ], 500);
         }
     }

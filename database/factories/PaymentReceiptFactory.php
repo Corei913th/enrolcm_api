@@ -2,10 +2,10 @@
 
 namespace Database\Factories;
 
-use App\Models\PaymentReceipt;
-use App\Models\Candidat;
-use App\Models\Utilisateur;
 use App\Enums\StatutVerificationPaiement;
+use App\Models\Candidat;
+use App\Models\PaymentReceipt;
+use App\Models\Utilisateur;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class PaymentReceiptFactory extends Factory
@@ -48,7 +48,7 @@ class PaymentReceiptFactory extends Factory
 
     public function verifie(): static
     {
-        return $this->state(fn(array $attributes) => [
+        return $this->state(fn (array $attributes) => [
             'statut_verification' => StatutVerificationPaiement::VERIFIE,
             'verified_at' => now(),
             'verified_by' => Utilisateur::factory(),
@@ -57,7 +57,7 @@ class PaymentReceiptFactory extends Factory
 
     public function rejete(): static
     {
-        return $this->state(fn(array $attributes) => [
+        return $this->state(fn (array $attributes) => [
             'statut_verification' => StatutVerificationPaiement::REJETE,
             'motif_rejet' => $this->faker->sentence(),
             'verified_at' => now(),
@@ -67,7 +67,7 @@ class PaymentReceiptFactory extends Factory
 
     public function enAttente(): static
     {
-        return $this->state(fn(array $attributes) => [
+        return $this->state(fn (array $attributes) => [
             'statut_verification' => StatutVerificationPaiement::EN_ATTENTE,
             'verified_at' => null,
             'verified_by' => null,

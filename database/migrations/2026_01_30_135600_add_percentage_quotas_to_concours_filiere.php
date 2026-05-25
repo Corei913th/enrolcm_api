@@ -17,7 +17,7 @@ return new class extends Migration
                 ->default('PERCENTAGE')
                 ->after('nombre_places')
                 ->comment('Type de quota régional');
-            
+
             // Pourcentage pour quotas régionaux (ex: 30.5 pour 30.5%)
             $table->decimal('quota_percentage', 5, 2)
                 ->nullable()

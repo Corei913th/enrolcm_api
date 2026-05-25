@@ -2,21 +2,24 @@
 
 namespace App\Services\Domain\Paiement;
 
+use App\Enums\StatutPaiement;
 use App\Enums\StatutVerificationPaiement;
+use App\Models\Candidature;
+use App\Models\ConcoursPaiement;
 use App\Models\Paiement;
-use App\Services\Domain\Notification\NotificationService;
 use App\Services\Domain\Candidature\Validators\CandidatureValidationService;
-use App\Services\Infrastructure\OCR\PaymentOcrService;
+use App\Services\Domain\Notification\NotificationService;
 use App\Services\Infrastructure\Logger\ActivityLoggerService;
-use App\Traits\HasSmartCache;
+use App\Services\Infrastructure\OCR\PaymentOcrService;
 use App\Traits\HasAdvancedSearch;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Cache;
+use App\Traits\HasSmartCache;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 class PaiementService
 {
-    use HasSmartCache, HasAdvancedSearch;
+    use HasAdvancedSearch, HasSmartCache;
 
     public function __construct(
         private readonly PaymentOcrService $ocrService,
@@ -38,7 +41,7 @@ class PaiementService
             // Extraire les données via OCR
             $ocrData = $this->ocrService->extractPaymentData($preuve);
 
-            $concoursPaiement = \App\Models\ConcoursPaiement::where('concours_id', $concoursId)->first();
+            $concoursPaiement = ConcoursPaiement::where('concours_id', $concoursId)->first();
             $validationStatus = $ocrData['validation_status'] ?? StatutVerificationPaiement::PENDING_MANUAL_REVIEW;
             $validationNotes = $ocrData['validation_notes'] ?? null;
             $motifRejet = null;
@@ -50,23 +53,23 @@ class PaiementService
 
                 // Vérification Montant
                 if (isset($ocrData['montant']) && $montantExtrait < $montantRequis) {
-                    $validationStatus = \App\Enums\StatutPaiement::REJECTED;
+                    $validationStatus = StatutPaiement::REJECTED;
                     $motifRejet = "Montant insuffisant ({$montantExtrait} FCFA). Requis : {$montantRequis} FCFA";
                 } elseif ($montantExtrait >= $montantRequis) {
-                    $validationStatus = \App\Enums\StatutPaiement::VERIFIED;
+                    $validationStatus = StatutPaiement::VERIFIED;
                     $validationNotes = "Validation automatique (Montant OK: {$montantExtrait})";
                 } else {
                     // Montant non détecté par OCR -> Validation manuelle (ou auto-validé si on fait confiance à l'utilisateur)
-                    // Pour l'instant, disons qu'on auto-valide si l'OCR échoue mais qu'on veut être permissif, 
+                    // Pour l'instant, disons qu'on auto-valide si l'OCR échoue mais qu'on veut être permissif,
                     // MAIS l'utilisateur a demandé : "si un paiement correspond à celui demandé il est valide".
                     // Donc laissons une chance de validation manuelle si OCR échoue.
-                    $validationStatus = \App\Enums\StatutPaiement::PENDING_MANUAL_REVIEW;
-                    $validationNotes = "Montant non détecté par OCR. Vérification manuelle requise.";
+                    $validationStatus = StatutPaiement::PENDING_MANUAL_REVIEW;
+                    $validationNotes = 'Montant non détecté par OCR. Vérification manuelle requise.';
                 }
             } else {
                 // Pas de config de paiement -> Auto-validation par défaut
-                $validationStatus = \App\Enums\StatutPaiement::VERIFIED;
-                $validationNotes = "Validation automatique (Pas de montant configuré)";
+                $validationStatus = StatutPaiement::VERIFIED;
+                $validationNotes = 'Validation automatique (Pas de montant configuré)';
             }
 
             // Créer le paiement
@@ -79,20 +82,20 @@ class PaiementService
                 'preuve_paiement' => $preuvePath,
                 'statut' => $validationStatus,
                 'validation_notes' => $validationNotes,
-                'motif_rejet' => $motifRejet
+                'motif_rejet' => $motifRejet,
             ]);
 
             $this->logger->logActivity('create_payment_ocr', 'paiement', $paiement->id, [
                 'concours_id' => $concoursId,
-                'auto_validated' => $validationStatus === \App\Enums\StatutPaiement::VERIFIED,
+                'auto_validated' => $validationStatus === StatutPaiement::VERIFIED,
                 'montant_requis' => $concoursPaiement->montant ?? 'N/A',
-                'montant_ocr' => $ocrData['montant'] ?? 'N/A'
+                'montant_ocr' => $ocrData['montant'] ?? 'N/A',
             ]);
 
             return [
                 'paiement' => $paiement,
                 'ocr_data' => $ocrData,
-                'validation_info' => $ocrData['validation_info'] ?? []
+                'validation_info' => $ocrData['validation_info'] ?? [],
             ];
         });
     }
@@ -102,16 +105,16 @@ class PaiementService
      */
     public function createManualPayment(array $data): Paiement
     {
-        $concoursPaiement = \App\Models\ConcoursPaiement::where('concours_id', $data['concours_id'])->first();
+        $concoursPaiement = ConcoursPaiement::where('concours_id', $data['concours_id'])->first();
 
         // Trouver la candidature associée
-        $candidature = \App\Models\Candidature::where('candidat_id', $data['candidat_id'] ?? null)
+        $candidature = Candidature::where('candidat_id', $data['candidat_id'] ?? null)
             ->where('concours_id', $data['concours_id'])
             ->latest()
             ->first();
 
         // Logique de validation par défaut
-        $validationStatus = \App\Enums\StatutPaiement::PENDING_MANUAL_REVIEW;
+        $validationStatus = StatutPaiement::PENDING_MANUAL_REVIEW;
         $validationNotes = 'Validation manuelle requise';
         $motifRejet = null;
 
@@ -125,16 +128,16 @@ class PaiementService
                 $montantSaisi = $data['montant'] ?? 0;
 
                 if ($montantSaisi >= $montantRequis) {
-                    $validationStatus = \App\Enums\StatutPaiement::VERIFIED;
+                    $validationStatus = StatutPaiement::VERIFIED;
                     $validationNotes = "Validation automatique (Montant saisi OK: {$montantSaisi})";
                 } elseif ($montantSaisi > 0) {
-                    $validationStatus = \App\Enums\StatutPaiement::REJECTED;
+                    $validationStatus = StatutPaiement::REJECTED;
                     $motifRejet = "Montant insuffisant ({$montantSaisi} FCFA). Requis : {$montantRequis} FCFA";
                 }
             } else {
                 // Pas de config -> Auto-validation par défaut
-                $validationStatus = \App\Enums\StatutPaiement::VERIFIED;
-                $validationNotes = "Validation automatique (Pas de montant configuré)";
+                $validationStatus = StatutPaiement::VERIFIED;
+                $validationNotes = 'Validation automatique (Pas de montant configuré)';
             }
         }
 
@@ -149,12 +152,12 @@ class PaiementService
             'date_ocr' => $data['date_ocr'] ?? null,
             'statut' => $validationStatus,
             'validation_notes' => $validationNotes,
-            'motif_rejet' => $motifRejet
+            'motif_rejet' => $motifRejet,
         ]);
 
         // Si lié à un candidat, et candidature trouvée
         if ($candidature) {
-            $candidature->update(['paiement_valide' => ($validationStatus === \App\Enums\StatutPaiement::VERIFIED)]);
+            $candidature->update(['paiement_valide' => ($validationStatus === StatutPaiement::VERIFIED)]);
 
             try {
                 if ($candidature->paiement_valide) {
@@ -162,7 +165,7 @@ class PaiementService
                 }
             } catch (\Exception $e) {
                 $this->logger->logActivity('candidature_auto_validation_failed_manual_payment', 'candidature', $candidature->id, [
-                    'error' => $e->getMessage()
+                    'error' => $e->getMessage(),
                 ]);
             }
 
@@ -183,11 +186,11 @@ class PaiementService
             ->where('concours_id', $concoursId)
             ->first();
 
-        if (!$paiement) {
+        if (! $paiement) {
             return [
                 'valid' => false,
                 'code' => 'PRU_NOT_FOUND',
-                'message' => 'PRU introuvable pour ce concours'
+                'message' => 'PRU introuvable pour ce concours',
             ];
         }
 
@@ -195,7 +198,7 @@ class PaiementService
             return [
                 'valid' => false,
                 'code' => 'PRU_ALREADY_USED',
-                'message' => 'Ce PRU est déjà utilisé'
+                'message' => 'Ce PRU est déjà utilisé',
             ];
         }
 
@@ -203,7 +206,7 @@ class PaiementService
             return [
                 'valid' => false,
                 'code' => 'PRU_NOT_VALIDATED',
-                'message' => 'Ce PRU n\'est pas encore validé'
+                'message' => 'Ce PRU n\'est pas encore validé',
             ];
         }
 
@@ -211,7 +214,7 @@ class PaiementService
             'valid' => true,
             'code' => 'PRU_VALID',
             'message' => 'PRU valide',
-            'paiement' => $paiement
+            'paiement' => $paiement,
         ];
     }
 
@@ -222,7 +225,7 @@ class PaiementService
     {
         $paiement = Paiement::with('concours')->where('reference', $pru)->first();
 
-        if (!$paiement) {
+        if (! $paiement) {
             return null;
         }
 
@@ -232,7 +235,7 @@ class PaiementService
             'concours' => $paiement->concours,
             'montant' => $paiement->montant,
             'validated_at' => $paiement->validated_at,
-            'statut' => $paiement->statut
+            'statut' => $paiement->statut,
         ];
     }
 
@@ -243,7 +246,7 @@ class PaiementService
     {
         $config = $this->concoursPaiementService->getConfiguration($concoursId);
 
-        if (!$config) {
+        if (! $config) {
             return null;
         }
 
@@ -260,7 +263,7 @@ class PaiementService
             'informations_bancaires' => $config->getInformationsBancaires(),
             'instructions' => $config->instructions,
             'validation_auto' => $config->validation_auto,
-            'est_actif' => $config->est_actif
+            'est_actif' => $config->est_actif,
         ];
     }
 
@@ -276,7 +279,7 @@ class PaiementService
         $paiement->update(['candidat_id' => $candidatId]);
 
         $this->logger->logActivity('link_payment_to_candidat', 'paiement', $paiement->id, [
-            'candidat_id' => $candidatId
+            'candidat_id' => $candidatId,
         ]);
 
         $this->invalidateCacheAfterModification($paiement->id);
@@ -311,7 +314,7 @@ class PaiementService
                     ['reference' => 'partial'],
                     [
                         'candidat.nom_cand' => 'partial',
-                        'candidat.prenom_cand' => 'partial'
+                        'candidat.prenom_cand' => 'partial',
                     ]
                 );
             }
@@ -322,7 +325,7 @@ class PaiementService
             $query = $this->applySort($query, $sortBy, $sortOrder, 'created_at', [
                 'created_at',
                 'montant',
-                'statut'
+                'statut',
             ]);
 
             return $query->paginate($perPage);
@@ -341,7 +344,7 @@ class PaiementService
                 'candidature:id,candidat_id,concours_id,code_cand_def,numero_candidature',
                 'candidature.candidat:utilisateur_id,nom_cand,prenom_cand',
                 'candidature.candidat.utilisateur:id,email',
-                'candidature.concours:id,libelle_concours'
+                'candidature.concours:id,libelle_concours',
             ])
                 ->where('statut', StatutVerificationPaiement::PENDING_MANUAL_REVIEW);
 
@@ -366,7 +369,7 @@ class PaiementService
                 'candidature:id,candidat_id,concours_id,code_cand_def,numero_candidature',
                 'candidature.candidat:utilisateur_id,nom_cand,prenom_cand',
                 'candidature.candidat.utilisateur:id,email',
-                'candidature.concours:id,libelle_concours'
+                'candidature.concours:id,libelle_concours',
             ]);
 
             // Filter by concours if provided
@@ -393,8 +396,8 @@ class PaiementService
         $pending = (clone $query)->where('statut', StatutVerificationPaiement::PENDING)->count();
         $ocrVerifie = (clone $query)->where('statut', StatutVerificationPaiement::OCR_VERIFIE)->count();
         $manualReview = (clone $query)->where('statut', StatutVerificationPaiement::PENDING_MANUAL_REVIEW)->count();
-        $verified = (clone $query)->where('statut', \App\Enums\StatutPaiement::VERIFIED)->count();
-        $rejected = (clone $query)->where('statut', \App\Enums\StatutPaiement::REJECTED)->count();
+        $verified = (clone $query)->where('statut', StatutPaiement::VERIFIED)->count();
+        $rejected = (clone $query)->where('statut', StatutPaiement::REJECTED)->count();
 
         return [
             'total' => $total,
@@ -417,10 +420,10 @@ class PaiementService
 
             // Update payment status (observer will handle notifications)
             $paiement->update([
-                'statut' => \App\Enums\StatutPaiement::REJECTED,
+                'statut' => StatutPaiement::REJECTED,
                 'motif_rejet' => $motif,
                 'validated_by' => $userId,
-                'validated_at' => now()
+                'validated_at' => now(),
             ]);
 
             // Create critical alert
@@ -430,7 +433,7 @@ class PaiementService
 
             $this->logger->logActivity('reject_payment', 'paiement', $paiementId, [
                 'rejected_by' => $userId,
-                'reason' => $motif
+                'reason' => $motif,
             ]);
 
             $this->invalidateCacheAfterModification($paiementId);
@@ -449,37 +452,36 @@ class PaiementService
             ->exists();
     }
 
-
     /**
      * Créer un paiement
      */
     public function create(array $data): Paiement
     {
-        $concoursPaiement = \App\Models\ConcoursPaiement::where('concours_id', $data['concours_id'])->first();
+        $concoursPaiement = ConcoursPaiement::where('concours_id', $data['concours_id'])->first();
 
         // Logique de validation par défaut
-        $validationStatus = $data['statut'] ?? \App\Enums\StatutPaiement::PENDING_MANUAL_REVIEW;
+        $validationStatus = $data['statut'] ?? StatutPaiement::PENDING_MANUAL_REVIEW;
         $validationNotes = 'Validation manuelle requise';
         $motifRejet = null;
 
         // Si le statut n'est pas déjà VERIFIED ou REJECTED (donc si on est en PENDING par défaut), on tente l'auto-validation
         // On permet au contrôleur de passer PENDING pour initier, mais on upgrade si possible.
-        if ($validationStatus === \App\Enums\StatutPaiement::PENDING || $validationStatus === \App\Enums\StatutPaiement::PENDING_MANUAL_REVIEW) {
+        if ($validationStatus === StatutPaiement::PENDING || $validationStatus === StatutPaiement::PENDING_MANUAL_REVIEW) {
             if ($concoursPaiement) {
                 $montantRequis = $concoursPaiement->montant;
                 $montantSaisi = $data['montant'] ?? 0;
 
                 if ($montantSaisi >= $montantRequis) {
-                    $validationStatus = \App\Enums\StatutPaiement::VERIFIED;
+                    $validationStatus = StatutPaiement::VERIFIED;
                     $validationNotes = "Validation automatique (Montant saisi OK: {$montantSaisi})";
                 } elseif ($montantSaisi > 0) {
-                    $validationStatus = \App\Enums\StatutPaiement::REJECTED;
+                    $validationStatus = StatutPaiement::REJECTED;
                     $motifRejet = "Montant insuffisant ({$montantSaisi} FCFA). Requis : {$montantRequis} FCFA";
                 }
             } else {
                 // Pas de config -> Auto-validation par défaut
-                $validationStatus = \App\Enums\StatutPaiement::VERIFIED;
-                $validationNotes = "Validation automatique (Pas de montant configuré)";
+                $validationStatus = StatutPaiement::VERIFIED;
+                $validationNotes = 'Validation automatique (Pas de montant configuré)';
             }
         }
 
@@ -494,12 +496,12 @@ class PaiementService
             'preuve_paiement' => $data['preuve'] ?? null,
             'statut' => $validationStatus,
             'validation_notes' => $validationNotes,
-            'motif_rejet' => $motifRejet
+            'motif_rejet' => $motifRejet,
         ]);
 
         // Mise à jour de la candidature (Linkage only)
-        if (!empty($data['candidature_id'])) {
-            // Just ensure logic knows about it? 
+        if (! empty($data['candidature_id'])) {
+            // Just ensure logic knows about it?
             // Logic is handled by Observer observing 'created' payment status
             // We don't need to do anything here except cache clearing
             Cache::forget("dashboard_stats_{$data['candidat_id']}");
@@ -516,26 +518,26 @@ class PaiementService
      */
     public function update(Paiement $paiement, array $data): Paiement
     {
-        $concoursPaiement = \App\Models\ConcoursPaiement::where('concours_id', $paiement->concours_id)->first();
+        $concoursPaiement = ConcoursPaiement::where('concours_id', $paiement->concours_id)->first();
 
         // Logique de validation
-        $validationStatus = $data['statut'] ?? \App\Enums\StatutPaiement::PENDING_MANUAL_REVIEW;
+        $validationStatus = $data['statut'] ?? StatutPaiement::PENDING_MANUAL_REVIEW;
         $validationNotes = 'Mise à jour du paiement - Validation manuelle requise';
         $motifRejet = null;
         $montant = $data['montant'] ?? $paiement->montant;
 
         // Si on repasse en PENDING, on tente l'auto-validation
-        if ($validationStatus === \App\Enums\StatutPaiement::PENDING || $validationStatus === \App\Enums\StatutPaiement::PENDING_MANUAL_REVIEW) {
+        if ($validationStatus === StatutPaiement::PENDING || $validationStatus === StatutPaiement::PENDING_MANUAL_REVIEW) {
             if ($concoursPaiement) {
                 $montantRequis = $concoursPaiement->montant;
                 // On utilise le montant existant si pas de nouveau montant
                 $montantATester = $montant;
 
                 if ($montantATester >= $montantRequis) {
-                    $validationStatus = \App\Enums\StatutPaiement::VERIFIED;
+                    $validationStatus = StatutPaiement::VERIFIED;
                     $validationNotes = "Validation automatique suite mise à jour (Montant OK: {$montantATester})";
                 } elseif ($montantATester > 0) {
-                    $validationStatus = \App\Enums\StatutPaiement::REJECTED;
+                    $validationStatus = StatutPaiement::REJECTED;
                     $motifRejet = "Montant insuffisant ({$montantATester} FCFA). Requis : {$montantRequis} FCFA";
                 }
             }
@@ -544,7 +546,7 @@ class PaiementService
         $updateData = [
             'statut' => $validationStatus,
             'motif_rejet' => $motifRejet,
-            'validation_notes' => $validationNotes
+            'validation_notes' => $validationNotes,
         ];
 
         if (isset($data['preuve_paiement'])) {
@@ -558,8 +560,8 @@ class PaiementService
         $paiement->update($updateData);
 
         // Check candidature linkage
-        if (!$paiement->candidature_id && $paiement->candidat_id) {
-            $candidature = \App\Models\Candidature::where('candidat_id', $paiement->candidat_id)
+        if (! $paiement->candidature_id && $paiement->candidat_id) {
+            $candidature = Candidature::where('candidat_id', $paiement->candidat_id)
                 ->where('concours_id', $paiement->concours_id)
                 ->latest()
                 ->first();
@@ -577,8 +579,6 @@ class PaiementService
 
         return $paiement;
     }
-
-
 
     /**
      * Retourne les tags de cache pour le modèle

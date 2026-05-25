@@ -1,7 +1,7 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Candidats\CandidatController;
+use Illuminate\Support\Facades\Route;
 
 /**
  * Routes Admin - Gestion des Candidats

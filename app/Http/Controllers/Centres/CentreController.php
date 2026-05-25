@@ -34,6 +34,7 @@ class CentreController extends Controller
     public function store(CreateCentreRequest $request): JsonResponse
     {
         $centre = $this->centreService->create($request->validated());
+
         return api_created(new CentreResource($centre), 'Centre créé avec succès');
     }
 
@@ -43,6 +44,7 @@ class CentreController extends Controller
     public function show(string $id): JsonResponse
     {
         $centre = $this->centreService->getById($id);
+
         return api_success(new CentreResource($centre));
     }
 
@@ -52,6 +54,7 @@ class CentreController extends Controller
     public function update(string $id, UpdateCentreRequest $request): JsonResponse
     {
         $centre = $this->centreService->update($id, $request->validated());
+
         return api_updated(new CentreResource($centre), 'Centre mis à jour avec succès');
     }
 
@@ -61,6 +64,7 @@ class CentreController extends Controller
     public function destroy(string $id): JsonResponse
     {
         $this->centreService->delete($id);
+
         return api_deleted('Centre supprimé avec succès');
     }
 
@@ -70,6 +74,7 @@ class CentreController extends Controller
     public function active(): JsonResponse
     {
         $centres = $this->centreService->getActive();
+
         return api_success(CentreResource::collection($centres));
     }
 }

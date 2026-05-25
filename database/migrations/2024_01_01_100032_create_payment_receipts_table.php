@@ -22,10 +22,10 @@ return new class extends Migration
             $table->timestamp('verified_at')->nullable();
             $table->uuid('verified_by')->nullable();
             $table->timestamps();
-            
+
             $table->foreign('candidat_id')->references('utilisateur_id')->on('candidats')->onDelete('restrict');
             $table->foreign('verified_by')->references('id')->on('utilisateurs')->onDelete('set null');
-            
+
             $table->index('candidat_id');
             $table->index('statut_verification');
             $table->index('numero_recu');

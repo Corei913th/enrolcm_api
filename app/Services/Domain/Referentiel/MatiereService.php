@@ -5,12 +5,12 @@ namespace App\Services\Domain\Referentiel;
 use App\DTOs\Matieres\CreateMatiereDTO;
 use App\Exceptions\Business\MatiereException;
 use App\Models\Matiere;
+use App\Services\Infrastructure\Logger\ActivityLoggerService;
+use App\Traits\HasActivityLogger;
 use App\Traits\HasAdvancedSearch;
-use App\Traits\HasSmartCache;
 use App\Traits\HasOptimizedUpdate;
 use App\Traits\HasServiceFinders;
-use App\Traits\HasActivityLogger;
-use App\Services\Infrastructure\Logger\ActivityLoggerService;
+use App\Traits\HasSmartCache;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
@@ -18,9 +18,10 @@ use Illuminate\Support\Facades\Log;
 
 class MatiereService
 {
-    use HasAdvancedSearch, HasSmartCache, HasOptimizedUpdate, HasServiceFinders, HasActivityLogger;
+    use HasActivityLogger, HasAdvancedSearch, HasOptimizedUpdate, HasServiceFinders, HasSmartCache;
 
     protected string $exceptionClass = MatiereException::class;
+
     protected string $codeColumn = 'code_matiere';
 
     public function __construct(ActivityLoggerService $logger)
@@ -46,17 +47,17 @@ class MatiereService
                     'libelle_matiere',
                     'est_actif',
                     'created_at',
-                    'updated_at'
+                    'updated_at',
                 ]);
 
             // Recherche optimisée
-            if (!empty($filters['search'])) {
+            if (! empty($filters['search'])) {
                 $this->applySearch(
                     $query,
                     $filters['search'],
                     [
                         'libelle_matiere' => 'words',
-                        'code_matiere' => 'start'
+                        'code_matiere' => 'start',
                     ]
                 );
             }
@@ -96,6 +97,7 @@ class MatiereService
     {
         $defaultRelations = ['niveaux'];
         $allRelations = array_unique(array_merge($defaultRelations, $relations));
+
         return $this->getBy('id', $id, $allRelations);
     }
 
@@ -107,6 +109,7 @@ class MatiereService
     {
         $defaultRelations = ['niveaux'];
         $allRelations = array_unique(array_merge($defaultRelations, $relations));
+
         return $this->getBy($this->codeColumn, $code, $allRelations);
     }
 
@@ -194,12 +197,12 @@ class MatiereService
                 $matiere = $this->getById($id);
 
                 $matiere->update([
-                    'est_actif' => !$matiere->est_actif
+                    'est_actif' => ! $matiere->est_actif,
                 ]);
 
                 Log::info('Statut de la matière modifié', [
                     'matiere_id' => $matiere->id,
-                    'nouveau_statut' => $matiere->est_actif
+                    'nouveau_statut' => $matiere->est_actif,
                 ]);
 
                 return $matiere->fresh('niveaux');

@@ -46,7 +46,7 @@ return new class extends Migration
                 'statut_verification',
                 'commentaire_verification',
                 'valide_par',
-                'date_verification'
+                'date_verification',
             ]);
         });
     }

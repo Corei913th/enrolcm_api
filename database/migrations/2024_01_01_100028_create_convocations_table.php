@@ -20,9 +20,9 @@ return new class extends Migration
             $table->boolean('est_envoyee')->default(false);
             $table->timestamp('date_envoi')->nullable();
             $table->timestamps();
-            
+
             $table->foreign('candidature_id')->references('id')->on('candidatures')->onDelete('cascade');
-            
+
             $table->index('candidature_id');
             $table->index('numero_convocation');
             $table->index('est_telechargee');

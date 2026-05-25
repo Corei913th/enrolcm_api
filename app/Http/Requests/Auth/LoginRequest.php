@@ -23,7 +23,7 @@ class LoginRequest extends FormRequest
     {
         return [
             'email.required' => 'L\' email est obligatoire',
-            'email.string' => 'Le nom d\'utilisateur doit être une chaîne de caractères',      
+            'email.string' => 'Le nom d\'utilisateur doit être une chaîne de caractères',
             'password.string' => 'Le mot de passe doit être une chaîne de caractères',
             'password.required' => 'Le mot de passe est obligatoire',
             'password.min' => 'Le mot de passe doit contenir au moins 6 caractères',

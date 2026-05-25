@@ -3,9 +3,9 @@
 namespace App\Models;
 
 use App\Enums\RegionCameroun;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 /**
  * @mixin IdeHelperCentre
@@ -15,7 +15,9 @@ class Centre extends Model
     use HasFactory, HasUuids;
 
     protected $table = 'centres';
+
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected $fillable = [
@@ -28,7 +30,7 @@ class Centre extends Model
         'capacite',
         'est_actif',
         'responsable_id',
-        'region_id'
+        'region_id',
     ];
 
     protected $casts = [
@@ -37,8 +39,6 @@ class Centre extends Model
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
-
-
 
     // Relations
     public function salles()
@@ -158,7 +158,6 @@ class Centre extends Model
         return $this->getCapaciteDisponible() >= $nombreCandidats;
     }
 
-  
     // STATISTIQUES
     public function getNombreCandidatsInscrits()
     {
@@ -170,9 +169,12 @@ class Centre extends Model
     public function getTauxRemplissage()
     {
         $capaciteTotale = $this->getCapaciteTotale();
-        if ($capaciteTotale === 0) return 0;
+        if ($capaciteTotale === 0) {
+            return 0;
+        }
 
         $placesOccupees = $this->getNombreCandidatsInscrits();
+
         return round(($placesOccupees / $capaciteTotale) * 100, 2);
     }
 }

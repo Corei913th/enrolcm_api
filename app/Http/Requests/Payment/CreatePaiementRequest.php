@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\Payment;
 
+use App\Models\Concours;
+use App\Models\ConcoursPaiement;
 use Illuminate\Foundation\Http\FormRequest;
 
 class CreatePaiementRequest extends FormRequest
@@ -38,13 +40,13 @@ class CreatePaiementRequest extends FormRequest
         $validator->after(function ($validator) {
             $concoursId = $this->input('concours_id');
             // Ignorer si le concours n'est pas valide (déjà géré par les règles)
-            if (!$concoursId || !\App\Models\Concours::where('id', $concoursId)->exists()) {
+            if (! $concoursId || ! Concours::where('id', $concoursId)->exists()) {
                 return;
             }
 
-            $concoursPaiement = \App\Models\ConcoursPaiement::where('concours_id', $concoursId)->first();
+            $concoursPaiement = ConcoursPaiement::where('concours_id', $concoursId)->first();
 
-            if (!$concoursPaiement) {
+            if (! $concoursPaiement) {
                 return; // Pas de config de paiement stricte, on laisse passer (ou on pourrait bloquer)
             }
 

@@ -19,6 +19,7 @@ class DashboardController extends Controller
     public function globalStats(): JsonResponse
     {
         $stats = $this->dashboardService->getGlobalStats();
+
         return api_success($stats, 'Statistiques globales récupérées');
     }
 
@@ -28,6 +29,7 @@ class DashboardController extends Controller
     public function ecoleStats(string $ecoleId): JsonResponse
     {
         $stats = $this->dashboardService->getEcoleStats($ecoleId);
+
         return api_success($stats, 'Statistiques de l\'école récupérées');
     }
 
@@ -39,11 +41,12 @@ class DashboardController extends Controller
         $user = $request->user();
         $admin = $user->admin;
 
-        if (!$admin || !$admin->ecole_id) {
+        if (! $admin || ! $admin->ecole_id) {
             return api_error('Aucune école assignée à cet administrateur', null, 403);
         }
 
         $stats = $this->dashboardService->getEcoleStats($admin->ecole_id);
+
         return api_success($stats, 'Statistiques de votre école récupérées');
     }
 }

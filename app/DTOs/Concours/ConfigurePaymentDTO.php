@@ -11,15 +11,15 @@ class ConfigurePaymentDTO
         public readonly string $nom_beneficiaire,
 
         // Informations bancaires complètes
-        public readonly ?string $devise = 'XAF',
-        public readonly ?string $code_banque = null,
-        public readonly ?string $agence_banque = null,
-        public readonly ?string $iban = null,
+        public readonly ?string $devise,
+        public readonly ?string $code_banque,
+        public readonly ?string $agence_banque,
+        public readonly ?string $iban,
 
         // Configuration paiement
-        public readonly ?string $type_paiement = 'virement',
-        public readonly ?array $banques_acceptees = null,
-        public readonly ?float $frais_paiement = 0,
+        public readonly ?string $type_paiement,
+        public readonly ?array $banques_acceptees,
+        public readonly ?float $frais_paiement,
 
         // Montant et date
         public readonly float $montant,

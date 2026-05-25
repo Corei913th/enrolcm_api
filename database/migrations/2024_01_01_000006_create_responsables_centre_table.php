@@ -13,7 +13,6 @@ return new class extends Migration
             $table->string('code_agent', 50)->unique();
             $table->timestamps();
 
-            
             $table->foreign('utilisateur_id')->references('id')->on('utilisateurs')->onDelete('cascade');
         });
     }

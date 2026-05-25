@@ -6,101 +6,89 @@ use Illuminate\Database\Eloquent\Model;
 
 trait HasOptimizedUpdate
 {
-  /**
-   * Met à jour un modèle uniquement si des changements sont détectés.
-   * Retourne true si des modifications ont été effectuées, false sinon.
-   *
-   * @param Model $model
-   * @param array $data
-   * @return bool True si des modifications ont été effectuées
-   */
-  protected function updateIfDirty(Model $model, array $data): bool
-  {
-    // Remplir le modèle avec les nouvelles données
-    $model->fill($data);
+    /**
+     * Met à jour un modèle uniquement si des changements sont détectés.
+     * Retourne true si des modifications ont été effectuées, false sinon.
+     *
+     * @return bool True si des modifications ont été effectuées
+     */
+    protected function updateIfDirty(Model $model, array $data): bool
+    {
+        // Remplir le modèle avec les nouvelles données
+        $model->fill($data);
 
-    // Vérifier si des changements ont été détectés
-    if (!$model->isDirty()) {
-      return false;
+        // Vérifier si des changements ont été détectés
+        if (! $model->isDirty()) {
+            return false;
+        }
+
+        // Sauvegarder uniquement si des changements existent
+        $model->save();
+
+        return true;
     }
 
-    // Sauvegarder uniquement si des changements existent
-    $model->save();
+    /**
+     * Met à jour un modèle et invalide le cache uniquement si nécessaire.
+     *
+     * @param  callable|null  $afterUpdate  Callback à exécuter après mise à jour réussie
+     * @return bool True si des modifications ont été effectuées
+     */
+    protected function updateWithCache(Model $model, array $data, ?callable $afterUpdate = null): bool
+    {
+        $wasUpdated = $this->updateIfDirty($model, $data);
 
-    return true;
-  }
+        if ($wasUpdated) {
+            // Invalider le cache uniquement si des modifications ont été effectuées
+            if (method_exists($this, 'invalidateCacheAfterModification')) {
+                $this->invalidateCacheAfterModification($model->id);
+            }
 
-  /**
-   * Met à jour un modèle et invalide le cache uniquement si nécessaire.
-   *
-   * @param Model $model
-   * @param array $data
-   * @param callable|null $afterUpdate Callback à exécuter après mise à jour réussie
-   * @return bool True si des modifications ont été effectuées
-   */
-  protected function updateWithCache(Model $model, array $data, ?callable $afterUpdate = null): bool
-  {
-    $wasUpdated = $this->updateIfDirty($model, $data);
+            // Exécuter le callback si fourni
+            if ($afterUpdate) {
+                $afterUpdate($model);
+            }
+        }
 
-    if ($wasUpdated) {
-      // Invalider le cache uniquement si des modifications ont été effectuées
-      if (method_exists($this, 'invalidateCacheAfterModification')) {
-        $this->invalidateCacheAfterModification($model->id);
-      }
-
-      // Exécuter le callback si fourni
-      if ($afterUpdate) {
-        $afterUpdate($model);
-      }
+        return $wasUpdated;
     }
 
-    return $wasUpdated;
-  }
+    /**
+     * Retourne les champs qui ont été modifiés.
+     *
+     * @return array Tableau des champs modifiés avec leurs anciennes et nouvelles valeurs
+     */
+    protected function getDirtyFields(Model $model): array
+    {
+        $dirty = [];
 
-  /**
-   * Retourne les champs qui ont été modifiés.
-   *
-   * @param Model $model
-   * @return array Tableau des champs modifiés avec leurs anciennes et nouvelles valeurs
-   */
-  protected function getDirtyFields(Model $model): array
-  {
-    $dirty = [];
+        foreach ($model->getDirty() as $field => $newValue) {
+            $dirty[$field] = [
+                'old' => $model->getOriginal($field),
+                'new' => $newValue,
+            ];
+        }
 
-    foreach ($model->getDirty() as $field => $newValue) {
-      $dirty[$field] = [
-        'old' => $model->getOriginal($field),
-        'new' => $newValue,
-      ];
+        return $dirty;
     }
 
-    return $dirty;
-  }
+    /**
+     * Vérifie si des champs spécifiques ont été modifiés.
+     */
+    protected function hasChangedFields(Model $model, array $fields): bool
+    {
+        return $model->isDirty($fields);
+    }
 
-  /**
-   * Vérifie si des champs spécifiques ont été modifiés.
-   *
-   * @param Model $model
-   * @param array $fields
-   * @return bool
-   */
-  protected function hasChangedFields(Model $model, array $fields): bool
-  {
-    return $model->isDirty($fields);
-  }
+    /**
+     * Met à jour uniquement les champs spécifiés s'ils sont présents dans les données.
+     *
+     * @return bool True si des modifications ont été effectuées
+     */
+    protected function updateOnlyFields(Model $model, array $data, array $allowedFields): bool
+    {
+        $filteredData = array_intersect_key($data, array_flip($allowedFields));
 
-  /**
-   * Met à jour uniquement les champs spécifiés s'ils sont présents dans les données.
-   *
-   * @param Model $model
-   * @param array $data
-   * @param array $allowedFields
-   * @return bool True si des modifications ont été effectuées
-   */
-  protected function updateOnlyFields(Model $model, array $data, array $allowedFields): bool
-  {
-    $filteredData = array_intersect_key($data, array_flip($allowedFields));
-
-    return $this->updateIfDirty($model, $filteredData);
-  }
+        return $this->updateIfDirty($model, $filteredData);
+    }
 }

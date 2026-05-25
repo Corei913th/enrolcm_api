@@ -45,7 +45,7 @@ class AttachConcoursToSessionRequest extends FormRequest
             $data = $this->all();
 
             // Si les deux dates sont fournies, vérifier cohérence
-            if (!empty($data['date_limite_depot']) && !empty($data['date_debut'])) {
+            if (! empty($data['date_limite_depot']) && ! empty($data['date_debut'])) {
                 if ($data['date_limite_depot'] <= $data['date_debut']) {
                     $validator->errors()->add('date_limite_depot', 'La date limite doit être après la date d\'examen');
                 }

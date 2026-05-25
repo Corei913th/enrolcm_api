@@ -19,9 +19,9 @@ return new class extends Migration
             $table->text('instructions')->nullable();
             $table->boolean('est_actif')->default(true);
             $table->timestamps();
-            
+
             $table->foreign('concours_id')->references('id')->on('concours')->onDelete('cascade');
-            
+
             $table->index('concours_id');
             $table->index('est_actif');
         });

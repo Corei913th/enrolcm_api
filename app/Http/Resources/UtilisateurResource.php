@@ -17,14 +17,14 @@ class UtilisateurResource extends JsonResource
             'email_verifie' => $this->email_verifie,
             'created_at' => $this->created_at ? $this->created_at->format('Y-m-d H:i:s') : null,
             'updated_at' => $this->updated_at ? $this->updated_at->format('Y-m-d H:i:s') : null,
-            
+
             // Relations conditionnelles
             'roles' => RoleResource::collection($this->whenLoaded('roles')),
             'admin' => new AdminResource($this->whenLoaded('admin')),
             'candidat' => new CandidatResource($this->whenLoaded('candidat')),
             'correcteur' => new CorrecteurResource($this->whenLoaded('correcteur')),
             'responsable_centre' => new ResponsableCentreResource($this->whenLoaded('responsableCentre')),
-            
+
             // Attributs calculés
             'is_admin' => $this->isAdmin(),
             'is_candidat' => $this->isCandidat(),

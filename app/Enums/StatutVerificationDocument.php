@@ -9,7 +9,6 @@ enum StatutVerificationDocument: string
     case REJETE = 'REJETE';
     case NON_SOUMIS = 'NON_SOUMIS';
 
-
     public static function values(): array
     {
         return array_column(self::cases(), 'value');

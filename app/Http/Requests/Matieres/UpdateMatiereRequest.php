@@ -2,9 +2,10 @@
 
 namespace App\Http\Requests\Matieres;
 
-use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Validation\Rule;
 
 class UpdateMatiereRequest extends FormRequest
 {
@@ -28,7 +29,7 @@ class UpdateMatiereRequest extends FormRequest
                 'required',
                 'string',
                 'max:10',
-                \Illuminate\Validation\Rule::unique('matieres', 'code_matiere')->ignore($matiereId)
+                Rule::unique('matieres', 'code_matiere')->ignore($matiereId),
             ],
             'libelle_matiere' => 'required|string|max:200',
             'coefficient' => 'nullable|integer|min:1|max:10',

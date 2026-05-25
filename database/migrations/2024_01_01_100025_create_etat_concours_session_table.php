@@ -14,7 +14,7 @@ return new class extends Migration
             $table->uuid('concours_session_session_id')->nullable();
             $table->uuid('etat_session_id')->nullable();
             $table->timestamps();
-            
+
             $table->foreign('etat_session_id')->references('id')->on('etat_session');
         });
     }

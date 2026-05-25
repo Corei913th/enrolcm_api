@@ -2,18 +2,19 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
+use App\Enums\StatutCandidature;
+use App\Enums\StatutNote;
 use App\Models\Candidature;
 use App\Models\Epreuve;
 use App\Models\Note;
-use App\Enums\StatutCandidature;
+use Illuminate\Database\Seeder;
 
 /**
  * Seeder pour générer des notes pour les candidats validés
- * 
+ *
  * Usage:
  * php artisan db:seed --class=NotesSeeder
- * 
+ *
  * Ce seeder:
  * - Prend toutes les candidatures VALIDE
  * - Génère des notes aléatoires pour toutes les épreuves
@@ -32,6 +33,7 @@ class NotesSeeder extends Seeder
         if ($candidatures->isEmpty()) {
             $this->command->error('❌ Aucune candidature validée trouvée.');
             $this->command->info('💡 Exécutez d\'abord CandidaturesSeeder puis validez des candidatures via l\'interface admin.');
+
             return;
         }
 
@@ -40,6 +42,7 @@ class NotesSeeder extends Seeder
 
         if ($epreuves->isEmpty()) {
             $this->command->error('❌ Aucune épreuve trouvée.');
+
             return;
         }
 
@@ -73,7 +76,7 @@ class NotesSeeder extends Seeder
                             'date_saisie' => now(),
                             'est_definitive' => true,
                             'est_eliminatoire' => false,
-                            'statut' => \App\Enums\StatutNote::VALIDEE,
+                            'statut' => StatutNote::VALIDEE,
                         ]
                     );
 

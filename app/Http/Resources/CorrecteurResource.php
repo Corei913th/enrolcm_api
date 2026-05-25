@@ -12,7 +12,7 @@ class CorrecteurResource extends JsonResource
             'utilisateur_id' => $this->utilisateur_id,
             'specialite' => $this->specialite,
             'matricule_enseignant' => $this->matricule_enseignant,
-            'created_at' => $this->created_at?->format('Y-m-d H:i:s'),   
+            'created_at' => $this->created_at?->format('Y-m-d H:i:s'),
             'utilisateur' => new UtilisateurResource($this->whenLoaded('utilisateur')),
         ];
     }

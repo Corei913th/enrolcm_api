@@ -13,7 +13,6 @@ use Illuminate\Http\Request;
 
 class MatiereController extends Controller
 {
-
     public function __construct(
         private readonly MatiereService $matiereService
     ) {}

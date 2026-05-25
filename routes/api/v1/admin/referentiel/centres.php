@@ -1,14 +1,13 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Centres\CentreController;
+use Illuminate\Support\Facades\Route;
 
 /**
  * Routes Admin - Centres (Référentiel)
  * Prefix: /admin/referentiel/centres
  * Middleware appliqué : auth:sanctum + role:ADMIN
  */
-
 Route::get('/', [CentreController::class, 'index']);
 Route::post('/', [CentreController::class, 'store']);
 Route::get('active', [CentreController::class, 'active']);

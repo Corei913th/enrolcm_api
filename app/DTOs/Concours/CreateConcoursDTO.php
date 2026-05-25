@@ -47,6 +47,6 @@ class CreateConcoursDTO
             'nbre_max_places' => $this->nombre_places, // Mapping correct
             'spec_concours_id' => $this->spec_concours_id,
             'est_actif' => $this->est_actif,
-        ], fn($value) => $value !== null);
+        ], fn ($value) => $value !== null);
     }
 }

@@ -2,8 +2,8 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -19,13 +19,13 @@ return new class extends Migration
 
         // Migrate existing data: set session_id from candidature.session_id
         // PostgreSQL syntax
-        DB::statement("
+        DB::statement('
             UPDATE resultats_finaux
             SET session_id = c.session_id
             FROM candidatures c
             WHERE resultats_finaux.candidature_id = c.id
             AND resultats_finaux.session_id IS NULL
-        ");
+        ');
 
         // Add foreign key constraint
         Schema::table('resultats_finaux', function (Blueprint $table) {

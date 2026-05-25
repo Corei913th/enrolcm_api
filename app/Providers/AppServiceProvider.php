@@ -2,17 +2,31 @@
 
 namespace App\Providers;
 
-
-use Illuminate\Auth\Notifications\ResetPassword;
-use Illuminate\Support\ServiceProvider;
+use App\Models\Alert;
 use App\Models\Candidat;
 use App\Models\Candidature;
+use App\Models\Document;
+use App\Models\Note;
+use App\Models\Paiement;
+use App\Models\PlanningEpreuve;
+use App\Models\ResultatFinal;
+use App\Models\ResultatPublication;
 use App\Models\Utilisateur;
-use App\Models\Alert;
+use App\Observers\AlertObserver;
 use App\Observers\CandidatObserver;
 use App\Observers\CandidatureObserver;
+use App\Observers\DocumentObserver;
+use App\Observers\NoteObserver;
+use App\Observers\PaiementObserver;
+use App\Observers\PlanningEpreuveObserver;
+use App\Observers\ResultatFinalObserver;
+use App\Observers\ResultatPublicationObserver;
 use App\Observers\UtilisateurObserver;
-use App\Observers\AlertObserver;
+use Illuminate\Auth\Notifications\ResetPassword;
+use Illuminate\Auth\Notifications\VerifyEmail;
+use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -30,20 +44,19 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         // Register observers
-        \App\Models\PlanningEpreuve::observe(\App\Observers\PlanningEpreuveObserver::class);
+        PlanningEpreuve::observe(PlanningEpreuveObserver::class);
         // Observers
         Utilisateur::observe(UtilisateurObserver::class);
         Candidature::observe(CandidatureObserver::class);
         Candidat::observe(CandidatObserver::class);
         Alert::observe(AlertObserver::class);
-        \App\Models\Paiement::observe(\App\Observers\PaiementObserver::class);
-        \App\Models\Document::observe(\App\Observers\DocumentObserver::class);
-        \App\Models\ResultatFinal::observe(\App\Observers\ResultatFinalObserver::class);
-        \App\Models\ResultatPublication::observe(\App\Observers\ResultatPublicationObserver::class);
-        \App\Models\Note::observe(\App\Observers\NoteObserver::class);
+        Paiement::observe(PaiementObserver::class);
+        Document::observe(DocumentObserver::class);
+        ResultatFinal::observe(ResultatFinalObserver::class);
+        ResultatPublication::observe(ResultatPublicationObserver::class);
+        Note::observe(NoteObserver::class);
 
-
-        \Illuminate\Support\Facades\Gate::before(function ($user, $ability) {
+        Gate::before(function ($user, $ability) {
             return $user->isSuperAdmin() ? true : null;
         });
 
@@ -51,8 +64,8 @@ class AppServiceProvider extends ServiceProvider
             return config('app.frontend_url') . "/password-reset/$token?email={$notifiable->getEmailForPasswordReset()}";
         });
 
-        \Illuminate\Auth\Notifications\VerifyEmail::toMailUsing(function (object $notifiable, string $url) {
-            return (new \Illuminate\Notifications\Messages\MailMessage)
+        VerifyEmail::toMailUsing(function (object $notifiable, string $url) {
+            return (new MailMessage)
                 ->subject('CONFIRMATION REQUISE - Vérification de votre email')
                 ->view('emails.verify-email', ['url' => $url, 'user' => $notifiable]);
         });

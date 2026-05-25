@@ -23,6 +23,7 @@ services:
       TESSERACT_PATH: /usr/bin/tesseract
       PUPPETEER_EXECUTABLE_PATH: /usr/bin/chromium
       BROWSERSHOT_BINARY: /usr/bin/chromium
+      BROWSERSHOT_CHROME_PATH: /usr/bin/chromium
 
   nginx:
     image: nginx:alpine

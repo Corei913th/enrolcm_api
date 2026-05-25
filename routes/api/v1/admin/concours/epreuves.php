@@ -1,14 +1,13 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Concours\ConcoursEpreuveController;
+use Illuminate\Support\Facades\Route;
 
 /**
  * Routes Admin - Épreuves du Concours
  * Prefix: /admin/concours/{concours}
  * Middleware appliqué : auth:sanctum + role:ADMIN
  */
-
 Route::get('epreuves/disponibles', [ConcoursEpreuveController::class, 'disponibles']);
 Route::get('epreuves', [ConcoursEpreuveController::class, 'index']);
 Route::get('sessions/{session}/epreuves', [ConcoursEpreuveController::class, 'indexBySession']);

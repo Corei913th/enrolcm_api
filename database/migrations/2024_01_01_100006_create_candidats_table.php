@@ -2,10 +2,10 @@
 
 use App\Enums\Genre;
 use App\Enums\Mention;
+use App\Enums\RegionCameroun;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use App\Enums\RegionCameroun;
 
 return new class extends Migration
 {
@@ -42,8 +42,6 @@ return new class extends Migration
             $table->enum('region', RegionCameroun::values())->nullable();
             $table->timestamps();
             $table->boolean('est_actif')->default(true);
-
-
 
             $table->foreign('utilisateur_id')->references('id')->on('utilisateurs')->onDelete('restrict');
             $table->index(['nom_cand', 'prenom_cand']);

@@ -14,7 +14,7 @@ return new class extends Migration
             $table->uuid('etat_id')->nullable();
             $table->timestamp('date_etat')->useCurrent();
             $table->timestamps();
-            
+
             $table->foreign('candidature_id')->references('id')->on('candidatures')->onDelete('cascade');
             $table->foreign('etat_id')->references('id')->on('etats');
         });

@@ -16,7 +16,7 @@ return new class extends Migration
             $table->text('desc_filiere')->nullable();
             $table->boolean('est_actif')->default(true);
             $table->timestamps();
-            
+
             $table->foreign('departement_id')->references('id')->on('departements')->onDelete('restrict');
             $table->index('departement_id');
             $table->index('est_actif');

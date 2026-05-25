@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Support\Facades\Schema;
 
 /**
@@ -15,7 +15,6 @@ class Concours extends Model
     use HasFactory, HasUuids;
 
     protected $table = 'concours';
-
 
     private static ?bool $hasSessionIdColumn = null;
 
@@ -66,6 +65,7 @@ class Concours extends Model
         if (self::$hasSessionIdColumn === null) {
             self::$hasSessionIdColumn = Schema::hasColumn('concours_filiere', 'session_id');
         }
+
         return self::$hasSessionIdColumn;
     }
 

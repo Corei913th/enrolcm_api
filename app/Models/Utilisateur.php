@@ -2,23 +2,25 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Enums\TypeUtilisateur;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
-use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Contracts\Auth\MustVerifyEmail;
-use App\Enums\TypeUtilisateur;
 
 /**
  * @mixin IdeHelperUtilisateur
  */
 class Utilisateur extends Authenticatable implements MustVerifyEmail
 {
-    use HasFactory, HasUuids, Notifiable, HasApiTokens;
+    use HasApiTokens, HasFactory, HasUuids, Notifiable;
 
     protected $table = 'utilisateurs';
+
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected $fillable = [
@@ -132,7 +134,6 @@ class Utilisateur extends Authenticatable implements MustVerifyEmail
     {
         return $this->type_utilisateur === TypeUtilisateur::CORRECTEUR;
     }
-
 
     public function isResponsableCentre(): bool
     {

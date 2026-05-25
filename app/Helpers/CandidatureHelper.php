@@ -4,14 +4,12 @@ namespace App\Helpers;
 
 use Illuminate\Support\Facades\DB;
 
-
 class CandidatureHelper
 {
     /**
      * Check if candidature has all required candidate fields filled
      * Based on registration form template (fiche-inscription.blade.php)
-     * 
-     * @param string $candidatureId
+     *
      * @return array ['valid' => bool, 'missing' => array]
      */
     public static function hasRequiredCandidateFields(string $candidatureId): array
@@ -44,40 +42,57 @@ class CandidatureHelper
             ])
             ->first();
 
-        if (!$result) {
+        if (! $result) {
             return ['valid' => false, 'missing' => ['Candidate not found']];
         }
 
         $missing = [];
 
         // Identity fields (critical)
-        if (empty($result->nom_cand)) $missing[] = 'Nom';
-        if (empty($result->prenom_cand)) $missing[] = 'Prénom';
-        if (empty($result->date_naissance_cand)) $missing[] = 'Date de naissance';
-        if (empty($result->lieu_naissance_cand)) $missing[] = 'Lieu de naissance';
-        if (empty($result->sexe_cand)) $missing[] = 'Genre';
-        if (empty($result->nationalite_cand)) $missing[] = 'Nationalité';
+        if (empty($result->nom_cand)) {
+            $missing[] = 'Nom';
+        }
+        if (empty($result->prenom_cand)) {
+            $missing[] = 'Prénom';
+        }
+        if (empty($result->date_naissance_cand)) {
+            $missing[] = 'Date de naissance';
+        }
+        if (empty($result->lieu_naissance_cand)) {
+            $missing[] = 'Lieu de naissance';
+        }
+        if (empty($result->sexe_cand)) {
+            $missing[] = 'Genre';
+        }
+        if (empty($result->nationalite_cand)) {
+            $missing[] = 'Nationalité';
+        }
 
         // Contact fields
-        if (empty($result->telephone)) $missing[] = 'Téléphone';
-        if (empty($result->adresse_cand)) $missing[] = 'Adresse';
+        if (empty($result->telephone)) {
+            $missing[] = 'Téléphone';
+        }
+        if (empty($result->adresse_cand)) {
+            $missing[] = 'Adresse';
+        }
 
         // Academic fields (required for eligibility)
-        if (empty($result->serie_bac)) $missing[] = 'Série du Bac';
-        if (empty($result->annee_obtention_bac)) $missing[] = 'Année du Bac';
+        if (empty($result->serie_bac)) {
+            $missing[] = 'Série du Bac';
+        }
+        if (empty($result->annee_obtention_bac)) {
+            $missing[] = 'Année du Bac';
+        }
         // etablissement_origine is optional, not required for validation
 
         return [
             'valid' => empty($missing),
-            'missing' => $missing
+            'missing' => $missing,
         ];
     }
 
     /**
      * Check if candidature has complete documents (optimized single query)
-     * 
-     * @param string $candidatureId
-     * @return bool
      */
     public static function hasCompleteDocuments(string $candidatureId): bool
     {
@@ -86,7 +101,7 @@ class CandidatureHelper
             ->where('id', $candidatureId)
             ->value('concours_id');
 
-        if (!$concoursId) {
+        if (! $concoursId) {
             return false;
         }
 
@@ -113,9 +128,6 @@ class CandidatureHelper
 
     /**
      * Check if candidature has valid payment (optimized)
-     * 
-     * @param string $candidatureId
-     * @return bool
      */
     public static function hasValidPayment(string $candidatureId): bool
     {
@@ -127,9 +139,6 @@ class CandidatureHelper
 
     /**
      * Check if candidature has assigned exam center
-     * 
-     * @param string $candidatureId
-     * @return bool
      */
     public static function hasExamCenter(string $candidatureId): bool
     {
@@ -141,9 +150,6 @@ class CandidatureHelper
 
     /**
      * Check if planning is defined for candidature's concours
-     * 
-     * @param string $candidatureId
-     * @return bool
      */
     public static function hasPlanningDefined(string $candidatureId): bool
     {
@@ -160,10 +166,6 @@ class CandidatureHelper
     /**
      * Get candidatures with complete documents (bulk operation)
      * Returns array of candidature IDs
-     * 
-     * @param string $concoursId
-     * @param string $sessionId
-     * @return array
      */
     public static function getCandidaturesWithCompleteDocuments(string $concoursId, string $sessionId): array
     {

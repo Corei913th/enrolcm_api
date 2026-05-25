@@ -1,7 +1,7 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Payment\PaiementController;
+use Illuminate\Support\Facades\Route;
 
 /**
  * Routes Candidat - Paiements

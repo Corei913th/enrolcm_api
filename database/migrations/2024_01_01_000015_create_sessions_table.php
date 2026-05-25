@@ -14,7 +14,7 @@ return new class extends Migration
             $table->text('desc_session')->nullable();
             $table->boolean('est_actif')->default(true);
             $table->timestamps();
-            
+
             $table->index('est_actif');
         });
     }

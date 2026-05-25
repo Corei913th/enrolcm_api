@@ -1,16 +1,17 @@
 <?php
 
-use App\Helpers\DatabaseHelper;
 use App\Helpers\AuthHelper;
+use App\Helpers\DatabaseHelper;
 use App\Helpers\ResponseHelper;
+use App\Models\Utilisateur;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Validation\ValidationException;
 
-if (!function_exists('runTransaction')) {
+if (! function_exists('runTransaction')) {
     /**
      * Exécuter une opération dans une transaction
-     * 
-     * @param callable $callback
-     * @param string|null $context
+     *
      * @return mixed
      */
     function runTransaction(callable $callback, ?string $context = null)
@@ -19,30 +20,21 @@ if (!function_exists('runTransaction')) {
     }
 }
 
-if (!function_exists('logServiceError')) {
+if (! function_exists('logServiceError')) {
     /**
      * Logger une erreur de service avec contexte
-     * 
-     * @param string $message
-     * @param \Exception $exception
-     * @param array $context
-     * @return void
      */
-    function logServiceError(string $message, \Exception $exception, array $context = []): void
+    function logServiceError(string $message, Exception $exception, array $context = []): void
     {
         DatabaseHelper::logServiceError($message, $exception, $context);
     }
 }
 
-if (!function_exists('codeExists')) {
+if (! function_exists('codeExists')) {
     /**
      * Vérifier si un code existe
-     * 
-     * @param string $modelClass
-     * @param string $column
-     * @param mixed $value
-     * @param string|null $excludeId
-     * @return bool
+     *
+     * @param  mixed  $value
      */
     function codeExists(string $modelClass, string $column, $value, ?string $excludeId = null): bool
     {
@@ -50,13 +42,11 @@ if (!function_exists('codeExists')) {
     }
 }
 
-if (!function_exists('hasDependencies')) {
+if (! function_exists('hasDependencies')) {
     /**
      * Vérifier si une entité a des dépendances
-     * 
-     * @param mixed $model
-     * @param string $relation
-     * @return bool
+     *
+     * @param  mixed  $model
      */
     function hasDependencies($model, string $relation): bool
     {
@@ -64,13 +54,10 @@ if (!function_exists('hasDependencies')) {
     }
 }
 
-if (!function_exists('findOrFail')) {
+if (! function_exists('findOrFail')) {
     /**
      * Trouver par ID ou lever une exception personnalisée
-     * 
-     * @param string $modelClass
-     * @param string $id
-     * @param string $exceptionClass
+     *
      * @return mixed
      */
     function findOrFail(string $modelClass, string $id, string $exceptionClass)
@@ -79,47 +66,37 @@ if (!function_exists('findOrFail')) {
     }
 }
 
-
-if (!function_exists('verifyCandidateCredentials')) {
+if (! function_exists('verifyCandidateCredentials')) {
     /**
      * Vérifier les credentials d'un candidat
-     * 
-     * @param string $email
-     * @param string $password
-     * @return \App\Models\Utilisateur
-     * @throws \Illuminate\Validation\ValidationException
+     *
+     * @throws ValidationException
      */
-    function verifyCandidateCredentials(string $email, string $password): \App\Models\Utilisateur
+    function verifyCandidateCredentials(string $email, string $password): Utilisateur
     {
         return AuthHelper::verifyCandidateCredentials($email, $password);
     }
 }
 
-if (!function_exists('verifyStaffCredentials')) {
+if (! function_exists('verifyStaffCredentials')) {
     /**
      * Vérifier les credentials d'un staff (non-candidat)
-     * 
-     * @param string $username
-     * @param string $password
-     * @return \App\Models\Utilisateur
-     * @throws \Illuminate\Validation\ValidationException
+     *
+     * @throws ValidationException
      */
-    function verifyStaffCredentials(string $username, string $password): \App\Models\Utilisateur
+    function verifyStaffCredentials(string $username, string $password): Utilisateur
     {
         return AuthHelper::verifyStaffCredentials($username, $password);
     }
 }
 
-
-if (!function_exists('api_success')) {
+if (! function_exists('api_success')) {
     /**
      * Crée une réponse API standardisée pour un succès.
      *
-     * @param mixed $data Les données à retourner (optionnel, peut être un Resource, collection ou tableau)
-     * @param string|null $message Message de succès (optionnel)
-     * @param int $code Code HTTP (par défaut 200)
-     *
-     * @return JsonResponse
+     * @param  mixed  $data  Les données à retourner (optionnel, peut être un Resource, collection ou tableau)
+     * @param  string|null  $message  Message de succès (optionnel)
+     * @param  int  $code  Code HTTP (par défaut 200)
      *
      * @example
      * // Retourner un département
@@ -132,15 +109,13 @@ if (!function_exists('api_success')) {
     }
 }
 
-if (!function_exists('api_error')) {
+if (! function_exists('api_error')) {
     /**
      * Crée une réponse API standardisée pour une erreur.
      *
-     * @param string $message Message d'erreur
-     * @param mixed $errors Détails additionnels ou erreurs de validation (optionnel)
-     * @param int $code Code HTTP (par défaut 400)
-     *
-     * @return JsonResponse
+     * @param  string  $message  Message d'erreur
+     * @param  mixed  $errors  Détails additionnels ou erreurs de validation (optionnel)
+     * @param  int  $code  Code HTTP (par défaut 400)
      *
      * @example
      * return api_error('Entrée invalide', ['email' => 'Email requis'], 422);
@@ -151,14 +126,12 @@ if (!function_exists('api_error')) {
     }
 }
 
-if (!function_exists('api_created')) {
+if (! function_exists('api_created')) {
     /**
      * Crée une réponse standardisée après la création d'une ressource.
      *
-     * @param mixed $data La ressource créée (optionnel)
-     * @param string $message Message de succès (par défaut "Ressource créée avec succès")
-     *
-     * @return JsonResponse
+     * @param  mixed  $data  La ressource créée (optionnel)
+     * @param  string  $message  Message de succès (par défaut "Ressource créée avec succès")
      *
      * @example
      * $filiere = Filiere::create($validatedData);
@@ -170,14 +143,12 @@ if (!function_exists('api_created')) {
     }
 }
 
-if (!function_exists('api_updated')) {
+if (! function_exists('api_updated')) {
     /**
      * Crée une réponse standardisée après la mise à jour d'une ressource.
      *
-     * @param mixed $data La ressource mise à jour (optionnel)
-     * @param string $message Message de succès (par défaut "Ressource mise à jour avec succès")
-     *
-     * @return JsonResponse
+     * @param  mixed  $data  La ressource mise à jour (optionnel)
+     * @param  string  $message  Message de succès (par défaut "Ressource mise à jour avec succès")
      *
      * @example
      * $departement->update($validatedData);
@@ -189,13 +160,11 @@ if (!function_exists('api_updated')) {
     }
 }
 
-if (!function_exists('api_deleted')) {
+if (! function_exists('api_deleted')) {
     /**
      * Crée une réponse standardisée après la suppression d'une ressource.
      *
-     * @param string $message Message de succès (par défaut "Ressource supprimée avec succès")
-     *
-     * @return JsonResponse
+     * @param  string  $message  Message de succès (par défaut "Ressource supprimée avec succès")
      *
      * @example
      * return api_deleted();
@@ -206,13 +175,11 @@ if (!function_exists('api_deleted')) {
     }
 }
 
-if (!function_exists('api_not_found')) {
+if (! function_exists('api_not_found')) {
     /**
      * Crée une réponse standardisée 404 Not Found.
      *
-     * @param string $message Message d'erreur (par défaut "Ressource non trouvée")
-     *
-     * @return JsonResponse
+     * @param  string  $message  Message d'erreur (par défaut "Ressource non trouvée")
      *
      * @example
      * return api_not_found('Département introuvable');
@@ -223,13 +190,11 @@ if (!function_exists('api_not_found')) {
     }
 }
 
-if (!function_exists('api_unauthorized')) {
+if (! function_exists('api_unauthorized')) {
     /**
      * Crée une réponse standardisée 401 Unauthorized.
      *
-     * @param string $message Message d'erreur (par défaut "Non autorisé")
-     *
-     * @return JsonResponse
+     * @param  string  $message  Message d'erreur (par défaut "Non autorisé")
      *
      * @example
      * return api_unauthorized('Authentification requise');
@@ -240,13 +205,11 @@ if (!function_exists('api_unauthorized')) {
     }
 }
 
-if (!function_exists('api_forbidden')) {
+if (! function_exists('api_forbidden')) {
     /**
      * Crée une réponse standardisée 403 Forbidden.
      *
-     * @param string $message Message d'erreur (par défaut "Accès interdit")
-     *
-     * @return JsonResponse
+     * @param  string  $message  Message d'erreur (par défaut "Accès interdit")
      *
      * @example
      * return api_forbidden('Permissions insuffisantes');
@@ -257,14 +220,12 @@ if (!function_exists('api_forbidden')) {
     }
 }
 
-if (!function_exists('api_validation_error')) {
+if (! function_exists('api_validation_error')) {
     /**
      * Crée une réponse standardisée pour les erreurs de validation.
      *
-     * @param mixed $errors Erreurs de validation (tableau ou objet)
-     * @param string $message Message d'erreur (par défaut "Erreur de validation")
-     *
-     * @return JsonResponse
+     * @param  mixed  $errors  Erreurs de validation (tableau ou objet)
+     * @param  string  $message  Message d'erreur (par défaut "Erreur de validation")
      *
      * @example
      * return api_validation_error($validator->errors());
@@ -275,15 +236,13 @@ if (!function_exists('api_validation_error')) {
     }
 }
 
-if (!function_exists('api_paginated')) {
+if (! function_exists('api_paginated')) {
     /**
      * Crée une réponse standardisée pour les listes paginées.
      *
-     * @param \Illuminate\Contracts\Pagination\LengthAwarePaginator $paginatedData Données paginées
-     * @param string|null $message Message de succès (optionnel)
-     * @param string|null $resourceClass Classe de ressource API pour transformer les items (optionnel)
-     *
-     * @return JsonResponse
+     * @param  LengthAwarePaginator  $paginatedData  Données paginées
+     * @param  string|null  $message  Message de succès (optionnel)
+     * @param  string|null  $resourceClass  Classe de ressource API pour transformer les items (optionnel)
      *
      * @example
      * $users = User::paginate(10);

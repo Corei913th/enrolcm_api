@@ -7,8 +7,8 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class CleanupTempReceiptsJob implements ShouldQueue
 {
@@ -31,8 +31,8 @@ class CleanupTempReceiptsJob implements ShouldQueue
     {
         try {
             $tempPath = 'receipts/temp';
-            
-            if (!Storage::exists($tempPath)) {
+
+            if (! Storage::exists($tempPath)) {
                 return;
             }
 
@@ -42,7 +42,7 @@ class CleanupTempReceiptsJob implements ShouldQueue
 
             foreach ($files as $file) {
                 $lastModified = Storage::lastModified($file);
-                
+
                 if ($lastModified < $cutoffTime) {
                     Storage::delete($file);
                     $deletedCount++;

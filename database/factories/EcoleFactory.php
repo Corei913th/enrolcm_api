@@ -2,8 +2,8 @@
 
 namespace Database\Factories;
 
-use App\Models\Ecole;
 use App\Enums\RegionCameroun;
+use App\Models\Ecole;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class EcoleFactory extends Factory

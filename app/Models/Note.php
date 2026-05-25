@@ -2,11 +2,11 @@
 
 namespace App\Models;
 
+use App\Enums\StatutNote;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use App\Enums\StatutNote;
 
 /**
  * @mixin IdeHelperNote
@@ -16,7 +16,9 @@ class Note extends Model
     use HasFactory, HasUuids, SoftDeletes;
 
     protected $table = 'notes';
+
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected $fillable = [
@@ -39,7 +41,6 @@ class Note extends Model
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',
     ];
-
 
     public function candidature()
     {

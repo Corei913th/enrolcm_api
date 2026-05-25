@@ -20,7 +20,7 @@ class UpdateConcoursRequest extends FormRequest
         if ($this->has('description')) {
             $description = trim($this->input('description'));
             $this->merge([
-                'description' => empty($description) ? null : $description
+                'description' => empty($description) ? null : $description,
             ]);
         }
     }
@@ -34,7 +34,7 @@ class UpdateConcoursRequest extends FormRequest
                 'string',
                 'max:255',
                 'min:3',
-                'regex:/^[\p{L}\p{N}\s\-\'&,()]+$/u'
+                'regex:/^[\p{L}\p{N}\s\-\'&,()]+$/u',
             ],
             'description' => ['sometimes', 'nullable', 'string', 'max:1000'],
             // date_examen removed - use planning_epreuves as single source of truth

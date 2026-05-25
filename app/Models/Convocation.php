@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 /**
  * @mixin IdeHelperConvocation
@@ -14,7 +14,9 @@ class Convocation extends Model
     use HasFactory, HasUuids;
 
     protected $table = 'convocations';
+
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected $fillable = [
@@ -57,18 +59,21 @@ class Convocation extends Model
     public function getCentre()
     {
         $affectation = $this->candidature->affectationsSalles()->first();
+
         return $affectation?->salle?->centre;
     }
 
     public function getSalle()
     {
         $affectation = $this->candidature->affectationsSalles()->first();
+
         return $affectation?->salle;
     }
 
     public function getNumeroPlace()
     {
         $affectation = $this->candidature->affectationsSalles()->first();
+
         return $affectation?->numero_place;
     }
 
@@ -115,6 +120,7 @@ class Convocation extends Model
         // Format: CONV-ANNEE-NUMERO (ex: CONV-2024-000123)
         $annee = now()->year;
         $dernier = static::whereYear('created_at', $annee)->count() + 1;
+
         return sprintf('CONV-%d-%06d', $annee, $dernier);
     }
 

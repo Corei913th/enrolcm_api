@@ -1,8 +1,6 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -59,9 +57,9 @@ return new class extends Migration
         ");
 
         // TRIGGERS POUR MAINTIEN AUTOMATIQUE
-        DB::statement("CREATE TRIGGER paiements_search_vector_trigger BEFORE INSERT OR UPDATE ON paiements FOR EACH ROW EXECUTE FUNCTION paiements_search_vector_update()");
-        DB::statement("CREATE TRIGGER utilisateurs_search_vector_trigger BEFORE INSERT OR UPDATE ON utilisateurs FOR EACH ROW EXECUTE FUNCTION utilisateurs_search_vector_update()");
-        DB::statement("CREATE TRIGGER candidatures_search_vector_trigger BEFORE INSERT OR UPDATE ON candidatures FOR EACH ROW EXECUTE FUNCTION candidatures_search_vector_update()");
+        DB::statement('CREATE TRIGGER paiements_search_vector_trigger BEFORE INSERT OR UPDATE ON paiements FOR EACH ROW EXECUTE FUNCTION paiements_search_vector_update()');
+        DB::statement('CREATE TRIGGER utilisateurs_search_vector_trigger BEFORE INSERT OR UPDATE ON utilisateurs FOR EACH ROW EXECUTE FUNCTION utilisateurs_search_vector_update()');
+        DB::statement('CREATE TRIGGER candidatures_search_vector_trigger BEFORE INSERT OR UPDATE ON candidatures FOR EACH ROW EXECUTE FUNCTION candidatures_search_vector_update()');
 
         // INDEXATION INITIALE DES DONNÉES EXISTANTES (déclenchée par les triggers)
         // Les triggers mettront automatiquement à jour les search_vector existants lors du premier accès
@@ -73,19 +71,19 @@ return new class extends Migration
     public function down(): void
     {
         // Suppression des triggers
-        DB::statement("DROP TRIGGER IF EXISTS paiements_search_vector_trigger ON paiements");
-        DB::statement("DROP TRIGGER IF EXISTS utilisateurs_search_vector_trigger ON utilisateurs");
-        DB::statement("DROP TRIGGER IF EXISTS candidatures_search_vector_trigger ON candidatures");
+        DB::statement('DROP TRIGGER IF EXISTS paiements_search_vector_trigger ON paiements');
+        DB::statement('DROP TRIGGER IF EXISTS utilisateurs_search_vector_trigger ON utilisateurs');
+        DB::statement('DROP TRIGGER IF EXISTS candidatures_search_vector_trigger ON candidatures');
 
         // Suppression des fonctions
-        DB::statement("DROP FUNCTION IF EXISTS paiements_search_vector_update()");
-        DB::statement("DROP FUNCTION IF EXISTS utilisateurs_search_vector_update()");
-        DB::statement("DROP FUNCTION IF EXISTS candidatures_search_vector_update()");
+        DB::statement('DROP FUNCTION IF EXISTS paiements_search_vector_update()');
+        DB::statement('DROP FUNCTION IF EXISTS utilisateurs_search_vector_update()');
+        DB::statement('DROP FUNCTION IF EXISTS candidatures_search_vector_update()');
 
         // Suppression des index
-        DB::statement("DROP INDEX IF EXISTS idx_paiements_search");
-        DB::statement("DROP INDEX IF EXISTS idx_utilisateurs_search");
-        DB::statement("DROP INDEX IF EXISTS idx_candidatures_search");
+        DB::statement('DROP INDEX IF EXISTS idx_paiements_search');
+        DB::statement('DROP INDEX IF EXISTS idx_utilisateurs_search');
+        DB::statement('DROP INDEX IF EXISTS idx_candidatures_search');
 
         // Suppression des colonnes (SQL brut)
         DB::statement('ALTER TABLE paiements DROP COLUMN IF EXISTS search_vector');

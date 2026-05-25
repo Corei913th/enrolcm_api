@@ -11,7 +11,7 @@ class CreateCandidatAccountRequest extends FormRequest
         return true;
     }
 
-     public function rules()
+    public function rules()
     {
         return [
             'user_name' => 'required|string|unique:utilisateurs,user_name',
@@ -24,7 +24,7 @@ class CreateCandidatAccountRequest extends FormRequest
     {
         return [
             'user_name.required' => 'Le nom d\'utilisateur est obligatoire',
-            'user_name.string' => 'Le nom d\'utilisateur doit être une chaîne de caractères',      
+            'user_name.string' => 'Le nom d\'utilisateur doit être une chaîne de caractères',
             'mot_de_passe.string' => 'Le mot de passe doit être une chaîne de caractères',
             'mot_de_passe.required' => 'Le mot de passe est obligatoire',
             'mot_de_passe.min' => 'Le mot de passe doit contenir au moins 6 caractères',

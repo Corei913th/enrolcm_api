@@ -1,9 +1,9 @@
 <?php
 
+use App\Enums\RegionCameroun;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use App\Enums\RegionCameroun;
 
 return new class extends Migration
 {
@@ -24,7 +24,7 @@ return new class extends Migration
             $table->string('embleme_ecole', 500)->nullable();
             $table->boolean('est_actif')->default(true);
             $table->timestamps();
-            
+
             $table->index('region');
             $table->index('est_actif');
             $table->index(['region', 'est_actif']);

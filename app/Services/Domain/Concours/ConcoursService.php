@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\DB;
 
 class ConcoursService
 {
-    use HasSmartCache, HasOptimizedUpdate, HasAdvancedSearch;
+    use HasAdvancedSearch, HasOptimizedUpdate, HasSmartCache;
 
     public function __construct(
         private readonly ActivityLoggerService $logger,
@@ -63,7 +63,6 @@ class ConcoursService
         return $this->rememberList($filters, $page, $perPage, function () use ($filters, $perPage) {
             $query = Concours::with(['ecole', 'specConcours', 'sessions']);
 
-
             $simpleFilters = [];
             if (isset($filters['ecole_id'])) {
                 $simpleFilters['ecole_id'] = $filters['ecole_id'];
@@ -76,7 +75,6 @@ class ConcoursService
             }
 
             $query = $this->applyFilters($query, $simpleFilters);
-
 
             if (isset($filters['search'])) {
                 $query = $this->applySearch(
@@ -100,7 +98,7 @@ class ConcoursService
                 'libelle_concours',
                 'nbre_max_places',
                 'date_limite_depot',
-                'date_examen'
+                'date_examen',
             ]);
 
             return $query->paginate($perPage);
@@ -109,7 +107,7 @@ class ConcoursService
 
     /**
      * Récupérer les concours disponibles (actifs et prêts pour inscription)
-     * 
+     *
      * Utilise ConcoursReadinessChecker pour filtrer uniquement les concours
      * qui remplissent TOUS les critères requis pour l'inscription des candidats
      */
@@ -125,7 +123,7 @@ class ConcoursService
                 'sessions',
                 'filieres',
                 'centers',
-                'documentsRequis'
+                'documentsRequis',
             ])
                 ->where('est_actif', true)
                 ->whereDate('date_limite_depot', '>=', now())
@@ -134,9 +132,9 @@ class ConcoursService
 
             $readyConcours = $concours->filter(function ($concours) {
                 $result = $this->readinessChecker->check($concours);
+
                 return $result['ready'];
             });
-
 
             $total = $readyConcours->count();
             $items = $readyConcours->forPage($page, $perPage)->values();
@@ -164,7 +162,7 @@ class ConcoursService
                     'sessions',
                     'centers',
                     'filieres',
-                    'configurationPaiement'
+                    'configurationPaiement',
                 ])->findOrFail($id);
             }, 'concours_full');
         }
@@ -186,7 +184,7 @@ class ConcoursService
 
             $this->logger->logActivity('create', 'concours', $concours->id, [
                 'libelle' => $concours->libelle_concours,
-                'ecole_id' => $concours->ecole_id
+                'ecole_id' => $concours->ecole_id,
             ]);
 
             $this->invalidateCacheAfterModification($concours->id);
@@ -204,12 +202,12 @@ class ConcoursService
             $concours = $this->getById($id);
             $updateData = $dto->toArray();
 
-            if (!empty($updateData)) {
+            if (! empty($updateData)) {
                 $wasUpdated = $this->updateIfDirty($concours, $updateData);
 
                 if ($wasUpdated) {
                     $this->logger->logActivity('update', 'concours', $id, [
-                        'changes' => $this->getDirtyFields($concours)
+                        'changes' => $this->getDirtyFields($concours),
                     ]);
                 }
             }
@@ -229,7 +227,7 @@ class ConcoursService
             $concours = $this->getById($id);
 
             $this->logger->logActivity('delete', 'concours', $id, [
-                'libelle' => $concours->libelle_concours
+                'libelle' => $concours->libelle_concours,
             ]);
 
             $concours->delete();
@@ -300,7 +298,7 @@ class ConcoursService
             $concours->sessions()->attach($sessionId);
 
             $this->logger->logActivity('attach_session', 'concours', $concoursId, [
-                'session_id' => $sessionId
+                'session_id' => $sessionId,
             ]);
 
             $this->invalidateCacheAfterModification($concoursId);
@@ -317,7 +315,7 @@ class ConcoursService
             $concours->sessions()->detach($sessionId);
 
             $this->logger->logActivity('detach_session', 'concours', $concoursId, [
-                'session_id' => $sessionId
+                'session_id' => $sessionId,
             ]);
 
             $this->invalidateCacheAfterModification($concoursId);
@@ -335,7 +333,7 @@ class ConcoursService
 
             $this->logger->logActivity('change_session_state', 'concours', $concoursId, [
                 'session_id' => $sessionId,
-                'etat' => $state
+                'etat' => $state,
             ]);
 
             // Invalider le cache
@@ -350,9 +348,9 @@ class ConcoursService
     {
         $concours = $this->getById($concoursId);
 
-        if (!$sessionId) {
+        if (! $sessionId) {
             $session = $concours->sessions()->first();
-            if (!$session) {
+            if (! $session) {
                 throw new ConcoursException('Aucune session trouvée pour ce concours');
             }
             $sessionId = $session->id;
@@ -377,9 +375,9 @@ class ConcoursService
     {
         $concours = $this->getById($concoursId);
 
-        if (!$sessionId) {
+        if (! $sessionId) {
             $session = $concours->sessions()->first();
-            if (!$session) {
+            if (! $session) {
                 throw new ConcoursException('Aucune session trouvée pour ce concours');
             }
             $sessionId = $session->id;

@@ -23,13 +23,13 @@ return new class extends Migration
             $table->text('motif_rejet')->nullable();
             $table->timestamp('deleted_at')->nullable();
             $table->timestamps();
-            
+
             $table->foreign('candidat_id')->references('utilisateur_id')->on('candidats')->onDelete('restrict');
             $table->foreign(['concours_id', 'session_id'])
                 ->references(['concours_id', 'session_id'])
                 ->on('concours_session')
                 ->onDelete('restrict');
-            
+
             $table->index('candidat_id');
             $table->index(['concours_id', 'session_id']);
             $table->index('date_validation');

@@ -2,8 +2,6 @@
 
 namespace App\Exceptions\Business;
 
-use App\Enums\TypeUtilisateur;
-
 class UserException extends \Exception
 {
     protected $severity;
@@ -23,17 +21,17 @@ class UserException extends \Exception
     {
         return $this->message;
     }
-    
+
     public function toArray(): array
     {
         return [
             'type' => 'UserException',
             'severity' => $this->severity,
             'message' => $this->message,
-            'code' => $this->code
+            'code' => $this->code,
         ];
     }
-    
+
     public static function notFound(string $id): self
     {
         return new self("Utilisateur introuvable (ID: {$id})", 404, 'error');

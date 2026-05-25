@@ -1,9 +1,9 @@
 <?php
 
+use App\Enums\StatutNote;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use App\Enums\StatutNote;
 
 return new class extends Migration
 {
@@ -20,10 +20,10 @@ return new class extends Migration
             $table->enum('statut', StatutNote::values())->default(StatutNote::EN_ATTENTE_SAISIE);
             $table->timestamp('deleted_at')->nullable();
             $table->timestamps();
-            
+
             $table->foreign('candidature_id')->references('id')->on('candidatures')->onDelete('restrict');
             $table->foreign('epreuve_id')->references('id_epreuve')->on('epreuves')->onDelete('restrict');
-            
+
             $table->index('candidature_id');
             $table->index('epreuve_id');
             $table->index('deleted_at');

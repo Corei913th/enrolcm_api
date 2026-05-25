@@ -10,22 +10,18 @@ return new class extends Migration
     {
         Schema::table('centres', function (Blueprint $table) {
 
-            
             $table->uuid('region_id')
-                  ->after('id');        
+                ->after('id');
 
-           
             $table->unsignedInteger('capacite')
-                  ->default(0)
-                  ->change();
+                ->default(0)
+                ->change();
 
-            
             $table->foreign('region_id')
-                  ->references('id')
-                  ->on('regions')
-                  ->cascadeOnDelete();
+                ->references('id')
+                ->on('regions')
+                ->cascadeOnDelete();
 
-            
             $table->index(['region_id', 'est_actif']);
         });
     }
@@ -37,15 +33,13 @@ return new class extends Migration
             // Suppression FK + index
             $table->dropForeign(['region_id']);
             $table->dropIndex(['region_id', 'est_actif']);
-        
 
             // Suppression champ
             $table->dropColumn('region_id');
-          
 
             $table->integer('capacite')
-                  ->default(0)
-                  ->change();
+                ->default(0)
+                ->change();
         });
     }
 };

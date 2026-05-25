@@ -1,7 +1,7 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\PaiementValidationController;
+use Illuminate\Support\Facades\Route;
 
 /**
  * Routes Admin - Validation des Paiements

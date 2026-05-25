@@ -6,7 +6,7 @@ use Exception;
 
 class CentreException extends Exception
 {
-    public function __construct(string $message = "Erreur liée au centre", int $code = 400)
+    public function __construct(string $message = 'Erreur liée au centre', int $code = 400)
     {
         parent::__construct($message, $code);
     }

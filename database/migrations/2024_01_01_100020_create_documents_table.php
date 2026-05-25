@@ -1,9 +1,9 @@
 <?php
 
+use App\Enums\TypeDocument;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use App\Enums\TypeDocument;
 
 return new class extends Migration
 {
@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('nom_original', 255);
             $table->enum('type_document', TypeDocument::values());
             $table->timestamps();
-            
+
             $table->foreign('candidature_id')->references('id')->on('candidatures')->onDelete('cascade');
         });
     }

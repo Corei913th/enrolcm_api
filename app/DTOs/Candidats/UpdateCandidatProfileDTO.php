@@ -15,6 +15,6 @@ class UpdateCandidatProfileDTO
 
     public function toArray(): array
     {
-        return array_filter($this->data, fn($value) => $value !== null);
+        return array_filter($this->data, fn ($value) => $value !== null);
     }
 }

@@ -5,7 +5,6 @@ namespace App\DTOs\Candidats;
 use App\Http\Requests\Candidats\CreateCandidatAccountRequest;
 use Spatie\LaravelData\Data;
 
-
 class CreateCandidatAccountDTO extends Data
 {
     public function __construct(

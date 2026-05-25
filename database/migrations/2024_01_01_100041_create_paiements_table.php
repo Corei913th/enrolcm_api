@@ -15,7 +15,7 @@ return new class extends Migration
             $table->string('reference', 50)->unique(); // PRU unique
             $table->decimal('montant', 10, 2);
             $table->string('preuve_paiement');
-            
+
             // Données extraites par OCR
             $table->decimal('montant_ocr', 10, 2)->nullable();
             $table->date('date_ocr')->nullable();
@@ -23,17 +23,17 @@ return new class extends Migration
             $table->string('reference_ocr', 50)->nullable();
             $table->decimal('ocr_confidence', 3, 2)->nullable();
             $table->json('ocr_raw_data')->nullable();
-            
+
             $table->enum('statut', ['PENDING', 'VERIFIED', 'REJECTED'])->default('PENDING');
             $table->text('motif_rejet')->nullable();
             $table->timestamp('validated_at')->nullable();
             $table->uuid('validated_by')->nullable();
             $table->timestamps();
-            
+
             $table->foreign('candidat_id')->references('utilisateur_id')->on('candidats')->onDelete('set null');
             $table->foreign('concours_id')->references('id')->on('concours')->onDelete('cascade');
             $table->foreign('validated_by')->references('id')->on('utilisateurs')->onDelete('set null');
-            
+
             $table->index('candidat_id');
             $table->index('reference');
             $table->index('statut');

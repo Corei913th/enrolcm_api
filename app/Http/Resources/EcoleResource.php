@@ -3,7 +3,6 @@
 namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
-use App\Enums\RegionCameroun;
 
 class EcoleResource extends JsonResource
 {

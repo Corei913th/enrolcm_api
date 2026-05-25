@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 /**
  * @mixin IdeHelperConcoursPaiement
@@ -14,7 +14,9 @@ class ConcoursPaiement extends Model
     use HasFactory, HasUuids;
 
     protected $table = 'concours_paiements';
+
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected $fillable = [
@@ -113,7 +115,7 @@ class ConcoursPaiement extends Model
 
     public function peutValiderAutomatiquement(): bool
     {
-        return $this->validation_auto && $this->est_actif && !$this->isExpire();
+        return $this->validation_auto && $this->est_actif && ! $this->isExpire();
     }
 
     public function getInformationsBancaires(): array

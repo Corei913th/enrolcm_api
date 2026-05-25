@@ -15,7 +15,7 @@ return new class extends Migration
             // Add frozen region column
             $table->string('region_figee')->nullable()->after('statut_candidature');
             $table->timestamp('date_figement_region')->nullable()->after('region_figee');
-            
+
             // Add index for performance
             $table->index('region_figee');
         });

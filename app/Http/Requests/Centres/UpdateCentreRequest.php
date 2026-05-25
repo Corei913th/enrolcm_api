@@ -5,8 +5,8 @@ namespace App\Http\Requests\Centres;
 use App\Enums\RegionCameroun;
 use App\Enums\TypeCentre;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rules\Enum;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Enum;
 
 class UpdateCentreRequest extends FormRequest
 {
@@ -26,7 +26,7 @@ class UpdateCentreRequest extends FormRequest
                 'required',
                 'string',
                 'max:200',
-                Rule::unique('centres', 'libelle_centre')->ignore($centreId)
+                Rule::unique('centres', 'libelle_centre')->ignore($centreId),
             ],
             'type_centre' => ['sometimes', 'required', new Enum(TypeCentre::class)],
             'ville_centre' => 'sometimes|required|string|max:100',

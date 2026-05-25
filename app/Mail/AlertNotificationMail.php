@@ -6,55 +6,56 @@ use App\Models\Alert;
 use App\Models\Candidat;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
 class AlertNotificationMail extends Mailable
 {
-  use Queueable, SerializesModels;
+    use Queueable, SerializesModels;
 
-  /**
-   * Create a new message instance.
-   */
-  public function __construct(
-    public Alert $alert,
-    public Candidat $candidat
-  ) {}
+    /**
+     * Create a new message instance.
+     */
+    public function __construct(
+        public Alert $alert,
+        public Candidat $candidat
+    ) {}
 
-  /**
-   * Get the message envelope.
-   */
-  public function envelope(): Envelope
-  {
-    $subject = match ($this->alert->severity) {
-      'critical' => '🚨 Action urgente requise - ' . $this->alert->title,
-      'warning' => '⚠️ ' . $this->alert->title,
-      default => '📢 ' . $this->alert->title,
-    };
+    /**
+     * Get the message envelope.
+     */
+    public function envelope(): Envelope
+    {
+        $subject = match ($this->alert->severity) {
+            'critical' => '🚨 Action urgente requise - ' . $this->alert->title,
+            'warning' => '⚠️ ' . $this->alert->title,
+            default => '📢 ' . $this->alert->title,
+        };
 
-    return new Envelope(
-      subject: $subject,
-    );
-  }
+        return new Envelope(
+            subject: $subject,
+        );
+    }
 
-  /**
-   * Get the message content definition.
-   */
-  public function content(): Content
-  {
-    return new Content(
-      view: 'emails.alert-notification',
-    );
-  }
+    /**
+     * Get the message content definition.
+     */
+    public function content(): Content
+    {
+        return new Content(
+            view: 'emails.alert-notification',
+        );
+    }
 
-  /**
-   * Get the attachments for the message.
-   *
-   * @return array<int, \Illuminate\Mail\Mailables\Attachment>
-   */
-  public function attachments(): array
-  {
-    return [];
-  }
+    /**
+     * Get the attachments for the message.
+     *
+     * @return array<int, Attachment>
+     */
+    public function attachments(): array
+    {
+        return [];
+    }
 }

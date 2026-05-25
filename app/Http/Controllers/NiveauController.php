@@ -13,8 +13,6 @@ use Illuminate\Http\Request;
 
 class NiveauController extends Controller
 {
-
-
     public function __construct(
         private readonly NiveauService $niveauService
     ) {}

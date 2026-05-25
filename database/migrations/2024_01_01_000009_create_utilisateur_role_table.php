@@ -13,7 +13,7 @@ return new class extends Migration
             $table->uuid('role_id');
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrent();
-            
+
             $table->primary(['utilisateur_id', 'role_id']);
             $table->foreign('utilisateur_id')->references('id')->on('utilisateurs')->onDelete('cascade');
             $table->foreign('role_id')->references('id')->on('roles')->onDelete('cascade');

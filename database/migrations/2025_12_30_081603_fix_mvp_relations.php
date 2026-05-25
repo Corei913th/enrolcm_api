@@ -18,7 +18,6 @@ return new class extends Migration
         // MVP : Simplifier les relations paiements
         Schema::table('paiements', function (Blueprint $table) {
 
-
             $table->uuid('candidature_id')->nullable()->after('candidat_id');
             $table->foreign('candidature_id')->references('id')->on('candidatures')->onDelete('set null');
             $table->index('candidature_id');

@@ -2,9 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Enums\RegionCameroun;
 use App\Models\Ecole;
 use App\Models\User;
-use App\Enums\RegionCameroun;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -15,6 +15,7 @@ class EcoleApiTest extends TestCase
     use RefreshDatabase;
 
     protected User $user;
+
     protected string $token;
 
     protected function setUp(): void
@@ -50,7 +51,7 @@ class EcoleApiTest extends TestCase
                     'id',
                     'code_ecole',
                     'libelle_ecole',
-                ]
+                ],
             ]);
 
         $this->assertDatabaseHas('ecoles', [
@@ -94,7 +95,7 @@ class EcoleApiTest extends TestCase
             ->assertJsonStructure([
                 'success',
                 'data',
-                'meta'
+                'meta',
             ]);
     }
 
@@ -112,7 +113,7 @@ class EcoleApiTest extends TestCase
                 'data' => [
                     'id' => $ecole->id,
                     'code_ecole' => $ecole->code_ecole,
-                ]
+                ],
             ]);
     }
 
@@ -129,7 +130,7 @@ class EcoleApiTest extends TestCase
                 'success' => true,
                 'data' => [
                     'code_ecole' => 'TESTCODE',
-                ]
+                ],
             ]);
     }
 

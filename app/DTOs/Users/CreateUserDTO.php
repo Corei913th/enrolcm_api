@@ -1,6 +1,5 @@
 <?php
 
-
 namespace App\DTOs\Users;
 
 use App\Http\Requests\Admin\Users\StoreUserRequest;
@@ -17,12 +16,12 @@ class CreateUserDTO
         public ?string $specialite = null,
         public ?string $matricule_enseignant = null,
         public ?string $code_agent = null
-    ) {
-    }
+    ) {}
 
     public static function fromRequest(StoreUserRequest $request): self
     {
         $data = $request->validated();
+
         return new self(
             email: $data['email'] ?? '',
             user_name: $data['user_name'],

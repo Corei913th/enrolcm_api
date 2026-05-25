@@ -29,21 +29,21 @@ Route::prefix('epreuves')->group(__DIR__ . '/epreuves.php');
 
 // Candidats
 Route::prefix('candidats')->group(function () {
-  require __DIR__ . '/candidats/candidats.php';
-  Route::prefix('documents')->group(__DIR__ . '/candidats/documents.php');
+    require __DIR__ . '/candidats/candidats.php';
+    Route::prefix('documents')->group(__DIR__ . '/candidats/documents.php');
 });
 
 // Paiements
 Route::prefix('paiements')->group(function () {
-  require __DIR__ . '/paiements/paiements.php';
-  Route::prefix('recus')->group(__DIR__ . '/paiements/recus.php');
-  Route::prefix('validation')->group(__DIR__ . '/paiements/validation.php');
+    require __DIR__ . '/paiements/paiements.php';
+    Route::prefix('recus')->group(__DIR__ . '/paiements/recus.php');
+    Route::prefix('validation')->group(__DIR__ . '/paiements/validation.php');
 });
 
 // Documents
 Route::prefix('documents')->group(function () {
-  require __DIR__ . '/documents/documents.php';
-  Route::prefix('validation')->group(__DIR__ . '/documents/validation.php');
+    require __DIR__ . '/documents/documents.php';
+    Route::prefix('validation')->group(__DIR__ . '/documents/validation.php');
 });
 
 // Users
@@ -51,8 +51,8 @@ Route::prefix('users')->group(__DIR__ . '/users/users.php');
 
 // Alertes (placeholder)
 Route::prefix('alertes')->group(function () {
-  Route::get('stats', fn() => response()->json([
-    'success' => true,
-    'data' => ['total' => 0, 'critiques' => 0, 'importantes' => 0, 'informatives' => 0]
-  ]));
+    Route::get('stats', fn () => response()->json([
+        'success' => true,
+        'data' => ['total' => 0, 'critiques' => 0, 'importantes' => 0, 'informatives' => 0],
+    ]));
 });

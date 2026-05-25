@@ -15,7 +15,7 @@ return new class extends Migration
         DB::statement('ALTER TABLE notifications DROP CONSTRAINT IF EXISTS notifications_type_notification_check');
 
         // Get all valid enum values
-        $validValues = array_map(fn($value) => "'$value'", TypeNotification::values());
+        $validValues = array_map(fn ($value) => "'$value'", TypeNotification::values());
         $validValuesString = implode(', ', $validValues);
 
         // Add the new constraint with all current enum values
@@ -47,9 +47,9 @@ return new class extends Migration
             'PAIEMENT_REJETE',
             'INFORMATION_GENERALE',
             'ALERTE',
-            'RAPPEL'
+            'RAPPEL',
         ];
-        $oldValuesString = implode(', ', array_map(fn($v) => "'$v'", $oldValues));
+        $oldValuesString = implode(', ', array_map(fn ($v) => "'$v'", $oldValues));
 
         DB::statement("ALTER TABLE notifications ADD CONSTRAINT notifications_type_notification_check CHECK (type_notification IN ($oldValuesString))");
     }

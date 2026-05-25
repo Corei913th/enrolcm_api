@@ -2,9 +2,9 @@
 
 namespace Database\Factories;
 
+use App\Enums\TypeUtilisateur;
 use App\Models\Candidat;
 use App\Models\Utilisateur;
-use App\Enums\TypeUtilisateur;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class CandidatFactory extends Factory

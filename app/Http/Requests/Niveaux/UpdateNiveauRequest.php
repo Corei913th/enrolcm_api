@@ -2,9 +2,10 @@
 
 namespace App\Http\Requests\Niveaux;
 
-use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Validation\Rule;
 
 class UpdateNiveauRequest extends FormRequest
 {
@@ -28,7 +29,7 @@ class UpdateNiveauRequest extends FormRequest
                 'required',
                 'string',
                 'max:10',
-                \Illuminate\Validation\Rule::unique('niveaux', 'code_niveau')->ignore($niveauId)
+                Rule::unique('niveaux', 'code_niveau')->ignore($niveauId),
             ],
             'libelle_niveau' => 'required|string|max:100',
             'filiere_id' => 'nullable|uuid|exists:filieres,id',

@@ -2,8 +2,8 @@
 
 namespace App\DTOs\Auth;
 
-use Spatie\LaravelData\Data;
 use App\Http\Requests\Auth\ChangePasswordRequest;
+use Spatie\LaravelData\Data;
 
 class ChangePasswordDTO extends Data
 {

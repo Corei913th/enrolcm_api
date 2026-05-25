@@ -47,6 +47,6 @@ class UpdateConcoursDTO
             'date_limite_depot' => $this->date_limite_depot,
             'nbre_max_places' => $this->nombre_places, // Mapping vers DB
             'est_actif' => $this->est_actif,
-        ], fn($value) => $value !== null);
+        ], fn ($value) => $value !== null);
     }
 }

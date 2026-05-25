@@ -17,7 +17,7 @@ return new class extends Migration
                 ->nullable()
                 ->after('decision')
                 ->comment('STANDARD: >= 10, CONDITIONNEL: 8-10, ELIMINATOIRE: note éliminatoire');
-            
+
             // Score de départage (pour critères prioritaires)
             $table->decimal('score_departage', 10, 4)
                 ->nullable()

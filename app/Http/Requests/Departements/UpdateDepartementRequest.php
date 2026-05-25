@@ -9,7 +9,7 @@ class UpdateDepartementRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        
+
         return true;
     }
 

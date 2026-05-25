@@ -2,9 +2,9 @@
 
 namespace App\Http\Requests\Ecoles;
 
-use Illuminate\Foundation\Http\FormRequest;
 use App\Enums\RegionCameroun;
 use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
 class StoreEcoleRequest extends FormRequest
@@ -16,7 +16,6 @@ class StoreEcoleRequest extends FormRequest
     {
         return true;
     }
-
 
     public function rules(): array
     {
@@ -51,14 +50,12 @@ class StoreEcoleRequest extends FormRequest
             'devise' => 'nullable|string|max:100',
             'slogan' => 'nullable|string|max:200',
 
-
             // Institution tutelle
             'nom_institution_tutelle' => 'nullable|string|max:200',
             'nom_institution_tutelle_en' => 'nullable|string|max:200',
             'numero_agrement' => 'nullable|string|max:100',
             'date_creation' => 'nullable|date|before:today',
             'logo_institution_tutelle_url' => 'nullable|string|max:500',
-
 
             // Statut
             'est_actif' => 'nullable|boolean',

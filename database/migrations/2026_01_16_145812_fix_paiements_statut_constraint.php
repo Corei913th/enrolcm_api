@@ -11,7 +11,7 @@ return new class extends Migration
     public function up(): void
     {
         // Supprimer l'ancienne contrainte check si elle existe
-        DB::statement("ALTER TABLE paiements DROP CONSTRAINT IF EXISTS paiements_statut_check");
+        DB::statement('ALTER TABLE paiements DROP CONSTRAINT IF EXISTS paiements_statut_check');
 
         // Ajouter la nouvelle contrainte avec toutes les valeurs valides
         DB::statement("
@@ -27,7 +27,7 @@ return new class extends Migration
     public function down(): void
     {
         // Supprimer la contrainte
-        DB::statement("ALTER TABLE paiements DROP CONSTRAINT IF EXISTS paiements_statut_check");
+        DB::statement('ALTER TABLE paiements DROP CONSTRAINT IF EXISTS paiements_statut_check');
 
         // Remettre l'ancienne contrainte (seulement les 3 valeurs de base)
         DB::statement("

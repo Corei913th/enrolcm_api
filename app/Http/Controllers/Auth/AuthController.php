@@ -2,17 +2,18 @@
 
 namespace App\Http\Controllers\Auth;
 
-use App\Http\Controllers\Controller;
-use App\Services\Domain\Auth\AuthService;
-use App\Http\Requests\Auth\LoginRequest;
-use App\Http\Requests\Auth\ChangePasswordRequest;
-use App\DTOs\Auth\LoginDTO;
 use App\DTOs\Auth\ChangePasswordDTO;
-use Illuminate\Http\Request;
-use Illuminate\Validation\ValidationException;
+use App\DTOs\Auth\LoginDTO;
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Auth\ChangePasswordRequest;
+use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Resources\UtilisateurResource;
 use App\Models\Utilisateur;
+use App\Services\Domain\Auth\AuthService;
 use App\Services\Domain\Notification\NotificationService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
@@ -26,9 +27,8 @@ class AuthController extends Controller
      *
      * Endpoint : POST /api/auth/login
      *
-     * @param LoginRequest $request Requête validée contenant user_name et mot_de_passe
-     *
-     * @return \Illuminate\Http\JsonResponse Réponse JSON avec utilisateur et tokens
+     * @param  LoginRequest  $request  Requête validée contenant user_name et mot_de_passe
+     * @return JsonResponse Réponse JSON avec utilisateur et tokens
      *
      * @throws ValidationException Si la requête est invalide
      * @throws \Exception Si l'authentification échoue
@@ -53,15 +53,13 @@ class AuthController extends Controller
         }
     }
 
-
     /**
      * Connexion d'un utilisateur.
      *
      * Endpoint : POST /api/auth/candidat/login
      *
-     * @param LoginRequest $request Requête validée contenant email et mot_de_passe
-     *
-     * @return \Illuminate\Http\JsonResponse Réponse JSON avec utilisateur et tokens
+     * @param  LoginRequest  $request  Requête validée contenant email et mot_de_passe
+     * @return JsonResponse Réponse JSON avec utilisateur et tokens
      *
      * @throws ValidationException Si la requête est invalide
      * @throws \Exception Si l'authentification échoue
@@ -91,9 +89,8 @@ class AuthController extends Controller
      *
      * Endpoint : POST /api/auth/refresh
      *
-     * @param Request $request Requête contenant le refresh_token
-     *
-     * @return \Illuminate\Http\JsonResponse Réponse JSON avec nouveaux tokens
+     * @param  Request  $request  Requête contenant le refresh_token
+     * @return JsonResponse Réponse JSON avec nouveaux tokens
      *
      * @throws \Exception Si le refresh échoue
      */
@@ -102,7 +99,7 @@ class AuthController extends Controller
         try {
             $refreshToken = $request->input('refresh_token');
 
-            if (!$refreshToken) {
+            if (! $refreshToken) {
                 return api_error('Refresh token manquant', null, 400);
             }
 
@@ -124,9 +121,8 @@ class AuthController extends Controller
      *
      * Endpoint : POST /api/auth/logout
      *
-     * @param Request $request Requête contenant l'utilisateur connecté
-     *
-     * @return \Illuminate\Http\JsonResponse Réponse JSON succès
+     * @param  Request  $request  Requête contenant l'utilisateur connecté
+     * @return JsonResponse Réponse JSON succès
      */
     public function logout(Request $request)
     {
@@ -140,9 +136,8 @@ class AuthController extends Controller
      *
      * Endpoint : POST /api/auth/logout-all
      *
-     * @param Request $request Requête contenant l'utilisateur connecté
-     *
-     * @return \Illuminate\Http\JsonResponse Réponse JSON succès
+     * @param  Request  $request  Requête contenant l'utilisateur connecté
+     * @return JsonResponse Réponse JSON succès
      */
     public function logoutAll(Request $request)
     {
@@ -156,9 +151,8 @@ class AuthController extends Controller
      *
      * Endpoint : GET /api/auth/me
      *
-     * @param Request $request Requête contenant l'utilisateur connecté
-     *
-     * @return \Illuminate\Http\JsonResponse Réponse JSON avec utilisateur
+     * @param  Request  $request  Requête contenant l'utilisateur connecté
+     * @return JsonResponse Réponse JSON avec utilisateur
      */
     public function me(Request $request)
     {
@@ -172,9 +166,8 @@ class AuthController extends Controller
      *
      * Endpoint : POST /api/auth/change-password
      *
-     * @param ChangePasswordRequest $request Requête validée contenant current_password et new_password
-     *
-     * @return \Illuminate\Http\JsonResponse Réponse JSON succès ou erreur
+     * @param  ChangePasswordRequest  $request  Requête validée contenant current_password et new_password
+     * @return JsonResponse Réponse JSON succès ou erreur
      *
      * @throws \Exception Si le changement échoue
      */
@@ -195,11 +188,10 @@ class AuthController extends Controller
      *
      * Endpoint : GET /api/auth/email/verify/{id}/{hash}
      *
-     * @param Request $request Requête contenant l'utilisateur connecté
-     * @param string $id ID de l'utilisateur
-     * @param string $hash Hash de vérification
-     *
-     * @return \Illuminate\Http\JsonResponse Réponse JSON succès ou erreur
+     * @param  Request  $request  Requête contenant l'utilisateur connecté
+     * @param  string  $id  ID de l'utilisateur
+     * @param  string  $hash  Hash de vérification
+     * @return JsonResponse Réponse JSON succès ou erreur
      */
     public function verifyEmail(Request $request, string $id, string $hash)
     {
@@ -222,13 +214,16 @@ class AuthController extends Controller
             if ($result['success'] || $result['message'] === 'Email déjà vérifié') {
                 $msg = $result['success'] ? $result['message'] : 'Votre email est déjà vérifié.';
                 $url = $redirectUrl . '?verified=1&message=' . urlencode($msg);
+
                 return redirect($url);
             }
 
             $url = $redirectUrl . '?error=verification_failed&message=' . urlencode($result['message']);
+
             return redirect($url);
         } catch (\Exception $e) {
             $frontendUrl = config('app.frontend_url');
+
             return redirect($frontendUrl . '/auth/login?error=exception&message=' . urlencode($e->getMessage()));
         }
     }
@@ -238,9 +233,8 @@ class AuthController extends Controller
      *
      * Endpoint : POST /api/auth/email/resend
      *
-     * @param Request $request Requête contenant l'utilisateur connecté
-     *
-     * @return \Illuminate\Http\JsonResponse Réponse JSON succès ou erreur
+     * @param  Request  $request  Requête contenant l'utilisateur connecté
+     * @return JsonResponse Réponse JSON succès ou erreur
      */
     public function resendVerificationEmail(Request $request)
     {
@@ -264,9 +258,8 @@ class AuthController extends Controller
      *
      * Endpoint : POST /api/v1/auth/check-email
      *
-     * @param Request $request Requête contenant l'email
-     *
-     * @return \Illuminate\Http\JsonResponse Réponse JSON avec disponibilité
+     * @param  Request  $request  Requête contenant l'email
+     * @return JsonResponse Réponse JSON avec disponibilité
      */
     public function checkEmail(Request $request)
     {
@@ -277,7 +270,7 @@ class AuthController extends Controller
         $exists = Utilisateur::where('email', $request->email)->exists();
 
         return api_success([
-            'available' => !$exists,
+            'available' => ! $exists,
         ]);
     }
 }

@@ -2,11 +2,11 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use App\Enums\EtatCandidature;
 use App\Models\EtatCandidature as ModelsEtatCandidature;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 /**
  * @mixin IdeHelperEtat
@@ -16,8 +16,11 @@ class Etat extends Model
     use HasFactory, HasUuids;
 
     protected $table = 'etats';
+
     public $incrementing = false;
+
     protected $keyType = 'string';
+
     public $timestamps = false;
 
     protected $fillable = [
@@ -28,7 +31,6 @@ class Etat extends Model
     protected $casts = [
         'created_at' => 'datetime',
     ];
-
 
     public function etatCandidatures()
     {

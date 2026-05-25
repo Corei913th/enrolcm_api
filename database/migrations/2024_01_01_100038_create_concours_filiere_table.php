@@ -13,11 +13,11 @@ return new class extends Migration
             $table->uuid('filiere_id');
             $table->integer('nombre_places')->default(0);
             $table->timestamps();
-            
+
             $table->primary(['concours_id', 'filiere_id']);
             $table->foreign('concours_id')->references('id')->on('concours')->onDelete('cascade');
             $table->foreign('filiere_id')->references('id')->on('filieres')->onDelete('cascade');
-            
+
             $table->index('concours_id');
             $table->index('filiere_id');
         });

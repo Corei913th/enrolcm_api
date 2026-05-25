@@ -2,8 +2,8 @@
 
 namespace App\DTOs\Payment;
 
-use Spatie\LaravelData\Data;
 use Illuminate\Http\UploadedFile;
+use Spatie\LaravelData\Data;
 
 class CreatePaiementDTO extends Data
 {

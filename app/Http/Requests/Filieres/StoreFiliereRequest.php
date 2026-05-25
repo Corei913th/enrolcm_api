@@ -2,8 +2,8 @@
 
 namespace App\Http\Requests\Filieres;
 
-use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Validation\Rule;
 
@@ -16,20 +16,20 @@ class StoreFiliereRequest extends FormRequest
 
     public function rules(): array
     {
-        
-    return [
-        'code_filiere' => [
-            'required',
-            'string',
-            'max:10',
-            Rule::unique('filieres', 'code_filiere')
-                ->where(fn ($q) => $q->where('departement_id', request('departement_id')))
-        ],
-        'libelle_filiere' => 'required|string|max:200',
-        'departement_id' => 'required|uuid|exists:departements,id',
-        'desc_filiere' => 'nullable|string',
-        'est_actif' => 'nullable|boolean',
-    ];
+
+        return [
+            'code_filiere' => [
+                'required',
+                'string',
+                'max:10',
+                Rule::unique('filieres', 'code_filiere')
+                    ->where(fn ($q) => $q->where('departement_id', request('departement_id'))),
+            ],
+            'libelle_filiere' => 'required|string|max:200',
+            'departement_id' => 'required|uuid|exists:departements,id',
+            'desc_filiere' => 'nullable|string',
+            'est_actif' => 'nullable|boolean',
+        ];
     }
 
     public function messages(): array

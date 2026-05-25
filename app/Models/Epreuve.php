@@ -2,22 +2,25 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use App\Enums\TypeEpreuve;
 use App\Traits\HasAdvancedSearch;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 /**
  * @mixin IdeHelperEpreuve
  */
 class Epreuve extends Model
 {
-    use HasFactory, HasUuids, HasAdvancedSearch;
+    use HasAdvancedSearch, HasFactory, HasUuids;
 
     protected $table = 'epreuves';
+
     protected $primaryKey = 'id_epreuve';
+
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected $fillable = [
@@ -42,7 +45,6 @@ class Epreuve extends Model
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
-
 
     public function notes()
     {
@@ -69,7 +71,6 @@ class Epreuve extends Model
     {
         return $query->where('session', $session);
     }
-
 
     public function getDureeFormatee()
     {

@@ -13,7 +13,7 @@ return new class extends Migration
             $table->string('specialite', 100)->nullable();
             $table->string('matricule_enseignant', 50)->unique()->nullable();
             $table->timestamps();
-            
+
             $table->foreign('utilisateur_id')->references('id')->on('utilisateurs')->onDelete('cascade');
         });
     }

@@ -13,6 +13,7 @@ class EtatConcours extends Model
     use HasFactory;
 
     protected $table = 'etat_concours';
+
     protected $fillable = ['etat_libelle'];
 
     public function candidatures()

@@ -21,7 +21,7 @@ return new class extends Migration
             $table->text('message_candidat')->nullable()->comment('Message personnalisé affiché aux candidats');
             $table->boolean('timer_actif')->default(false)->comment('Active le compte à rebours avant publication');
             $table->timestamps();
-            
+
             // Index et contraintes
             $table->unique(['concours_id', 'session_id'], 'unique_concours_session');
             $table->index('est_publie');

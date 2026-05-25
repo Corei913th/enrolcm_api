@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 /**
  * @mixin IdeHelperDepartement
@@ -18,7 +18,7 @@ class Departement extends Model
         'libelle_departement',
         'ecole_id',
         'desc_departement',
-        'est_actif', 
+        'est_actif',
     ];
 
     protected $casts = [

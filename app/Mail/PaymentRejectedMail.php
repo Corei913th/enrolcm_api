@@ -13,38 +13,38 @@ use Illuminate\Queue\SerializesModels;
 
 class PaymentRejectedMail extends Mailable
 {
-  use Queueable, SerializesModels;
+    use Queueable, SerializesModels;
 
-  public function __construct(
-    public Utilisateur $utilisateur,
-    public Candidat $candidat,
-    public Paiement $paiement,
-    public string $motif
-  ) {}
+    public function __construct(
+        public Utilisateur $utilisateur,
+        public Candidat $candidat,
+        public Paiement $paiement,
+        public string $motif
+    ) {}
 
-  public function envelope(): Envelope
-  {
-    return new Envelope(
-      subject: 'Paiement rejeté - ' . $this->paiement->reference,
-    );
-  }
+    public function envelope(): Envelope
+    {
+        return new Envelope(
+            subject: 'Paiement rejeté - ' . $this->paiement->reference,
+        );
+    }
 
-  public function content(): Content
-  {
-    return new Content(
-      view: 'emails.payment-rejected',
-      with: [
-        'utilisateur' => $this->utilisateur,
-        'candidat' => $this->candidat,
-        'paiement' => $this->paiement,
-        'concours' => $this->paiement->concours,
-        'motif' => $this->motif,
-      ]
-    );
-  }
+    public function content(): Content
+    {
+        return new Content(
+            view: 'emails.payment-rejected',
+            with: [
+                'utilisateur' => $this->utilisateur,
+                'candidat' => $this->candidat,
+                'paiement' => $this->paiement,
+                'concours' => $this->paiement->concours,
+                'motif' => $this->motif,
+            ]
+        );
+    }
 
-  public function attachments(): array
-  {
-    return [];
-  }
+    public function attachments(): array
+    {
+        return [];
+    }
 }

@@ -17,7 +17,7 @@ return new class extends Migration
             $table->decimal('frais_inscription', 10, 2)->default(0);
             $table->boolean('est_actif')->default(true);
             $table->timestamps();
-            
+
             $table->index('est_actif');
             $table->index('date_limite_depot');
             $table->index('date_examen');

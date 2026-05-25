@@ -3,9 +3,13 @@
 namespace App\Models;
 
 use App\Enums\StatutCandidature;
+use App\Enums\StatutPaiement;
+use App\Enums\StatutVerificationDocument;
+use App\Services\Domain\Candidature\Checkers\EligibilityChecker;
+use App\Services\Domain\Concours\Checkers\ConcoursStatusChecker;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
@@ -16,7 +20,9 @@ class Candidature extends Model
     use HasFactory, HasUuids, SoftDeletes;
 
     protected $table = 'candidatures';
+
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected $fillable = [
@@ -155,7 +161,7 @@ class Candidature extends Model
         return $query->whereIn('statut_candidature', [
             StatutCandidature::SOUMISE->value,
             StatutCandidature::DOCUMENTS_VERIFIES->value,
-            StatutCandidature::PAIEMENT_VERIFIE->value
+            StatutCandidature::PAIEMENT_VERIFIE->value,
         ]);
     }
 
@@ -170,7 +176,7 @@ class Candidature extends Model
             StatutCandidature::SOUMISE->value,
             StatutCandidature::DOCUMENTS_VERIFIES->value,
             StatutCandidature::PAIEMENT_VERIFIE->value,
-            StatutCandidature::VALIDE->value
+            StatutCandidature::VALIDE->value,
         ]);
     }
 
@@ -208,26 +214,28 @@ class Candidature extends Model
 
     public function hasCodeDefinitif()
     {
-        return !is_null($this->code_cand_def);
+        return ! is_null($this->code_cand_def);
     }
 
     public function genererCodeTemporaire()
     {
-        if (!$this->code_cand_temp) {
+        if (! $this->code_cand_temp) {
             $this->code_cand_temp = 'TEMP-' . strtoupper(uniqid());
             $this->save();
         }
+
         return $this->code_cand_temp;
     }
 
     public function genererCodeDefinitif()
     {
-        if (!$this->code_cand_def && $this->isValidee()) {
+        if (! $this->code_cand_def && $this->isValidee()) {
             $annee = date('Y');
             $numero = str_pad($this->id, 6, '0', STR_PAD_LEFT);
             $this->code_cand_def = "CAND-{$annee}-{$numero}";
             $this->save();
         }
+
         return $this->code_cand_def;
     }
 
@@ -246,7 +254,7 @@ class Candidature extends Model
         if ($this->concours && $this->session) {
             return "{$this->concours->libelle_concours} - {$this->session->libelle_session}";
         }
-        return null;
+
     }
 
     public function getDateLimiteDepot()
@@ -256,36 +264,38 @@ class Candidature extends Model
 
     public function getDateExamen()
     {
-        if (!$this->concours) {
-            return null;
+        if (! $this->concours) {
+            return;
         }
 
-        $statusChecker = app(\App\Services\Domain\Concours\Checkers\ConcoursStatusChecker::class);
+        $statusChecker = app(ConcoursStatusChecker::class);
+
         return $statusChecker->getExamStartDate($this->concours);
     }
 
     public function getPeriodeExamen()
     {
-        if (!$this->concours) {
-            return null;
+        if (! $this->concours) {
+            return;
         }
 
-        $statusChecker = app(\App\Services\Domain\Concours\Checkers\ConcoursStatusChecker::class);
+        $statusChecker = app(ConcoursStatusChecker::class);
+
         return $statusChecker->getExamPeriod($this->concours);
     }
 
     public function canDeposerDossier()
     {
-        if (!$this->concours || !$this->session) {
+        if (! $this->concours || ! $this->session) {
             return false;
         }
 
-        $statusChecker = app(\App\Services\Domain\Concours\Checkers\ConcoursStatusChecker::class);
+        $statusChecker = app(ConcoursStatusChecker::class);
 
         return $statusChecker->isOpen($this->concours)
             && $this->session->est_actif
-            && !$this->isValidee()
-            && !$this->isRejetee();
+            && ! $this->isValidee()
+            && ! $this->isRejetee();
     }
 
     // Helpers pour statut candidature
@@ -328,7 +338,7 @@ class Candidature extends Model
     {
         $this->update([
             'statut_candidature' => StatutCandidature::DOCUMENTS_VERIFIES,
-            'documents_complets' => true
+            'documents_complets' => true,
         ]);
     }
 
@@ -336,7 +346,7 @@ class Candidature extends Model
     {
         $this->update([
             'statut_candidature' => StatutCandidature::PAIEMENT_VERIFIE,
-            'paiement_valide' => true
+            'paiement_valide' => true,
         ]);
     }
 
@@ -349,7 +359,7 @@ class Candidature extends Model
     {
         $this->update([
             'statut_candidature' => StatutCandidature::REJETEE,
-            'motif_rejet' => $motif
+            'motif_rejet' => $motif,
         ]);
     }
 
@@ -360,18 +370,18 @@ class Candidature extends Model
 
     public function hasPaiementValide(): bool
     {
-        return $this->paiement && $this->paiement->statut === \App\Enums\StatutPaiement::VERIFIED;
+        return $this->paiement && $this->paiement->statut === StatutPaiement::VERIFIED;
     }
 
     public function hasDocumentsComplets(): bool
     {
         // Load documents if not already loaded
-        if (!$this->relationLoaded('documents')) {
+        if (! $this->relationLoaded('documents')) {
             $this->load('documents');
         }
 
         // Get required documents for this concours
-        $requiredDocuments = \App\Models\DocumentRequis::where('concours_id', $this->concours_id)
+        $requiredDocuments = DocumentRequis::where('concours_id', $this->concours_id)
             ->where('est_obligatoire', true)
             ->pluck('id')
             ->toArray();
@@ -385,7 +395,7 @@ class Candidature extends Model
         foreach ($requiredDocuments as $docRequisId) {
             $document = $this->documents->firstWhere('document_requis_id', $docRequisId);
 
-            if (!$document || $document->statut_verification !== \App\Enums\StatutVerificationDocument::VALIDE) {
+            if (! $document || $document->statut_verification !== StatutVerificationDocument::VALIDE) {
                 return false;
             }
         }
@@ -403,8 +413,9 @@ class Candidature extends Model
      */
     public function peutTelechargerFiche(): bool
     {
-        $checker = app(\App\Services\Domain\Candidature\Checkers\EligibilityChecker::class);
+        $checker = app(EligibilityChecker::class);
         $result = $checker->canGenerateFicheInscription($this);
+
         return $result['eligible'];
     }
 
@@ -413,8 +424,9 @@ class Candidature extends Model
      */
     public function peutTelechargerConvocation(): bool
     {
-        $checker = app(\App\Services\Domain\Candidature\Checkers\EligibilityChecker::class);
+        $checker = app(EligibilityChecker::class);
         $result = $checker->canGenerateConvocation($this);
+
         return $result['eligible'];
     }
 
@@ -423,24 +435,24 @@ class Candidature extends Model
      */
     private function hasChampsNecessairesRemplis(): bool
     {
-        if (!$this->relationLoaded('candidat')) {
+        if (! $this->relationLoaded('candidat')) {
             $this->load('candidat');
         }
 
         $candidat = $this->candidat;
 
-        if (!$candidat) {
+        if (! $candidat) {
             return false;
         }
 
-        return !empty($candidat->nom_cand)
-            && !empty($candidat->prenom_cand)
-            && !empty($candidat->date_naissance_cand)
-            && !empty($candidat->lieu_naissance_cand)
-            && !empty($candidat->sexe_cand)
-            && !empty($candidat->nationalite_cand)
-            && !empty($candidat->telephone)
-            && !empty($candidat->adresse_cand);
+        return ! empty($candidat->nom_cand)
+            && ! empty($candidat->prenom_cand)
+            && ! empty($candidat->date_naissance_cand)
+            && ! empty($candidat->lieu_naissance_cand)
+            && ! empty($candidat->sexe_cand)
+            && ! empty($candidat->nationalite_cand)
+            && ! empty($candidat->telephone)
+            && ! empty($candidat->adresse_cand);
     }
 
     /**
@@ -448,7 +460,7 @@ class Candidature extends Model
      */
     private function hasPlanningDefini(): bool
     {
-        return \App\Models\PlanningEpreuve::where('concours_id', $this->concours_id)
+        return PlanningEpreuve::where('concours_id', $this->concours_id)
             ->where('session_id', $this->session_id)
             ->exists();
     }

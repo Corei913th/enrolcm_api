@@ -3,9 +3,9 @@
 namespace App\Models;
 
 use App\Enums\StatutPaiement;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 /**
  * @mixin IdeHelperPaiement
@@ -15,7 +15,9 @@ class Paiement extends Model
     use HasFactory, HasUuids;
 
     protected $table = 'paiements';
+
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected $fillable = [
@@ -146,11 +148,11 @@ class Paiement extends Model
 
     public function hasOcrData(): bool
     {
-        return !is_null($this->montant_ocr) || !is_null($this->reference_ocr);
+        return ! is_null($this->montant_ocr) || ! is_null($this->reference_ocr);
     }
 
     public function ocrConfidencePercent(): ?int
     {
-        return $this->ocr_confidence ? (int)($this->ocr_confidence * 100) : null;
+        return $this->ocr_confidence ? (int) ($this->ocr_confidence * 100) : null;
     }
 }

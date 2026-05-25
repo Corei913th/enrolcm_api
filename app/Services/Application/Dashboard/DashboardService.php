@@ -2,22 +2,22 @@
 
 namespace App\Services\Application\Dashboard;
 
-use App\Models\Ecole;
-use App\Models\Concours;
-use App\Models\Candidat;
-use App\Models\Paiement;
-use App\Models\Candidature;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Cache;
-use Carbon\Carbon;
 use App\Enums\StatutPaiement;
 use App\Enums\StatutVerificationDocument;
+use App\Models\Candidat;
+use App\Models\Candidature;
+use App\Models\Concours;
+use App\Models\Ecole;
+use App\Models\Paiement;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 class DashboardService
 {
     /**
      * Obtenir les statistiques globales (Super Admin)
-     * 
+     *
      * @return array Statistiques globales du système
      */
     public function getGlobalStats(): array
@@ -39,8 +39,8 @@ class DashboardService
 
     /**
      * Obtenir les statistiques d'une école spécifique (Admin École)
-     * 
-     * @param string $ecoleId UUID de l'école
+     *
+     * @param  string  $ecoleId  UUID de l'école
      * @return array Statistiques de l'école
      */
     public function getEcoleStats(string $ecoleId): array
@@ -141,7 +141,6 @@ class DashboardService
             ];
         }
 
-
         $dossiersComplets = Candidature::where('documents_complets', true)->count();
 
         return [
@@ -223,7 +222,6 @@ class DashboardService
         $now = Carbon::now();
         $in48Hours = Carbon::now()->addHours(48);
 
-
         return Concours::with('ecole')
             ->where('date_limite_depot', '>', $now)
             ->where('date_limite_depot', '<=', $in48Hours)
@@ -262,7 +260,6 @@ class DashboardService
     private function getConcoursStatsForEcole(string $ecoleId): array
     {
         $now = Carbon::now();
-
 
         $concoursQuery = Concours::where('ecole_id', $ecoleId);
 
@@ -328,7 +325,6 @@ class DashboardService
             ];
         }
 
-
         $complets = (clone $candidaturesQuery)->where('documents_complets', true)->count();
 
         return [
@@ -347,14 +343,12 @@ class DashboardService
             $query->where('ecole_id', $ecoleId);
         })->where('statut', StatutPaiement::PENDING)->count();
 
-
         $documentsAValider = DB::table('documents')
             ->join('candidatures', 'documents.candidature_id', '=', 'candidatures.id')
             ->join('concours', 'candidatures.concours_id', '=', 'concours.id')
             ->where('concours.ecole_id', $ecoleId)
             ->where('documents.statut_verification', StatutVerificationDocument::EN_ATTENTE->value)
             ->count();
-
 
         $dossiersIncomplets = Candidature::whereHas('concours', function ($query) use ($ecoleId) {
             $query->where('ecole_id', $ecoleId);
@@ -374,7 +368,6 @@ class DashboardService
     {
         $now = Carbon::now();
         $in48Hours = Carbon::now()->addHours(48);
-
 
         return Concours::where('ecole_id', $ecoleId)
             ->where('date_limite_depot', '>', $now)

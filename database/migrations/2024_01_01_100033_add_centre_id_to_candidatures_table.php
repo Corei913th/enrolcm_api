@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::table('candidatures', function (Blueprint $table) {
             $table->uuid('centre_id')->nullable()->after('session_id');
-            
+
             $table->foreign('centre_id')->references('id')->on('centres')->onDelete('set null');
             $table->index('centre_id');
         });

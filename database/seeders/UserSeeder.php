@@ -2,21 +2,19 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
-use App\Models\Utilisateur;
+use App\Enums\TypeUtilisateur;
 use App\Models\Admin;
 use App\Models\Correcteur;
 use App\Models\ResponsableCentre;
-use App\Enums\TypeUtilisateur;
+use App\Models\Utilisateur;
 use App\Services\Domain\User\RoleService;
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class UserSeeder extends Seeder
 {
     /**
      * Exécuter le seeder.
-     *
-     * @return void
      */
     public function run(): void
     {

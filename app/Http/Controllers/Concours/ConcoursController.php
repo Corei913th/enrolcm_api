@@ -2,27 +2,26 @@
 
 namespace App\Http\Controllers\Concours;
 
-use App\Http\Controllers\Controller;
-use App\Services\Domain\Concours\ConcoursService;
-use App\Services\Domain\Concours\CentreService;
-use App\Services\Domain\Concours\ConcoursFiliereService;
-use App\Services\Domain\Paiement\ConcoursPaiementService;
-use App\Services\Domain\Candidature\CandidatureService;
-use App\Http\Requests\Concours\CreateConcoursRequest;
-use App\Http\Requests\Concours\UpdateConcoursRequest;
-use App\Http\Requests\Concours\ConfigurerPaiementRequest;
-use App\Http\Requests\Concours\AttachCentreRequest;
-use App\Http\Requests\Concours\UpdateCentreStatusRequest;
-use App\Http\Requests\Concours\SyncCentresRequest;
 use App\DTOs\Concours\CreateConcoursDTO;
 use App\DTOs\Concours\UpdateConcoursDTO;
 use App\Exceptions\ConcoursException;
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Concours\AttachCentreRequest;
+use App\Http\Requests\Concours\ConfigurerPaiementRequest;
+use App\Http\Requests\Concours\CreateConcoursRequest;
+use App\Http\Requests\Concours\SyncCentresRequest;
+use App\Http\Requests\Concours\UpdateCentreStatusRequest;
+use App\Http\Requests\Concours\UpdateConcoursRequest;
 use App\Http\Resources\ConcoursResource;
+use App\Services\Domain\Candidature\CandidatureService;
+use App\Services\Domain\Concours\CentreService;
+use App\Services\Domain\Concours\ConcoursFiliereService;
+use App\Services\Domain\Concours\ConcoursService;
+use App\Services\Domain\Paiement\ConcoursPaiementService;
 use App\Services\Infrastructure\Pdf\FicheInscriptionPdfService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
-
 
 class ConcoursController extends Controller
 {
@@ -77,6 +76,7 @@ class ConcoursController extends Controller
         $concours = Cache::remember("concours_detail_{$id}", 300, function () use ($id) {
             return $this->concoursService->getById($id, true);
         });
+
         return api_success(new ConcoursResource($concours));
     }
 
@@ -87,6 +87,7 @@ class ConcoursController extends Controller
     {
         $dto = CreateConcoursDTO::fromRequest($request);
         $concours = $this->concoursService->create($dto);
+
         return api_created(new ConcoursResource($concours), 'Concours créé avec succès');
     }
 
@@ -97,6 +98,7 @@ class ConcoursController extends Controller
     {
         $dto = UpdateConcoursDTO::fromRequest($request);
         $concours = $this->concoursService->update($id, $dto);
+
         return api_updated(new ConcoursResource($concours), 'Concours mis à jour avec succès');
     }
 
@@ -107,6 +109,7 @@ class ConcoursController extends Controller
     {
         $this->concoursService->delete($id);
         Cache::flush();
+
         return api_deleted('Concours supprimé avec succès');
     }
 
@@ -117,6 +120,7 @@ class ConcoursController extends Controller
     {
         $concours = $this->concoursService->activate($id, true);
         Cache::flush();
+
         return api_success(new ConcoursResource($concours), 'Concours activé avec succès');
     }
 
@@ -127,6 +131,7 @@ class ConcoursController extends Controller
     {
         $concours = $this->concoursService->deactivate($id, false);
         Cache::flush();
+
         return api_success(new ConcoursResource($concours), 'Concours désactivé avec succès');
     }
 
@@ -136,7 +141,7 @@ class ConcoursController extends Controller
     public function assignSpec(string $id, Request $request): JsonResponse
     {
         $request->validate([
-            'spec_concours_id' => 'required|uuid|exists:specs_concours,id'
+            'spec_concours_id' => 'required|uuid|exists:specs_concours,id',
         ]);
 
         $concours = $this->concoursService->getById($id);
@@ -144,6 +149,7 @@ class ConcoursController extends Controller
         $concours->save();
 
         Cache::flush();
+
         return api_success(new ConcoursResource($concours), 'Spécification assignée avec succès');
     }
 
@@ -153,6 +159,7 @@ class ConcoursController extends Controller
     public function configurePayment(string $id, ConfigurerPaiementRequest $request): JsonResponse
     {
         $config = $this->paymentService->configurerPaiement($id, $request->validated());
+
         return api_success($config, 'Configuration du paiement enregistrée');
     }
 
@@ -162,6 +169,7 @@ class ConcoursController extends Controller
     public function paymentInfo(string $id): JsonResponse
     {
         $info = $this->paymentService->getConfiguration($id);
+
         return api_success($info);
     }
 
@@ -171,6 +179,7 @@ class ConcoursController extends Controller
     public function stats(string $id): JsonResponse
     {
         $stats = $this->concoursService->getStats($id);
+
         return api_success($stats);
     }
 
@@ -181,6 +190,7 @@ class ConcoursController extends Controller
     {
         $sessionId = $request->input('session_id');
         $this->concoursService->attachSession($id, $sessionId);
+
         return api_success(null, 'Session attachée au concours');
     }
 
@@ -190,6 +200,7 @@ class ConcoursController extends Controller
     public function detachSession(string $id, string $sessionId): JsonResponse
     {
         $this->concoursService->detachSession($id, $sessionId);
+
         return api_success(null, 'Session détachée du concours');
     }
 
@@ -200,6 +211,7 @@ class ConcoursController extends Controller
     {
         $state = $request->input('etat');
         $this->concoursService->changeSessionState($id, $sessionId, $state);
+
         return api_success(null, 'État de la session mis à jour');
     }
 
@@ -210,6 +222,7 @@ class ConcoursController extends Controller
     {
         try {
             $centres = $this->centreService->listCentres($concours);
+
             return api_success($centres, 'Liste des centres');
         } catch (ConcoursException $e) {
             return api_error($e->getMessage(), null, $e->getCode());
@@ -229,6 +242,7 @@ class ConcoursController extends Controller
                 $request->centre_id,
                 $request->boolean('est_actif', true)
             );
+
             return api_success($centre, 'Centre attaché au concours');
         } catch (ConcoursException $e) {
             return api_error($e->getMessage(), null, $e->getCode());
@@ -244,6 +258,7 @@ class ConcoursController extends Controller
     {
         try {
             $this->centreService->detachCentre($concours, $centreId);
+
             return api_success(null, 'Centre détaché du concours');
         } catch (ConcoursException $e) {
             return api_error($e->getMessage(), null, $e->getCode());
@@ -259,6 +274,7 @@ class ConcoursController extends Controller
     {
         try {
             $centre = $this->centreService->updateCentreStatus($concours, $centreId, $request->est_actif);
+
             return api_success($centre, 'Statut du centre mis à jour');
         } catch (ConcoursException $e) {
             return api_error($e->getMessage(), null, $e->getCode());
@@ -274,6 +290,7 @@ class ConcoursController extends Controller
     {
         try {
             $result = $this->centreService->syncCentres($concours, $request->centre_ids);
+
             return api_success($result, 'Centres synchronisés avec succès');
         } catch (ConcoursException $e) {
             return api_error($e->getMessage(), null, $e->getCode());
@@ -303,7 +320,7 @@ class ConcoursController extends Controller
         $concours = $this->concoursService->getById($id);
         $session = $concours->sessions()->first();
 
-        if (!$session) {
+        if (! $session) {
             return api_error('Ce concours n\'est attaché à aucune session', 400);
         }
 
@@ -329,13 +346,13 @@ class ConcoursController extends Controller
     {
         $request->validate([
             'filiere_id' => 'required|exists:filieres,id',
-            'nombre_places' => 'required|integer|min:1'
+            'nombre_places' => 'required|integer|min:1',
         ]);
 
         $concours = $this->concoursService->getById($id);
         $session = $concours->sessions()->first();
 
-        if (!$session) {
+        if (! $session) {
             return api_error('Ce concours n\'est attaché à aucune session', 400);
         }
 
@@ -357,7 +374,7 @@ class ConcoursController extends Controller
         $concours = $this->concoursService->getById($id);
         $session = $concours->sessions()->first();
 
-        if (!$session) {
+        if (! $session) {
             return api_error('Ce concours n\'est attaché à aucune session', 400);
         }
 
@@ -372,13 +389,13 @@ class ConcoursController extends Controller
     public function updateFiliereNombrePlaces(string $id, string $filiereId, Request $request): JsonResponse
     {
         $request->validate([
-            'nombre_places' => 'required|integer|min:1'
+            'nombre_places' => 'required|integer|min:1',
         ]);
 
         $concours = $this->concoursService->getById($id);
         $session = $concours->sessions()->first();
 
-        if (!$session) {
+        if (! $session) {
             return api_error('Ce concours n\'est attaché à aucune session', 400);
         }
 
@@ -400,7 +417,7 @@ class ConcoursController extends Controller
         try {
             $candidature = $this->candidatureService->getCandidatureOrFail($candidatureId);
 
-            if (!$candidature->estValidee()) {
+            if (! $candidature->estValidee()) {
                 return api_error('Seules les candidatures validées peuvent générer une fiche d\'inscription', 403);
             }
             $pdf = $this->ficheService->genererFicheInscription($candidature);
@@ -424,11 +441,11 @@ class ConcoursController extends Controller
 
             return api_success([
                 'coherent' => true,
-                'message' => 'La répartition des places est cohérente'
+                'message' => 'La répartition des places est cohérente',
             ]);
         } catch (\Exception $e) {
             return api_error($e->getMessage(), [
-                'coherent' => false
+                'coherent' => false,
             ], 422);
         }
     }

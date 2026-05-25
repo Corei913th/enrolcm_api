@@ -2,15 +2,14 @@
 
 namespace App\Http\Controllers\Admin\Users;
 
-use App\Http\Controllers\Controller;
 use App\DTOs\Users\CreateUserDTO;
+use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Users\StoreUserRequest;
+use App\Http\Requests\Admin\Users\UpdateUserRequest;
 use App\Http\Resources\UtilisateurResource;
 use App\Services\Domain\User\UserService;
-
-use App\Http\Requests\Admin\Users\UpdateUserRequest;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class UserController extends Controller
 {
@@ -26,12 +25,14 @@ class UserController extends Controller
         $filters = $request->only(['search', 'type_utilisateur', 'est_actif']);
         $perPage = $request->input('per_page', 15);
         $users = $this->userService->getAll($filters, $perPage);
+
         return api_paginated($users, 'Liste des utilisateurs');
     }
 
     /**
      * Créer un membre du staff (ADMIN, CORRECTEUR, RESPONSABLE_CENTRE).
-     * @param StoreUserRequest $request Requête validée contenant les informations du staff
+     *
+     * @param  StoreUserRequest  $request  Requête validée contenant les informations du staff
      */
     public function store(StoreUserRequest $request): JsonResponse
     {
@@ -53,6 +54,7 @@ class UserController extends Controller
     public function show(string $id): JsonResponse
     {
         $user = $this->userService->getById($id);
+
         return api_success(new UtilisateurResource($user));
     }
 
@@ -62,6 +64,7 @@ class UserController extends Controller
     public function update(string $id, UpdateUserRequest $request): JsonResponse
     {
         $user = $this->userService->update($id, $request->validated());
+
         return api_success(new UtilisateurResource($user), 'Utilisateur mis à jour avec succès');
     }
 
@@ -71,6 +74,7 @@ class UserController extends Controller
     public function destroy(string $id): JsonResponse
     {
         $this->userService->delete($id);
+
         return api_deleted('Utilisateur supprimé avec succès');
     }
 }

@@ -8,12 +8,12 @@ use Spatie\LaravelData\Data;
 
 class ManualPaymentDTO extends Data
 {
-  public function __construct(
-    public readonly string $concoursId,
-    public readonly string $reference,
-    public readonly float $montant,
-    public readonly string $banque,
-    public readonly Carbon $datePaiement,
-    public readonly UploadedFile $preuve,
-  ) {}
+    public function __construct(
+        public readonly string $concoursId,
+        public readonly string $reference,
+        public readonly float $montant,
+        public readonly string $banque,
+        public readonly Carbon $datePaiement,
+        public readonly UploadedFile $preuve,
+    ) {}
 }

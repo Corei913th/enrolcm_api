@@ -11,18 +11,16 @@ class CheckPermission
     /**
      * Handle an incoming request.
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
-     * @param  string  ...$permissions
+     * @param  Closure(Request): (Response)  $next
      */
     public function handle(Request $request, Closure $next, string ...$permissions): Response
     {
-        if (!$request->user()) {
+        if (! $request->user()) {
             return api_error('Non authentifié', 'UNAUTHENTICATED', 401);
         }
 
         $user = $request->user();
-        
-        
+
         if ($user->isSuperAdmin()) {
             return $next($request);
         }
@@ -34,7 +32,7 @@ class CheckPermission
             })
             ->exists();
 
-        if (!$hasPermission) {
+        if (! $hasPermission) {
             return api_error(
                 'Accès refusé. Permission requise: ' . implode(' ou ', $permissions),
                 'FORBIDDEN',

@@ -2,8 +2,8 @@
 
 namespace App\Http\Requests\Admin\Users;
 
-use Illuminate\Foundation\Http\FormRequest;
 use App\Enums\TypeUtilisateur;
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class StoreUserRequest extends FormRequest

@@ -2,31 +2,32 @@
 
 namespace Database\Seeders;
 
+use App\Enums\StatutCandidature;
+use App\Enums\StatutNote;
+use App\Models\Candidature;
+use App\Models\Concours;
+use App\Models\Epreuve;
+use App\Models\Matiere;
+use App\Models\Note;
+use App\Models\PlanningEpreuve;
+use App\Models\ResultatFinal;
+use App\Models\Session;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-use App\Models\Concours;
-use App\Models\Session;
-use App\Models\Epreuve;
-use App\Models\Matiere;
-use App\Models\PlanningEpreuve;
-use App\Models\Candidature;
-use App\Models\Note;
-use App\Models\ResultatFinal;
-use App\Enums\StatutCandidature;
-use App\Enums\StatutNote;
 
 class EpreuvesNotesResultatsSeeder extends Seeder
 {
     public function run(): void
     {
-        $this->command->info("🎯 Génération des épreuves, notes, résultats et admissions...");
+        $this->command->info('🎯 Génération des épreuves, notes, résultats et admissions...');
 
         $concours = Concours::with('specConcours')->get();
         $session = Session::where('est_actif', true)->first();
 
-        if ($concours->isEmpty() || !$session) {
-            $this->command->error("❌ Aucun concours ou session trouvé!");
+        if ($concours->isEmpty() || ! $session) {
+            $this->command->error('❌ Aucun concours ou session trouvé!');
+
             return;
         }
 
@@ -36,8 +37,8 @@ class EpreuvesNotesResultatsSeeder extends Seeder
                 $this->command->info("\n📋 Traitement du concours: {$concoursItem->libelle_concours}");
 
                 // Vérifier et créer la relation concours-session si elle n'existe pas
-                if (!$concoursItem->sessions()->where('sessions.id', $session->id)->exists()) {
-                    $this->command->info("   ⚙️  Création de la relation concours-session...");
+                if (! $concoursItem->sessions()->where('sessions.id', $session->id)->exists()) {
+                    $this->command->info('   ⚙️  Création de la relation concours-session...');
                     $concoursItem->sessions()->attach($session->id);
                 }
 
@@ -60,10 +61,10 @@ class EpreuvesNotesResultatsSeeder extends Seeder
 
             DB::commit();
             $this->command->newLine();
-            $this->command->info("✅ Génération terminée avec succès!");
+            $this->command->info('✅ Génération terminée avec succès!');
         } catch (\Exception $e) {
             DB::rollBack();
-            $this->command->error("❌ Erreur: " . $e->getMessage());
+            $this->command->error('❌ Erreur: ' . $e->getMessage());
             throw $e;
         }
     }
@@ -74,7 +75,7 @@ class EpreuvesNotesResultatsSeeder extends Seeder
         $matieres = Matiere::inRandomOrder()->limit(5)->get();
 
         if ($matieres->isEmpty()) {
-            $this->command->warn("⚠️  Aucune matière trouvée. Création de matières par défaut...");
+            $this->command->warn('⚠️  Aucune matière trouvée. Création de matières par défaut...');
             $matieres = collect([
                 Matiere::create(['id' => Str::uuid(), 'libelle_matiere' => 'Mathématiques', 'code_matiere' => 'MATH', 'est_actif' => true]),
                 Matiere::create(['id' => Str::uuid(), 'libelle_matiere' => 'Physique', 'code_matiere' => 'PHY', 'est_actif' => true]),
@@ -211,7 +212,7 @@ class EpreuvesNotesResultatsSeeder extends Seeder
             $moyenne = $totalCoefficients > 0 ? $totalPoints / $totalCoefficients : 0;
 
             // Déterminer l'admission (seuil à 10/20 et pas de note éliminatoire)
-            $estAdmis = $moyenne >= 10 && !$noteEliminatoire;
+            $estAdmis = $moyenne >= 10 && ! $noteEliminatoire;
 
             ResultatFinal::create([
                 'id' => Str::uuid(),

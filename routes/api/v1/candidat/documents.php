@@ -1,7 +1,7 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Candidat\Documents\DocumentController;
+use Illuminate\Support\Facades\Route;
 
 /**
  * Routes Candidat - Documents

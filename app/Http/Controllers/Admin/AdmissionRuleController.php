@@ -7,7 +7,6 @@ use App\Http\Requests\AdmissionRules\UpsertAdmissionRuleRequest;
 use App\Services\Domain\AdmissionRules\AdmissionRuleService;
 use Illuminate\Http\JsonResponse;
 
-
 class AdmissionRuleController extends Controller
 {
     public function __construct(
@@ -16,16 +15,12 @@ class AdmissionRuleController extends Controller
 
     /**
      * Récupérer la règle d'admission pour un concours/session
-     * 
-     * @param string $concoursId
-     * @param string $sessionId
-     * @return JsonResponse
      */
     public function show(string $concoursId, string $sessionId): JsonResponse
     {
         $rule = $this->admissionRuleService->getActiveRule($concoursId, $sessionId);
 
-        if (!$rule) {
+        if (! $rule) {
             return api_success(null, 'Aucune règle d\'admission configurée');
         }
 
@@ -34,11 +29,6 @@ class AdmissionRuleController extends Controller
 
     /**
      * Créer ou mettre à jour une règle d'admission
-     * 
-     * @param UpsertAdmissionRuleRequest $request
-     * @param string $concoursId
-     * @param string $sessionId
-     * @return JsonResponse
      */
     public function upsert(
         UpsertAdmissionRuleRequest $request,
@@ -56,16 +46,12 @@ class AdmissionRuleController extends Controller
 
     /**
      * Supprimer la règle d'admission
-     * 
-     * @param string $concoursId
-     * @param string $sessionId
-     * @return JsonResponse
      */
     public function destroy(string $concoursId, string $sessionId): JsonResponse
     {
         $deleted = $this->admissionRuleService->deleteRules($concoursId, $sessionId);
 
-        if (!$deleted) {
+        if (! $deleted) {
             return api_error('Aucune règle à supprimer', 404);
         }
 

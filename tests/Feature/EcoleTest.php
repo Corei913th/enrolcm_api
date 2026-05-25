@@ -2,9 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Enums\RegionCameroun;
 use App\Models\Ecole;
 use App\Models\User;
-use App\Enums\RegionCameroun;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -33,7 +33,7 @@ class EcoleTest extends TestCase
                 'success',
                 'message',
                 'data',
-                'meta'
+                'meta',
             ]);
     }
 
@@ -60,7 +60,7 @@ class EcoleTest extends TestCase
                     'id',
                     'code_ecole',
                     'libelle_ecole',
-                ]
+                ],
             ]);
 
         $this->assertDatabaseHas('ecoles', [
@@ -93,7 +93,7 @@ class EcoleTest extends TestCase
                 'data' => [
                     'id' => $ecole->id,
                     'code_ecole' => $ecole->code_ecole,
-                ]
+                ],
             ]);
     }
 
@@ -166,7 +166,7 @@ class EcoleTest extends TestCase
     public function it_can_get_ecole_by_code()
     {
         $ecole = Ecole::factory()->create([
-            'code_ecole' => 'TEST123'
+            'code_ecole' => 'TEST123',
         ]);
 
         $response = $this->actingAs($this->user)
@@ -177,7 +177,7 @@ class EcoleTest extends TestCase
                 'success' => true,
                 'data' => [
                     'code_ecole' => 'TEST123',
-                ]
+                ],
             ]);
     }
 

@@ -4,13 +4,14 @@ namespace Database\Factories;
 
 use App\Enums\StatutCandidature;
 use App\Models\Candidat;
+use App\Models\Candidature;
+use App\Models\Centre;
 use App\Models\Concours;
 use App\Models\Session;
-use App\Models\Centre;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Candidature>
+ * @extends Factory<Candidature>
  */
 class CandidatureFactory extends Factory
 {
@@ -27,7 +28,7 @@ class CandidatureFactory extends Factory
         $centre = Centre::first();
 
         // Ensure the concours-session relationship exists
-        if (!$concours->sessions()->where('session_id', $session->id)->exists()) {
+        if (! $concours->sessions()->where('session_id', $session->id)->exists()) {
             $concours->sessions()->attach($session->id);
         }
 

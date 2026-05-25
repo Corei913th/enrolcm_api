@@ -10,8 +10,8 @@ use App\Models\Session;
 use App\Models\SpecConcours;
 use App\Services\Domain\Concours\ConcoursService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
 use Illuminate\Foundation\Testing\WithFaker;
+use Tests\TestCase;
 
 class ConcoursWorkflowTest extends TestCase
 {
@@ -31,7 +31,7 @@ class ConcoursWorkflowTest extends TestCase
         // Given: données minimales
         $data = [
             'libelle_concours' => 'Concours Template Test',
-            'description' => 'Version template pour tests'
+            'description' => 'Version template pour tests',
         ];
 
         // When: création du concours
@@ -56,13 +56,13 @@ class ConcoursWorkflowTest extends TestCase
             'nom_spec' => 'Test spec',
             'desc_infos_concours' => 'Test spec description',
             'frais_inscription' => 30000,
-            'carte_nationale_identite' => true
+            'carte_nationale_identite' => true,
         ]);
 
         $data = [
             'libelle_concours' => 'Concours Avec Specs',
             'spec_concours_id' => $spec->id,
-            'description' => 'Avec spécifications'
+            'description' => 'Avec spécifications',
         ];
 
         // When: création
@@ -80,7 +80,7 @@ class ConcoursWorkflowTest extends TestCase
         $session = Session::create([
             'libelle_session' => '2025-2026',
             'est_actif' => true,
-            'statut_session' => StatutSession::OUVERT
+            'statut_session' => StatutSession::OUVERT,
         ]);
 
         $data = [
@@ -89,7 +89,7 @@ class ConcoursWorkflowTest extends TestCase
             'date_debut' => '2025-06-15',
             'date_limite_depot' => '2025-05-15', // AVANT date examen (cohérent)
             'nombre_places' => 300,
-            'spec_concours_id' => null
+            'spec_concours_id' => null,
         ];
 
         // When: création
@@ -115,12 +115,12 @@ class ConcoursWorkflowTest extends TestCase
             'nom_spec' => 'Spec complète ' . time(),
             'desc_infos_concours' => 'Spec complète description',
             'frais_inscription' => 25000,
-            'carte_nationale_identite' => true
+            'carte_nationale_identite' => true,
         ]);
         $session = Session::create([
             'libelle_session' => '2026-2027',
             'est_actif' => true,
-            'statut_session' => StatutSession::OUVERT
+            'statut_session' => StatutSession::OUVERT,
         ]);
 
         $data = [
@@ -130,7 +130,7 @@ class ConcoursWorkflowTest extends TestCase
             'date_debut' => '2025-06-15',
             'date_limite_depot' => '2025-05-15', // AVANT date examen (cohérent)
             'nombre_places' => 500,
-            'description' => 'Tous les champs remplis'
+            'description' => 'Tous les champs remplis',
         ];
 
         // When: création complète
@@ -157,20 +157,20 @@ class ConcoursWorkflowTest extends TestCase
     {
         // Given: concours template
         $concours = Concours::create([
-            'libelle_concours' => 'Template à mettre à jour'
+            'libelle_concours' => 'Template à mettre à jour',
         ]);
 
         $session = Session::create([
             'libelle_session' => '2025-2026',
             'est_actif' => true,
-            'statut_session' => StatutSession::OUVERT
+            'statut_session' => StatutSession::OUVERT,
         ]);
 
         $updateData = [
             'session_id' => $session->id,
             'date_debut' => '2025-06-15',
             'date_limite_depot' => '2025-03-31',
-            'nombre_places' => 400
+            'nombre_places' => 400,
         ];
 
         $dto = UpdateConcoursDTO::fromRequest($updateData);
@@ -192,7 +192,7 @@ class ConcoursWorkflowTest extends TestCase
         $session1 = Session::create([
             'libelle_session' => '2024-2025',
             'est_actif' => true,
-            'statut_session' => StatutSession::OUVERT
+            'statut_session' => StatutSession::OUVERT,
         ]);
 
         $concours = $this->concoursService->create(
@@ -200,14 +200,14 @@ class ConcoursWorkflowTest extends TestCase
                 'libelle_concours' => 'Concours Changement Session',
                 'session_id' => $session1->id,
                 'date_debut' => '2024-06-15',
-                'nombre_places' => 200
+                'nombre_places' => 200,
             ])
         );
 
         $session2 = Session::create([
             'libelle_session' => '2025-2026',
             'est_actif' => true,
-            'statut_session' => StatutSession::OUVERT
+            'statut_session' => StatutSession::OUVERT,
         ]);
 
         // When: changement de session
@@ -216,7 +216,7 @@ class ConcoursWorkflowTest extends TestCase
             UpdateConcoursDTO::fromRequest([
                 'session_id' => $session2->id,
                 'date_debut' => '2025-06-15',
-                'nombre_places' => 300
+                'nombre_places' => 300,
             ])
         );
 
@@ -233,7 +233,7 @@ class ConcoursWorkflowTest extends TestCase
         $session = Session::create([
             'libelle_session' => '2025-2026',
             'est_actif' => true,
-            'statut_session' => StatutSession::OUVERT
+            'statut_session' => StatutSession::OUVERT,
         ]);
 
         // Test: date limite APRÈS date examen (invalide)
@@ -245,7 +245,7 @@ class ConcoursWorkflowTest extends TestCase
                 'session_id' => $session->id,
                 'date_debut' => '2025-06-15',
                 'date_limite_depot' => '2025-06-20', // APRÈS date examen = invalide
-                'spec_concours_id' => null
+                'spec_concours_id' => null,
             ])
         );
     }
@@ -256,7 +256,7 @@ class ConcoursWorkflowTest extends TestCase
         $session = Session::create([
             'libelle_session' => '2025-2026',
             'est_actif' => true,
-            'statut_session' => StatutSession::OUVERT
+            'statut_session' => StatutSession::OUVERT,
         ]);
 
         // Créer premier concours
@@ -264,7 +264,7 @@ class ConcoursWorkflowTest extends TestCase
             CreateConcoursDTO::fromRequest([
                 'libelle_concours' => 'Concours Unique',
                 'session_id' => $session->id,
-                'spec_concours_id' => null
+                'spec_concours_id' => null,
             ])
         );
 
@@ -275,7 +275,7 @@ class ConcoursWorkflowTest extends TestCase
             CreateConcoursDTO::fromRequest([
                 'libelle_concours' => 'Concours Unique', // Même nom
                 'session_id' => $session->id,              // Même session
-                'spec_concours_id' => null
+                'spec_concours_id' => null,
             ])
         );
     }
@@ -286,13 +286,13 @@ class ConcoursWorkflowTest extends TestCase
         $session1 = Session::create([
             'libelle_session' => '2024-2025',
             'est_actif' => true,
-            'statut_session' => StatutSession::OUVERT
+            'statut_session' => StatutSession::OUVERT,
         ]);
 
         $session2 = Session::create([
             'libelle_session' => '2025-2026',
             'est_actif' => true,
-            'statut_session' => StatutSession::OUVERT
+            'statut_session' => StatutSession::OUVERT,
         ]);
 
         // Créer concours pour session 1
@@ -300,7 +300,7 @@ class ConcoursWorkflowTest extends TestCase
             CreateConcoursDTO::fromRequest([
                 'libelle_concours' => 'Même Nom Différentes Sessions',
                 'session_id' => $session1->id,
-                'spec_concours_id' => null
+                'spec_concours_id' => null,
             ])
         );
 
@@ -309,7 +309,7 @@ class ConcoursWorkflowTest extends TestCase
             CreateConcoursDTO::fromRequest([
                 'libelle_concours' => 'Même Nom Différentes Sessions',
                 'session_id' => $session2->id,
-                'spec_concours_id' => null
+                'spec_concours_id' => null,
             ])
         );
 
@@ -327,7 +327,7 @@ class ConcoursWorkflowTest extends TestCase
         $inactiveSession = Session::create([
             'libelle_session' => 'Session Inactive',
             'est_actif' => false, // INACTIVE
-            'statut_session' => StatutSession::FERME
+            'statut_session' => StatutSession::FERME,
         ]);
 
         $this->expectException(\Exception::class);
@@ -336,7 +336,7 @@ class ConcoursWorkflowTest extends TestCase
             CreateConcoursDTO::fromRequest([
                 'libelle_concours' => 'Test Session Inactive',
                 'session_id' => $inactiveSession->id,
-                'spec_concours_id' => null
+                'spec_concours_id' => null,
             ])
         );
     }
@@ -346,20 +346,20 @@ class ConcoursWorkflowTest extends TestCase
     {
         // Given: concours template et session active
         $template = Concours::create([
-            'libelle_concours' => 'Template à attacher'
+            'libelle_concours' => 'Template à attacher',
         ]);
 
         $session = Session::create([
             'libelle_session' => 'Session d\'attachement',
             'est_actif' => true,
-            'statut_session' => StatutSession::OUVERT
+            'statut_session' => StatutSession::OUVERT,
         ]);
 
         // When: attacher avec configuration
         $config = [
             'date_examen' => '2025-06-15',
             'date_limite_depot' => '2025-05-15',
-            'nbre_max_places' => 300
+            'nbre_max_places' => 300,
         ];
 
         $attached = $this->concoursService->attachToSession($template->id, $session->id, $config);
@@ -383,13 +383,13 @@ class ConcoursWorkflowTest extends TestCase
     {
         // Given: concours template et session (sans config supplémentaire)
         $template = Concours::create([
-            'libelle_concours' => 'Template minimal'
+            'libelle_concours' => 'Template minimal',
         ]);
 
         $session = Session::create([
             'libelle_session' => 'Session minimale',
             'est_actif' => true,
-            'statut_session' => StatutSession::OUVERT
+            'statut_session' => StatutSession::OUVERT,
         ]);
 
         // When: attacher sans configuration
@@ -415,21 +415,21 @@ class ConcoursWorkflowTest extends TestCase
         $session1 = Session::create([
             'libelle_session' => 'Session 1',
             'est_actif' => true,
-            'statut_session' => StatutSession::OUVERT
+            'statut_session' => StatutSession::OUVERT,
         ]);
 
         $concours = $this->concoursService->create(
             CreateConcoursDTO::fromRequest([
                 'libelle_concours' => 'Concours déjà attaché',
                 'session_id' => $session1->id,
-                'spec_concours_id' => null
+                'spec_concours_id' => null,
             ])
         );
 
         $session2 = Session::create([
             'libelle_session' => 'Session 2',
             'est_actif' => true,
-            'statut_session' => StatutSession::OUVERT
+            'statut_session' => StatutSession::OUVERT,
         ]);
 
         // When/Then: essayer d'attacher à une autre session = erreur
@@ -444,13 +444,13 @@ class ConcoursWorkflowTest extends TestCase
     {
         // Given: concours template et session inactive
         $template = Concours::create([
-            'libelle_concours' => 'Template test'
+            'libelle_concours' => 'Template test',
         ]);
 
         $inactiveSession = Session::create([
             'libelle_session' => 'Session inactive',
             'est_actif' => false,
-            'statut_session' => StatutSession::FERME
+            'statut_session' => StatutSession::FERME,
         ]);
 
         // When/Then: attachement à session inactive = erreur
@@ -467,17 +467,17 @@ class ConcoursWorkflowTest extends TestCase
         $session = Session::create([
             'libelle_session' => '2026-2027',
             'est_actif' => true,
-            'statut_session' => StatutSession::OUVERT
+            'statut_session' => StatutSession::OUVERT,
         ]);
 
         $template = Concours::create([
-            'libelle_concours' => 'Test Cohérence Annuelle'
+            'libelle_concours' => 'Test Cohérence Annuelle',
         ]);
 
         // When/Then: date dans la période = OK
         $result = $this->concoursService->attachToSession($template->id, $session->id, [
             'date_examen' => '2026-06-15', // Dans 2026-2027
-            'nbre_max_places' => 100
+            'nbre_max_places' => 100,
         ]);
 
         $this->assertEquals(1, $result->sessions()->count());
@@ -491,17 +491,17 @@ class ConcoursWorkflowTest extends TestCase
         $session = Session::create([
             'libelle_session' => 'MAI 2026',
             'est_actif' => true,
-            'statut_session' => StatutSession::OUVERT
+            'statut_session' => StatutSession::OUVERT,
         ]);
 
         $template = Concours::create([
-            'libelle_concours' => 'Test Cohérence Mensuelle'
+            'libelle_concours' => 'Test Cohérence Mensuelle',
         ]);
 
         // When/Then: date dans la période déduite = OK
         $result = $this->concoursService->attachToSession($template->id, $session->id, [
             'date_examen' => '2026-05-15', // En mai 2026
-            'nbre_max_places' => 100
+            'nbre_max_places' => 100,
         ]);
 
         $this->assertEquals(1, $result->sessions()->count());
@@ -514,11 +514,11 @@ class ConcoursWorkflowTest extends TestCase
         $session = Session::create([
             'libelle_session' => '2026-2027',
             'est_actif' => true,
-            'statut_session' => StatutSession::OUVERT
+            'statut_session' => StatutSession::OUVERT,
         ]);
 
         $template = Concours::create([
-            'libelle_concours' => 'Test Hors Période'
+            'libelle_concours' => 'Test Hors Période',
         ]);
 
         // When/Then: date hors période = erreur
@@ -527,7 +527,7 @@ class ConcoursWorkflowTest extends TestCase
 
         $this->concoursService->attachToSession($template->id, $session->id, [
             'date_examen' => '2028-06-15', // Hors 2026-2027
-            'nbre_max_places' => 100
+            'nbre_max_places' => 100,
         ]);
     }
 

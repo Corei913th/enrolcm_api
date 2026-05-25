@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\Domain\Concours\Checkers\ConcoursStatusChecker;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 
@@ -13,7 +14,9 @@ class ConcoursSession extends Pivot
     use HasFactory;
 
     protected $table = 'concours_session';
+
     public $incrementing = false;
+
     public $timestamps = false;
 
     protected $fillable = [
@@ -61,7 +64,8 @@ class ConcoursSession extends Pivot
 
     public function isOuvert()
     {
-        $statusChecker = app(\App\Services\Domain\Concours\Checkers\ConcoursStatusChecker::class);
+        $statusChecker = app(ConcoursStatusChecker::class);
+
         return $statusChecker->isOpen($this->concours) && $this->session->est_actif;
     }
 }

@@ -2,17 +2,21 @@
 
 namespace App\Services\Domain\Examen;
 
+use App\Enums\StatutCandidature;
 use App\Exceptions\Business\ResultatException;
 use App\Models\AdmissionRule;
-use App\Services\Domain\Examen\Validators\ResultatValidator;
-use App\Services\Domain\Examen\Repositories\ResultatRepository;
-use App\Services\Domain\Examen\Processors\ResultatProcessor;
+use App\Models\Candidature;
+use App\Models\Concours;
+use App\Models\ConcoursFiliere;
+use App\Models\Notification;
+use App\Models\ResultatPublication;
 use App\Services\Domain\Examen\Processors\AdmissionProcessor;
 use App\Services\Domain\Examen\Processors\IntelligentAdmissionProcessor;
+use App\Services\Domain\Examen\Processors\ResultatProcessor;
+use App\Services\Domain\Examen\Repositories\ResultatRepository;
+use App\Services\Domain\Examen\Validators\ResultatValidator;
 use App\Services\Infrastructure\Logger\ActivityLoggerService;
-use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
-
 
 class ResultatService
 {
@@ -55,7 +59,7 @@ class ResultatService
                 'concours_id' => $concoursId,
                 'nombre_resultats' => count($stats['resultats_calcules']),
                 'elimines' => count($stats['elimines']),
-                'notes_manquantes' => count($stats['notes_manquantes'])
+                'notes_manquantes' => count($stats['notes_manquantes']),
             ]);
 
             return $this->buildCalculResponse($concoursId, $sessionId, $candidatures->count(), $stats);
@@ -100,7 +104,7 @@ class ResultatService
             }
 
             // Use stored quotas if not provided
-            $actualQuotas = !empty($maxParRegion) ? $maxParRegion : ($rule->quotas_regionaux ?? []);
+            $actualQuotas = ! empty($maxParRegion) ? $maxParRegion : ($rule->quotas_regionaux ?? []);
 
             if ($useIntelligentMode) {
                 $stats = $this->intelligentAdmissionProcessor->process(
@@ -138,7 +142,7 @@ class ResultatService
     {
         $this->logger->logActivity('determination_all_admissions_start', 'resultat', null, compact('concoursId', 'sessionId', 'force'));
 
-        $concoursFilieres = \App\Models\ConcoursFiliere::where('concours_id', $concoursId)
+        $concoursFilieres = ConcoursFiliere::where('concours_id', $concoursId)
             ->where('session_id', $sessionId)
             ->with('filiere')
             ->get();
@@ -155,7 +159,7 @@ class ResultatService
             'filieres_traitees' => 0,
             'total_admis' => 0,
             'total_candidats' => 0,
-            'details' => []
+            'details' => [],
         ];
 
         foreach ($concoursFilieres as $cf) {
@@ -168,7 +172,7 @@ class ResultatService
             } catch (\Exception $e) {
                 $globalStats['details'][] = [
                     'filiere' => $cf->filiere->libelle_filiere,
-                    'error' => $e->getMessage()
+                    'error' => $e->getMessage(),
                 ];
             }
         }
@@ -176,7 +180,7 @@ class ResultatService
         return [
             'success' => true,
             'message' => 'Détermination globale des admissions terminée',
-            'data' => $globalStats
+            'data' => $globalStats,
         ];
     }
 
@@ -204,8 +208,8 @@ class ResultatService
             'message' => 'Traitement global (Calcul + Admissions) terminé avec succès',
             'data' => [
                 'calcul' => $calculResult['data'],
-                'admissions' => $admissionsResult['data']
-            ]
+                'admissions' => $admissionsResult['data'],
+            ],
         ];
     }
 
@@ -224,7 +228,7 @@ class ResultatService
         $this->validator->validatePublicationPrerequis($concoursId, $sessionId);
 
         return runTransaction(function () use ($concoursId, $sessionId, $datePrevue, $message, $timerActif) {
-            $publication = \App\Models\ResultatPublication::updateOrCreate(
+            $publication = ResultatPublication::updateOrCreate(
                 [
                     'concours_id' => $concoursId,
                     'session_id' => $sessionId,
@@ -232,17 +236,17 @@ class ResultatService
                 [
                     'date_publication_prevue' => $datePrevue ? Carbon::parse($datePrevue) : now(),
                     'date_publication_effective' => $timerActif ? null : now(),
-                    'est_publie' => !$timerActif,
+                    'est_publie' => ! $timerActif,
                     'message_candidat' => $message,
                     'timer_actif' => $timerActif,
                 ]
             );
 
             // Lock concours after publication
-            if (!$timerActif) {
-                $concours = \App\Models\Concours::findOrFail($concoursId);
+            if (! $timerActif) {
+                $concours = Concours::findOrFail($concoursId);
                 $concours->update(['est_actif' => false]);
-                
+
                 // Notify all candidates about results publication
                 $this->notifyCandidatesResultsPublished($concoursId, $sessionId, $message);
             }
@@ -267,16 +271,16 @@ class ResultatService
      */
     private function notifyCandidatesResultsPublished(string $concoursId, string $sessionId, ?string $message): void
     {
-        $candidatures = \App\Models\Candidature::where('concours_id', $concoursId)
+        $candidatures = Candidature::where('concours_id', $concoursId)
             ->where('session_id', $sessionId)
-            ->where('statut_candidature', \App\Enums\StatutCandidature::VALIDE->value)
+            ->where('statut_candidature', StatutCandidature::VALIDE->value)
             ->with('candidat.utilisateur')
             ->get();
 
         foreach ($candidatures as $candidature) {
             if ($candidature->candidat?->utilisateur) {
                 // Create notification
-                \App\Models\Notification::create([
+                Notification::create([
                     'utilisateur_id' => $candidature->candidat->utilisateur->id,
                     'type_notification' => 'RESULTATS_PUBLIES',
                     'titre' => 'Résultats publiés',
@@ -307,7 +311,7 @@ class ResultatService
     public function depublierResultats(string $concoursId, string $sessionId): array
     {
         return runTransaction(function () use ($concoursId, $sessionId) {
-            $publication = \App\Models\ResultatPublication::where('concours_id', $concoursId)
+            $publication = ResultatPublication::where('concours_id', $concoursId)
                 ->where('session_id', $sessionId)
                 ->firstOrFail();
 
@@ -402,8 +406,8 @@ class ResultatService
             ],
             'warnings' => [
                 'elimines' => $stats['elimines'],
-                'notes_manquantes' => $stats['notes_manquantes']
-            ]
+                'notes_manquantes' => $stats['notes_manquantes'],
+            ],
         ];
     }
 
@@ -437,7 +441,7 @@ class ResultatService
                 'liste_attente' => $stats['liste_attente'],
                 'non_admis' => $stats['non_admis'],
                 'date_determination' => Carbon::now()->toDateTimeString(),
-            ]
+            ],
         ];
     }
 }

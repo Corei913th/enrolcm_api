@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('admission_rules', function (Blueprint $table) {
-            if (!Schema::hasColumn('admission_rules', 'quotas_regionaux')) {
+            if (! Schema::hasColumn('admission_rules', 'quotas_regionaux')) {
                 $table->json('quotas_regionaux')->nullable()->after('criteres_prioritaires');
             }
         });
