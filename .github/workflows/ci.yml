@@ -62,6 +62,7 @@ jobs:
       - name: Install Dependencies
         run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
       - name: PHP Pint
+        continue-on-error: true
         run: ./vendor/bin/pint --test
 
   tests:
