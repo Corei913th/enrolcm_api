@@ -1,0 +1,38 @@
+groups:
+  - name: enrolcm_alerts
+    rules:
+      - alert: HighErrorRate
+        expr: (sum(rate(nginx_http_requests_total{status=~"5.."}[5m])) / sum(rate(nginx_http_requests_total[5m]))) * 100 > 5
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Taux d'erreur élevé sur EnrolcmAPI"
+          description: "Le taux d'erreur 5xx est de {{ $value | printf \"%.2f\" }}% depuis plus de 2 minutes."
+
+      - alert: DatabaseDown
+        expr: pg_up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Base de données Enrolcm DOWN"
+          description: "L'instance PostgreSQL est injoignable pour le service monitoring."
+
+      - alert: AppServiceDown
+        expr: up{job="enrolcm-business"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "API Enrolcm DOWN"
+          description: "Le service Laravel (app) ne répond plus aux requêtes de métriques."
+
+      - alert: HighMemoryUsage
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 90
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Mémoire saturée sur le serveur"
+          description: "L'utilisation de la RAM est de {{ $value | printf \"%.2f\" }}%."

@@ -35,10 +35,11 @@ yarn-error.log
 /storage/logs/*
 !/storage/logs/.gitignore
 database/database.sqlite
-.github
 docs/*
 scripts/*
 .kiro/*
+camwater_api/*
+CICD
 # Documentation (local only)
 
 
