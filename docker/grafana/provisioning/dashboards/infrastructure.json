@@ -1,0 +1,88 @@
+{
+  "title": "Infrastructure",
+  "uid": "infra",
+  "version": 1,
+  "schemaVersion": 39,
+  "timezone": "browser",
+  "editable": true,
+  "refresh": "30s",
+  "tags": ["enrolcm"],
+  "time": { "from": "now-15m", "to": "now" },
+  "timepicker": {},
+  "templating": { "list": [] },
+  "annotations": { "list": [] },
+  "panels": [
+    {
+      "id": 1,
+      "title": "CPU Usage (containers)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "datasource": { "type": "prometheus" },
+      "fieldConfig": {
+        "defaults": { "unit": "percent", "min": 0, "max": 100 }
+      },
+      "targets": [
+        { "expr": "rate(container_cpu_usage_seconds_total{name=~\"enrolcm_.*\"}[1m]) * 100", "legendFormat": "{{name}}" }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Memory Usage (containers)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "datasource": { "type": "prometheus" },
+      "fieldConfig": {
+        "defaults": { "unit": "decmbytes" }
+      },
+      "targets": [
+        { "expr": "container_memory_usage_bytes{name=~\"enrolcm_.*\"} / 1048576", "legendFormat": "{{name}}" }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Node CPU",
+      "type": "gauge",
+      "gridPos": { "h": 6, "w": 6, "x": 0, "y": 8 },
+      "datasource": { "type": "prometheus" },
+      "fieldConfig": {
+        "defaults": { "unit": "percent", "min": 0, "max": 100 }
+      },
+      "targets": [
+        { "expr": "100 - (avg by(instance) (rate(node_cpu_seconds_total{mode=\"idle\"}[1m])) * 100)" }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Node Memory",
+      "type": "gauge",
+      "gridPos": { "h": 6, "w": 6, "x": 6, "y": 8 },
+      "datasource": { "type": "prometheus" },
+      "fieldConfig": {
+        "defaults": { "unit": "percent", "min": 0, "max": 100 }
+      },
+      "targets": [
+        { "expr": "(1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100" }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Nginx Active Connections",
+      "type": "timeseries",
+      "gridPos": { "h": 6, "w": 6, "x": 12, "y": 8 },
+      "datasource": { "type": "prometheus" },
+      "targets": [
+        { "expr": "nginx_connections_active", "legendFormat": "active" }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "PostgreSQL Connections",
+      "type": "timeseries",
+      "gridPos": { "h": 6, "w": 6, "x": 18, "y": 8 },
+      "datasource": { "type": "prometheus" },
+      "targets": [
+        { "expr": "pg_stat_activity_count{datname=\"enrolcm_db\"}", "legendFormat": "{{datname}}" }
+      ]
+    }
+  ]
+}
