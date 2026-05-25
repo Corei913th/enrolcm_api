@@ -2,7 +2,7 @@ name: 🚛 CD - Staging
 
 on:
   workflow_run:
-    workflows: [ "🏗️ CI - Validation" ]
+    workflows: ["🏗️ CI - Validation"]
     types:
       - completed
     branches:
@@ -18,7 +18,7 @@ jobs:
 
   deploy:
     name: 🚀 Deploy to DOCKER HUB
-    needs: [ check-ci ]
+    needs: [check-ci]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -32,5 +32,5 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/enrolcm-app:develop,${{
-            secrets.DOCKERHUB_USERNAME }}/enrolcm-app:${{ github.sha }}
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/enrolcm_app:develop,${{
+            secrets.DOCKERHUB_USERNAME }}/enrolcm_app:${{ github.sha }}
