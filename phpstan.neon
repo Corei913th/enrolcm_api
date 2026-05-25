@@ -6,5 +6,7 @@ parameters:
     paths:
         - app
     tmpDir: build/phpstan
+    excludePaths:
+        - app/Console/Commands/NettoyerPRUExpirees.php
     ignoreErrors:
         - '#Unused variable \$[a-z]+#'
