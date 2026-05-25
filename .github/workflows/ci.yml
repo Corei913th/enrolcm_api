@@ -109,6 +109,7 @@ jobs:
       - name: Copy .env
         run: |
           php -r "file_exists('.env') || copy('.env.example', '.env');"
+          php -r "file_put_contents('.env', preg_replace('/^APP_ENV=.*/m', 'APP_ENV=testing', file_get_contents('.env')));"
           php -r "file_put_contents('.env', preg_replace('/^DB_USERNAME=.*/m', 'DB_USERNAME=user', file_get_contents('.env')));"
           php -r "file_put_contents('.env', preg_replace('/^DB_PASSWORD=.*/m', 'DB_PASSWORD=password', file_get_contents('.env')));"
       - name: Generate Key
