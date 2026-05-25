@@ -64,7 +64,6 @@ services:
   # Monitoring
   prometheus:
     image: prom/prometheus:latest
-    pull_policy: never
     container_name: enrolcm_prometheus
     restart: unless-stopped
     volumes:
@@ -81,7 +80,6 @@ services:
 
   alertmanager:
     image: prom/alertmanager:latest
-    pull_policy: never
     container_name: enrolcm_alertmanager
     restart: unless-stopped
     environment:
@@ -106,7 +104,6 @@ services:
 
   grafana:
     image: grafana/grafana:latest
-    pull_policy: never
     container_name: enrolcm_grafana
     restart: unless-stopped
     ports:
@@ -122,7 +119,6 @@ services:
 
   node-exporter:
     image: prom/node-exporter:latest
-    pull_policy: never
     container_name: enrolcm_node_exporter
     restart: unless-stopped
     networks:
@@ -130,7 +126,6 @@ services:
 
   cadvisor:
     image: zcube/cadvisor:latest
-    pull_policy: never
     container_name: enrolcm_cadvisor
     restart: unless-stopped
     volumes:
@@ -143,7 +138,6 @@ services:
 
   nginx-exporter:
     image: nginx/nginx-prometheus-exporter:latest
-    pull_policy: never
     container_name: enrolcm_nginx_exporter
     restart: unless-stopped
     command:
@@ -155,7 +149,6 @@ services:
 
   postgres-exporter:
     image: prometheuscommunity/postgres-exporter:latest
-    pull_policy: never
     container_name: enrolcm_postgres_exporter
     restart: unless-stopped
     environment:

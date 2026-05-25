@@ -22,7 +22,7 @@
         "defaults": { "unit": "percent", "min": 0, "max": 100 }
       },
       "targets": [
-        { "expr": "rate(container_cpu_usage_seconds_total{name=~\"enrolcm_.*\"}[1m]) * 100", "legendFormat": "{{name}}" }
+        { "expr": "rate(container_cpu_usage_seconds_total{container_label_com_docker_compose_project=~\"enrolcm_api|enrolcm\"}[1m]) * 100", "legendFormat": "{{container_label_com_docker_compose_service}}" }
       ]
     },
     {
@@ -35,7 +35,7 @@
         "defaults": { "unit": "decmbytes" }
       },
       "targets": [
-        { "expr": "container_memory_usage_bytes{name=~\"enrolcm_.*\"} / 1048576", "legendFormat": "{{name}}" }
+        { "expr": "container_memory_usage_bytes{container_label_com_docker_compose_project=~\"enrolcm_api|enrolcm\"} / 1048576", "legendFormat": "{{container_label_com_docker_compose_service}}" }
       ]
     },
     {
