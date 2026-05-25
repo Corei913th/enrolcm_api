@@ -10,38 +10,42 @@ class AuthenticationTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_users_can_authenticate_using_the_login_screen(): void
+    public function test_candidat_can_login(): void
     {
         $user = User::factory()->create();
 
-        $response = $this->post('/login', [
+        $response = $this->post('/api/v1/auth/candidat/login', [
             'email' => $user->email,
             'password' => 'password',
         ]);
 
-        $this->assertAuthenticated();
-        $response->assertNoContent();
+        $response->assertOk()
+            ->assertJsonStructure([
+                'success',
+                'data' => ['user', 'access_token', 'refresh_token', 'token_type', 'expires_in'],
+            ]);
     }
 
-    public function test_users_can_not_authenticate_with_invalid_password(): void
+    public function test_candidat_cannot_login_with_invalid_password(): void
     {
         $user = User::factory()->create();
 
-        $this->post('/login', [
+        $response = $this->post('/api/v1/auth/candidat/login', [
             'email' => $user->email,
             'password' => 'wrong-password',
         ]);
 
-        $this->assertGuest();
+        $response->assertStatus(422)
+            ->assertJson(['success' => false]);
     }
 
-    public function test_users_can_logout(): void
+    public function test_user_can_logout(): void
     {
         $user = User::factory()->create();
 
-        $response = $this->actingAs($user)->post('/logout');
+        $response = $this->actingAs($user)->post('/api/v1/auth/logout');
 
-        $this->assertGuest();
-        $response->assertNoContent();
+        $response->assertOk()
+            ->assertJson(['success' => true]);
     }
 }

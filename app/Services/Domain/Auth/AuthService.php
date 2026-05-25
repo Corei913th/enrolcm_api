@@ -81,7 +81,7 @@ class AuthService
   public function logout(Utilisateur $utilisateur): void
   {
     $token = $utilisateur->currentAccessToken();
-    if ($token) {
+    if ($token && !($token instanceof \Laravel\Sanctum\TransientToken)) {
       $this->tokenService->revokeToken($utilisateur, $token->id);
     }
     $this->logOperation('logout', 'utilisateur', $utilisateur->id);

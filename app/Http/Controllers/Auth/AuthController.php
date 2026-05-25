@@ -11,6 +11,7 @@ use App\DTOs\Auth\ChangePasswordDTO;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use App\Http\Resources\UtilisateurResource;
+use App\Models\Utilisateur;
 use App\Services\Domain\Notification\NotificationService;
 
 class AuthController extends Controller
@@ -256,5 +257,27 @@ class AuthController extends Controller
         } catch (\Exception $e) {
             return api_error($e->getMessage(), null, 500);
         }
+    }
+
+    /**
+     * Vérifier si un email existe déjà.
+     *
+     * Endpoint : POST /api/v1/auth/check-email
+     *
+     * @param Request $request Requête contenant l'email
+     *
+     * @return \Illuminate\Http\JsonResponse Réponse JSON avec disponibilité
+     */
+    public function checkEmail(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+        ]);
+
+        $exists = Utilisateur::where('email', $request->email)->exists();
+
+        return api_success([
+            'available' => !$exists,
+        ]);
     }
 }

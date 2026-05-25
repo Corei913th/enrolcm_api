@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Auth;
 
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -9,16 +10,20 @@ class RegistrationTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_new_users_can_register(): void
+    public function test_unauthenticated_user_cannot_access_protected_routes(): void
     {
-        $response = $this->post('/register', [
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-            'password' => 'password',
-            'password_confirmation' => 'password',
-        ]);
+        $response = $this->getJson('/api/v1/auth/me');
 
-        $this->assertAuthenticated();
-        $response->assertNoContent();
+        $response->assertStatus(401);
+    }
+
+    public function test_authenticated_user_can_logout(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->postJson('/api/v1/auth/logout');
+
+        $response->assertOk()
+            ->assertJson(['success' => true]);
     }
 }
