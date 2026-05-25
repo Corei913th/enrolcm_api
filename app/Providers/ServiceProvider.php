@@ -20,11 +20,11 @@ class ServiceProvider extends BaseServiceProvider
     });
 
     $this->app->singleton(ExcelExportService::class, function ($app) {
-      return new ExcelExportService();
+      return $app->make(ExcelExportService::class);
     });
 
     $this->app->singleton(PdfExportService::class, function ($app) {
-      return new PdfExportService();
+      return $app->make(PdfExportService::class);
     });
 
     $this->app->singleton(QrCodeService::class, function ($app) {

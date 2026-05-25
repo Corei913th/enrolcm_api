@@ -2,7 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Candidats\CandidatController;
-use App\Http\Controllers\Candidats\CandidatResultatController;
+
 
 /**
  * ============================================
@@ -40,12 +40,7 @@ Route::prefix('candidats')
     Route::post('/documents', [CandidatController::class, 'uploadDocument'])
       ->name('documents.upload');
 
-    // Results consultation routes
-    Route::get('/resultats', [CandidatResultatController::class, 'mesResultats'])
-      ->name('resultats.index');
 
-    Route::get('/resultats/{candidature}', [CandidatResultatController::class, 'detailResultat'])
-      ->name('resultats.show');
   });
 
 // --- Admin Candidate Management ---

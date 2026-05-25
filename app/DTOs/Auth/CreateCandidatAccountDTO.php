@@ -3,7 +3,7 @@
 namespace App\DTOs\Auth;
 
 use App\Enums\TypeUtilisateur;
-use App\Http\Requests\Auth\CreateCandidatAccountRequest;
+use App\Http\Requests\Candidats\CreateCandidatAccountRequest;
 use Illuminate\Support\Facades\Hash;
 use Spatie\LaravelData\Data;
 

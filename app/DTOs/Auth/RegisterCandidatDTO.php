@@ -3,7 +3,7 @@
 namespace App\DTOs\Auth;
 
 use Spatie\LaravelData\Data;
-use App\Http\Requests\Auth\RegisterCandidatRequest;
+use App\Http\Requests\Candidats\RegisterCandidatRequest;
 
 class RegisterCandidatDTO extends Data
 {

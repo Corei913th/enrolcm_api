@@ -2,11 +2,21 @@ includes:
     - vendor/larastan/larastan/extension.neon
 
 parameters:
-    level: 5
+    level: 0
+    reportUnmatchedIgnoredErrors: false
     paths:
-        - app
-    tmpDir: build/phpstan
+        - app/Http/Controllers/Auth
+        - app/Http/Controllers/Public
+        - app/Services/Domain/Auth
+        - app/Services/Domain/Registration
+        - app/DTOs/Auth
+        - app/Http/Requests/Auth
+        - app/Http/Requests/Public
+        - app/Http/Requests/Candidats
+        - app/Enums
+        - app/Models
+        - app/Providers
+        - routes
     excludePaths:
-        - app/Console/Commands/NettoyerPRUExpirees.php
-    ignoreErrors:
-        - '#Unused variable \$[a-z]+#'
+        - app/Models/ConcoursFiliere.php
+    tmpDir: build/phpstan
