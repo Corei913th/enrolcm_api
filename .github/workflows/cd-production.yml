@@ -27,7 +27,9 @@ jobs:
 
       - name: "📝 Préparation du .env et du Flag"
         run: |
-          printf '%s' "${{ secrets.PROD_ENV_FILE }}" > .env
+          cat > .env << 'ENVEOF'
+${{ secrets.PROD_ENV_FILE }}
+ENVEOF
           grep -q "^APP_KEY=" .env || echo "APP_KEY=" >> .env
           NEW_KEY=$(php -r "echo 'base64:'.base64_encode(random_bytes(32));")
           sed -i 's|^APP_KEY=.*|APP_KEY='${NEW_KEY}'|' .env
