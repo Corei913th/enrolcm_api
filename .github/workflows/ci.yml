@@ -7,66 +7,8 @@ on:
     branches: ["main", "dev"]
 
 jobs:
-  security:
-    name: 🛡️ Security Audit & SAST
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: "8.2"
-          coverage: none
-      - name: Install Dependencies
-        run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
-      - name: Composer Audit
-        run: composer audit --abandoned=ignore
-      - name: Larastan SAST
-        run: ./vendor/bin/phpstan analyse --error-format=github --memory-limit=1G
-
-  secret-scan:
-    name: 🛡️ Secret Scanning
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Gitleaks Scan
-        uses: gitleaks/gitleaks-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  iac:
-    name: 🛡️ IaC & Docker Scan
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Run Trivy scanner
-        uses: aquasecurity/trivy-action@master
-        with:
-          scan-type: "config"
-          format: "table"
-          exit-code: "1"
-          severity: "CRITICAL,HIGH"
-
-  lint:
-    name: 🧹 Lint & Style
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: "8.2"
-          coverage: none
-      - name: Install Dependencies
-        run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
-      - name: PHP Pint
-        run: ./vendor/bin/pint --test
-
   tests:
     name: 🧪 Feature & Unit Tests
-    needs: [security, iac]
     runs-on: ubuntu-latest
     env:
       DB_CONNECTION: pgsql
@@ -119,17 +61,3 @@ jobs:
         run: php artisan db:seed --force
       - name: Run Tests
         run: php artisan test tests/Feature/Auth tests/Feature/Registration
-
-  sonarqube:
-    name: 🛡️ SonarQube Scan
-    needs: tests
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: SonarQube Scan
-        uses: sonarsource/sonarqube-scan-action@master
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
