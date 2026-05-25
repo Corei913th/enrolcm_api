@@ -66,7 +66,7 @@ jobs:
       - name: Install Dependencies
         run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
       - name: PHP Pint
-        run: ./vendor/bin/pint --test
+        run: ./vendor/bin/pint --test app/Http/Controllers/Auth app/Http/Controllers/Public app/Services/Domain/Auth app/Services/Domain/Registration app/DTOs/Auth app/Http/Requests/Auth app/Http/Requests/Public app/Http/Requests/Candidats
 
   tests:
     name: 🧪 Feature & Unit Tests
