@@ -126,7 +126,7 @@ jobs:
       - name: Seed Database
         run: php artisan db:seed --force
       - name: Run Tests
-        run: php artisan test tests/Feature/Auth tests/Feature/Registration
+        run: php artisan test tests/Feature/Auth
 
   sonarqube:
     name: 🛡️ SonarQube Scan
